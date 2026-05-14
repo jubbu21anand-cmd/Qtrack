@@ -1381,17 +1381,47 @@ function setRating(n){
   starRating=n;
   document.querySelectorAll('.star-btn').forEach((b,i)=>b.classList.toggle('lit',i<n));
 }
-function submitFeedback(){
-  if(!starRating){showToast('Please select a rating');return;}
-  const msg=document.getElementById('feedbackText').value.trim();
-  const subject=encodeURIComponent('QTrack Feedback — '+starRating+' star'+(starRating>1?'s':''));
-  const body=encodeURIComponent(`Rating: ${starRating}/5 stars\n\n${msg||'(no message)'}\n\n— Sent from QTrack 0.4.0`);
-  window.open(`mailto:jubbu21anand@gmail.com?subject=${subject}&body=${body}`,'_blank');
-  closeModal('feedbackModal');
-  document.getElementById('feedbackText').value='';
-  starRating=0;
-  document.querySelectorAll('.star-btn').forEach(b=>b.classList.remove('lit'));
-  showToast('Opening mail app…');
+async function submitFeedback() {
+  const text = document.getElementById('feedbackText').value.trim();
+
+  if (!starRating && !text) {
+    showToast('Add rating or feedback');
+    return;
+  }
+
+  const feedback = {
+    rating: starRating || null,
+    message: text || '',
+    time: Date.now(),
+    session: sessionId
+  };
+
+  try {
+    await fetch(
+      FB + '/feedbacks/' + Date.now() + '.json',
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(feedback)
+      }
+    );
+
+    closeModal('feedbackModal');
+
+    document.getElementById('feedbackText').value = '';
+
+    starRating = 0;
+
+    document.querySelectorAll('.star-btn')
+      .forEach(btn => btn.classList.remove('lit'));
+
+    showToast('Feedback sent!');
+  }
+  catch (e) {
+    showToast('Failed to send');
+  }
 }
 
 /* ══════════════════════════════════════════════════════
