@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QTrack 0.7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--bg:#0e0e0f;--surface:#181819;--surface2:#222224;--border:#2e2e32;--text:#f0ede8;--muted:#888885;--phy:#5b8dee;--chem:#e8724a;--math:#4ecba4;--green:#4ecba4;--red:#e8724a;--radius:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;padding:0 0 5rem;}
+header{padding:1.25rem 2.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:100;}
+.logo{font-size:1.2rem;font-weight:800;letter-spacing:-0.03em;}.logo span{color:var(--phy);}
+.header-right{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;}
+.session-badge{font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;transition:border-color .2s;}
+.session-badge:hover{border-color:var(--muted);}
+.add-user-btn{background:var(--text);color:var(--bg);border:none;border-radius:8px;padding:7px 16px;font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.add-user-btn:hover{opacity:.85;}
+.main{padding:1.75rem 2.5rem;}
+
+/* tabs */
+.tab-bar{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:4px;width:fit-content;}
+.tab-btn{background:none;border:none;color:var(--muted);font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:6px 14px;border-radius:6px;cursor:pointer;transition:background .2s,color .2s;}
+.tab-btn.active{background:var(--surface2);color:var(--text);}
+.tab-panel{display:none;}.tab-panel.active{display:block;}
+
+/* summary strip */
+.summary-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;}
+.stat-label{font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.35rem;}
+.stat-value{font-family:'DM Mono',monospace;font-size:1.5rem;font-weight:500;letter-spacing:-0.03em;}
+.stat-value.sm{font-size:0.95rem;padding-top:0.25rem;}
+
+/* top performer */
+.top-performer-inner{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.tp-name{font-weight:700;font-size:0.95rem;letter-spacing:-0.02em;}
+.tp-lead{display:inline-flex;align-items:center;gap:3px;font-family:'DM Mono',monospace;font-size:0.75rem;color:#4ecba4;background:rgba(78,203,164,.13);border-radius:4px;padding:2px 7px;}
+.tp-arrow{font-size:0.8rem;}
+
+/* chart section */
+.chart-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem 1.5rem 1rem;margin-bottom:1.5rem;}
+.chart-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;}
+.chart-title{font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
+.legend{display:flex;gap:1.1rem;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:0.72rem;color:var(--muted);font-weight:500;}
+.legend-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+.chart-wrap{position:relative;width:100%;height:300px;}
+.no-data-msg{text-align:center;color:var(--muted);font-size:0.82rem;padding:3.5rem 0;line-height:1.8;}
+.no-data-msg strong{color:var(--text);font-size:0.95rem;display:block;margin-bottom:.4rem;}
+
+/* chart view switcher */
+.view-switcher{display:flex;gap:4px;}
+.view-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:4px 10px;border-radius:5px;cursor:pointer;transition:all .2s;}
+.view-btn.active{border-color:#555;color:var(--text);background:var(--surface2);}
+
+/* calendar */
+.cal-wrap{margin-bottom:1.5rem;}
+.cal-nav{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;}
+.cal-nav-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+.cal-nav-btn:hover{border-color:#555;}
+.cal-month-label{font-size:0.8rem;font-weight:700;letter-spacing:0.05em;min-width:120px;text-align:center;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-day-header{font-size:0.6rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);text-align:center;padding:4px 0;}
+.cal-day{background:var(--surface2);border:1px solid var(--border);border-radius:6px;min-height:52px;padding:4px 5px;cursor:pointer;transition:border-color .2s;position:relative;}
+.cal-day:hover{border-color:#555;}
+.cal-day.empty{background:none;border-color:transparent;cursor:default;}
+.cal-day.today{border-color:#444;}
+.cal-day.selected{border-color:var(--phy);}
+.cal-day.has-data::after{content:'';position:absolute;bottom:4px;right:4px;width:5px;height:5px;border-radius:50%;background:var(--phy);}
+.cal-day-num{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);}
+.cal-day-total{font-family:'DM Mono',monospace;font-size:0.75rem;font-weight:500;color:var(--text);margin-top:2px;}
+.cal-day-subs{display:flex;gap:2px;margin-top:3px;flex-wrap:wrap;}
+.cal-sub-dot{width:5px;height:5px;border-radius:50%;}
+.cal-detail{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-top:0.75rem;}
+.cal-detail-title{font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;}
+.cal-detail-rows{display:flex;flex-direction:column;gap:0.5rem;}
+.cal-detail-row{display:flex;align-items:center;gap:1rem;background:var(--surface2);border-radius:7px;padding:0.6rem 0.9rem;}
+.cal-detail-name{font-weight:700;font-size:0.85rem;min-width:80px;}
+.cal-detail-subs{display:flex;gap:0.75rem;flex:1;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);}
+.cal-detail-total{font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:500;}
+
+/* users grid */
+.users-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;}
+.user-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;transition:border-color .2s;}
+.user-card:hover{border-color:#444;}
+.user-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
+.user-name-row{display:flex;align-items:center;gap:8px;}
+.user-name{font-weight:700;font-size:1rem;letter-spacing:-0.02em;}
+.perf-badge{display:inline-flex;align-items:center;gap:3px;font-family:'DM Mono',monospace;font-size:0.68rem;border-radius:4px;padding:2px 6px;font-weight:500;}
+.perf-badge.up{color:#4ecba4;background:rgba(78,203,164,.12);}
+.perf-badge.down{color:#e8724a;background:rgba(232,114,74,.12);}
+.perf-badge.neutral{color:var(--muted);background:var(--surface2);}
+.user-total{font-family:'DM Mono',monospace;font-size:0.82rem;color:var(--muted);}
+.subject-rows{display:flex;flex-direction:column;gap:.55rem;}
+.subject-row{display:flex;align-items:center;gap:.7rem;}
+.subject-label{font-size:0.7rem;font-weight:700;letter-spacing:.05em;width:40px;flex-shrink:0;}
+.subject-bar-bg{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+.subject-bar-fill{height:100%;border-radius:3px;transition:width .4s ease;}
+.subject-count{font-family:'DM Mono',monospace;font-size:0.7rem;width:26px;text-align:right;color:var(--muted);}
+.add-qs-section{margin-top:1.1rem;padding-top:1rem;border-top:1px solid var(--border);}
+.add-qs-label{font-size:0.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem;}
+.add-qs-row{display:flex;gap:5px;flex-wrap:wrap;}
+.subject-input-group{display:flex;flex-direction:column;gap:2px;flex:1;min-width:68px;}
+.subject-input-group label{font-size:0.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+.subject-input-group input{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;padding:5px 7px;width:100%;outline:none;transition:border-color .2s;}
+.subject-input-group input:focus{border-color:#666;}
+.add-btn{align-self:flex-end;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;padding:5px 12px;cursor:pointer;transition:background .2s,border-color .2s;white-space:nowrap;height:28px;display:flex;align-items:center;}
+.add-btn:hover{background:#2d2d30;border-color:#555;}
+.delete-user-btn{background:none;border:none;color:#444;cursor:pointer;font-size:.9rem;line-height:1;padding:2px 4px;border-radius:4px;transition:color .2s,background .2s;}
+.delete-user-btn:hover{color:#e8724a;background:rgba(232,114,74,.1);}
+.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--muted);font-size:0.82rem;}
+.section-label{font-size:0.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.9rem;}
+
+/* weekly chart section */
+.week-chart-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem 1.5rem 1rem;margin-bottom:1.5rem;}
+
+/* modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.75rem;width:100%;max-width:380px;}
+.modal h2{font-size:1.05rem;font-weight:800;letter-spacing:-.03em;margin-bottom:1.1rem;}
+.modal input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:0.88rem;padding:9px 13px;width:100%;outline:none;margin-bottom:.9rem;transition:border-color .2s;}
+.modal input:focus{border-color:#666;}
+.modal-btns{display:flex;gap:7px;justify-content:flex-end;}
+.btn-cancel{background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:600;padding:7px 14px;cursor:pointer;}
+.btn-cancel:hover{border-color:#555;color:var(--text);}
+.btn-confirm{background:var(--text);border:none;border-radius:8px;color:var(--bg);font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;padding:7px 18px;cursor:pointer;}
+.btn-confirm:hover{opacity:.88;}
+.session-modal-info{font-size:0.78rem;color:var(--muted);line-height:1.6;margin-bottom:1.1rem;}
+.session-input-row{display:flex;gap:7px;margin-bottom:.4rem;}
+.session-input-row input{margin-bottom:0;}
+
+/* toast */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;padding:7px 16px;border-radius:20px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* footer */
+footer{text-align:center;padding:2.5rem 1rem 1rem;font-size:0.65rem;letter-spacing:.1em;text-transform:uppercase;color:#444;font-weight:600;}
+
+/* edit mode */
+.edit-toggle-btn{background:none;border:1px solid var(--border);border-radius:5px;color:var(--muted);font-family:'Syne',sans-serif;font-size:0.6rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;cursor:pointer;transition:all .2s;}
+.edit-toggle-btn.active{border-color:rgba(232,114,74,.5);color:#e8724a;background:rgba(232,114,74,.08);}
+.edit-section{margin-top:.9rem;padding-top:.85rem;border-top:1px solid var(--border);display:none;}
+.edit-section.open{display:block;}
+.edit-label{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#e8724a;margin-bottom:.35rem;}
+.edit-note{font-size:.62rem;color:var(--muted);line-height:1.55;margin-bottom:.55rem;}
+.edit-row{display:flex;gap:5px;flex-wrap:nowrap;}
+.edit-input-group{display:flex;flex-direction:column;gap:2px;flex:1;}
+.edit-input-group label{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+.edit-input-group input{background:rgba(232,114,74,.07);border:1px solid rgba(232,114,74,.25);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:.78rem;padding:5px 6px;width:100%;outline:none;transition:border-color .2s;}
+.edit-input-group input:focus{border-color:#e8724a;}
+.edit-save-btn{align-self:flex-end;background:rgba(232,114,74,.15);border:1px solid rgba(232,114,74,.4);border-radius:6px;color:#e8724a;font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;padding:0 11px;cursor:pointer;white-space:nowrap;height:28px;display:flex;align-items:center;}
+.edit-save-btn:hover{background:rgba(232,114,74,.25);}
+
+@media(max-width:600px){
+  header{padding:1rem 1.25rem;}
+  .main{padding:1rem 1rem;}
+  .summary-strip{grid-template-columns:1fr 1fr;gap:.6rem;}
+  .summary-strip .stat-card:last-child{grid-column:1/-1;}
+  .stat-value{font-size:1.3rem;}
+  .cal-day{min-height:38px;}
+  .tab-bar{width:100%;}
+  .users-grid{grid-template-columns:1fr;}
+  .chart-wrap{height:240px;}
+  .view-switcher{gap:3px;}
+  .view-btn{font-size:.6rem;padding:4px 8px;}
+  .add-qs-row{flex-wrap:nowrap;}
+  .edit-row{flex-wrap:nowrap;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Q<span>T</span>rack <span style="font-size:.55rem;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;vertical-align:middle;letter-spacing:0">0.7</span></div>
+  <div class="header-right">
+    <div style="display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">
+      <span id="syncDot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#888;flex-shrink:0;transition:background .3s;"></span>
+      <span id="syncLabel">—</span>
+    </div>
+    <button class="session-badge" onclick="openSessionModal()">⚡ <span id="sessionDisplay">…</span></button>
+    <button class="add-user-btn" onclick="openAddUser()">+ Add Person</button>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- summary strip -->
+  <div class="summary-strip">
+    <div class="stat-card">
+      <div class="stat-label">Today's Total Qs</div>
+      <div class="stat-value" id="statToday">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">All-Time Total Qs</div>
+      <div class="stat-value" id="statAllTime">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top Performer</div>
+      <div class="stat-value sm" id="statTop">
+        <div class="top-performer-inner" id="topPerformerInner"><span style="color:var(--muted)">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- main chart tabs -->
+  <div class="chart-section">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title" id="mainChartTitle">Today's Questions</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <div class="view-switcher">
+          <button class="view-btn active" onclick="setChartView('today',this)">Today</button>
+          <button class="view-btn" onclick="setChartView('day',this)">By Day</button>
+          <button class="view-btn" onclick="setChartView('week',this)">Weekly</button>
+          <button class="view-btn" onclick="setChartView('alltime',this)">All-Time</button>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#5b8dee"></div>Physics</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#e8724a"></div>Chemistry</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4ecba4"></div>Maths</div>
+        </div>
+      </div>
+    </div>
+    <!-- day picker shown only in "By Day" mode -->
+    <div id="dayPickerRow" style="display:none;margin-bottom:1rem;display:none;align-items:center;gap:10px;">
+      <label style="font-size:0.7rem;color:var(--muted);font-weight:600;letter-spacing:.08em;text-transform:uppercase;">Date</label>
+      <input type="date" id="dayPickerInput" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:0.78rem;outline:none;" onchange="renderMainChart()">
+    </div>
+    <div class="chart-wrap">
+      <div class="no-data-msg" id="noDataMsg"><strong>No data yet</strong>Add a person to start tracking.</div>
+      <canvas id="mainChart" style="display:none" role="img" aria-label="Stacked bar chart of questions per person"></canvas>
+    </div>
+  </div>
+
+  <!-- monthly/weekly breakdown chart -->
+  <div class="week-chart-section">
+    <div class="chart-header">
+      <div class="chart-title">This week — questions per day (Mon → Sun)</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#5b8dee"></div>Physics</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e8724a"></div>Chemistry</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#4ecba4"></div>Maths</div>
+      </div>
+    </div>
+    <div class="chart-wrap" style="height:260px;">
+      <div class="no-data-msg" id="noDataMsgW"><strong>No history yet</strong>Questions will appear here after your first day.</div>
+      <canvas id="weeklyChart" style="display:none" role="img" aria-label="Weekly questions breakdown"></canvas>
+    </div>
+  </div>
+
+  <!-- calendar -->
+  <div class="chart-section cal-wrap">
+    <div class="chart-header" style="margin-bottom:.75rem">
+      <div class="chart-title">Calendar — click a day to see details</div>
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
+        <div class="cal-month-label" id="calMonthLabel"></div>
+        <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+      </div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div id="calDetail" style="display:none"></div>
+  </div>
+
+  <!-- people cards -->
+  <div class="section-label">People</div>
+  <div class="users-grid" id="usersGrid">
+    <div class="empty-state" id="emptyGrid">No people added yet. Click "+ Add Person" to begin.</div>
+  </div>
+
+</div>
+
+<!-- footer branding -->
+<footer>Made by Arnav Anand &nbsp;·&nbsp; QTrack 0.7</footer>
+
+<!-- Add User Modal -->
+<div class="modal-overlay" id="addUserModal" style="display:none" onclick="if(event.target===this)closeAddUser()">
+  <div class="modal">
+    <h2>Add a person</h2>
+    <input type="text" id="newUserName" placeholder="Name (e.g. Arnav)" maxlength="24" onkeydown="if(event.key==='Enter')confirmAddUser()">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeAddUser()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmAddUser()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Session Modal -->
+<div class="modal-overlay" id="sessionModal" style="display:none" onclick="if(event.target===this)closeSessionModal()">
+  <div class="modal">
+    <h2>Share / Join</h2>
+    <p class="session-modal-info">
+      Share your <strong style="color:var(--text)">Session ID</strong> with your friend (WhatsApp it). They open the file, tap ⚡, paste it and hit Join. Both devices sync live every 5 seconds — no app, no account needed for your friend.
+    </p>
+    <div style="font-size:.72rem;color:var(--muted);margin-bottom:.4rem;letter-spacing:.05em">YOUR SESSION ID <span style="color:#4ecba4">— copy &amp; send to friend</span></div>
+    <div class="session-input-row">
+      <input type="text" id="sessionIdDisplay" readonly style="font-family:'DM Mono',monospace;font-size:0.65rem;cursor:default;letter-spacing:.02em" placeholder="loading…">
+      <button class="btn-cancel" onclick="copySessionId()" style="white-space:nowrap">Copy</button>
+    </div>
+    <div style="font-size:.72rem;color:var(--muted);margin:1rem 0 .4rem;letter-spacing:.05em">JOIN A FRIEND'S SESSION</div>
+    <input type="text" id="joinSessionInput" placeholder="Paste session ID from friend" style="font-family:'DM Mono',monospace;font-size:0.72rem;">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeSessionModal()">Close</button>
+      <button class="btn-confirm" onclick="joinSession()">Join</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+let sessionId = '';
+let users = [];         // [{id, name}]  — no daily counts here
+let history = {};       // { "YYYY-MM-DD": { uid: {phy,chem,math}, … } }
+let chartView = 'today';
+let mainChartInst = null;
+let weeklyChartInst = null;
+let calYear, calMonth, selectedCalDate = null;
+let pollInterval = null;
+
+// ─── Date helpers ─────────────────────────────────────────────────────────────
+function today() {
+  // Use local date parts explicitly — avoids UTC offset causing wrong date
+  const d = new Date();
+  const yr = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, '0');
+  const dy = String(d.getDate()).padStart(2, '0');
+  return yr + '-' + mo + '-' + dy;
+}
+function pad2(n) { return String(n).padStart(2,'0'); }
+function dateLabel(ds) {
+  const [y,m,d] = ds.split('-');
+  return new Date(+y,+m-1,+d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+}
+function weekLabel(ds) {
+  const [y,m,d] = ds.split('-');
+  return new Date(+y,+m-1,+d).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+}
+function getWeekNum(ds) {
+  const [y,m,d] = ds.split('-');
+  const dt = new Date(+y,+m-1,+d);
+  const firstDay = new Date(+y,+m-1,1);
+  return Math.ceil((dt.getDate() + firstDay.getDay()) / 7);
+}
+
+// ─── Storage — Firebase Realtime Database ────────────────────────────────────
+// Architecture: each user writes ONLY to their own node.
+//   /sessions/<sid>/users/<uid>        = {id, name}
+//   /sessions/<sid>/history/<date>/<uid> = {phy, chem, math}
+//   /sessions/<sid>/meta               = {ts}
+// Reading: fetch the whole session node → contains all users from all devices.
+// This eliminates ALL merge conflicts — no device ever overwrites another's data.
+
+const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
+let lastPollTs = 0;
+let isSaving = false;
+
+function base() { return FB + '/sessions/' + sessionId; }
+
+// ── READ: fetch entire session, rebuild local state ──────────────────────────
+async function fetchRemote() {
+  try {
+    const r = await fetch(base() + '.json');
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d; // may be null if session is empty
+  } catch(e) { return null; }
+}
+
+function remoteToState(d) {
+  // d = { users: {uid: {id,name}, …}, history: {date: {uid: {phy,chem,math}, …}}, meta: {ts} }
+  if (!d) return { users: [], history: {} };
+  const users = Object.values(d.users || {});
+  const history = {};
+  Object.keys(d.history || {}).forEach(dt => {
+    history[dt] = {};
+    Object.keys(d.history[dt] || {}).forEach(uid => {
+      history[dt][uid] = d.history[dt][uid];
+    });
+  });
+  return { users, history };
+}
+
+// ── WRITE: patch only what changed for this action ───────────────────────────
+
+// Save a single user record (add/rename)
+async function pushUser(user) {
+  try {
+    const r = await fetch(base() + '/users/' + user.id + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: user.id, name: user.name })
+    });
+    if (!r.ok) throw new Error(r.status);
+    await touchMeta();
+    return true;
+  } catch(e) { return false; }
+}
+
+// Delete a single user record
+async function deleteUserRemote(uid) {
+  try {
+    await fetch(base() + '/users/' + uid + '.json', { method: 'DELETE' });
+    // Also delete all history entries for this user
+    const remote = await fetchRemote();
+    if (remote && remote.history) {
+      const deletes = Object.keys(remote.history).map(dt =>
+        fetch(base() + '/history/' + dt + '/' + uid + '.json', { method: 'DELETE' })
+      );
+      await Promise.all(deletes);
+    }
+    await touchMeta();
+    return true;
+  } catch(e) { return false; }
+}
+
+// Save questions for one user on one date
+async function pushEntry(uid, date, entry) {
+  try {
+    const r = await fetch(base() + '/history/' + date + '/' + uid + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry)
+    });
+    if (!r.ok) throw new Error(r.status);
+    await touchMeta();
+    return true;
+  } catch(e) { return false; }
+}
+
+async function touchMeta() {
+  try {
+    await fetch(base() + '/meta.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ts: Date.now() })
+    });
+  } catch(e) {}
+}
+
+// ── HIGH-LEVEL SAVE (called by old code) ─────────────────────────────────────
+// This is now only used for the initial full-state write if needed.
+// Individual actions use pushUser/pushEntry directly.
+async function saveData() {
+  // no-op: all writes now happen via pushUser / pushEntry / deleteUserRemote
+}
+
+// ── LOAD ─────────────────────────────────────────────────────────────────────
+async function loadData() {
+  showSyncStatus('loading');
+  const remote = await fetchRemote();
+  if (remote) {
+    const state = remoteToState(remote);
+    users   = state.users;
+    history = state.history;
+    if (remote.meta && remote.meta.ts) lastPollTs = remote.meta.ts;
+    cacheLocal();
+    showSyncStatus('ok');
+  } else {
+    // Try local cache
+    try {
+      const loc = localStorage.getItem('qttrack_local_' + sessionId);
+      if (loc) { const p = JSON.parse(loc); users = p.users||[]; history = p.history||{}; }
+    } catch(e) {}
+    showSyncStatus(remote === null ? 'error' : 'ok');
+  }
+  render();
+}
+
+// ── POLL ─────────────────────────────────────────────────────────────────────
+async function pollData() {
+  try {
+    // Only fetch meta first (tiny request) to check if anything changed
+    const r = await fetch(base() + '/meta.json');
+    if (!r.ok) { showSyncStatus('error'); return; }
+    const meta = await r.json();
+    const ts = meta && meta.ts ? meta.ts : 0;
+    if (ts > lastPollTs) {
+      lastPollTs = ts;
+      const remote = await fetchRemote();
+      if (remote) {
+        const state = remoteToState(remote);
+        users   = state.users;
+        history = state.history;
+        cacheLocal();
+        render();
+      }
+    }
+    showSyncStatus('ok');
+  } catch(e) { showSyncStatus('error'); }
+}
+
+function cacheLocal() {
+  try { localStorage.setItem('qttrack_local_'+sessionId, JSON.stringify({users,history})); } catch(e){}
+}
+
+function showSyncStatus(state) {
+  const el  = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  if (!el) return;
+  const colours = { ok:'#4ecba4', saving:'#5b8dee', loading:'#5b8dee', error:'#e8724a' };
+  const labels  = { ok:'Synced', saving:'Saving…', loading:'Loading…', error:'Offline' };
+  el.style.background = colours[state] || '#888';
+  if (lbl) lbl.textContent = labels[state] || '';
+}
+
+// ─── Session ──────────────────────────────────────────────────────────────────
+function genId() { return Math.random().toString(36).slice(2,8).toUpperCase(); }
+function fmt(sid) { return sid.slice(0,4) + '-' + sid.slice(4,8); }
+
+function loadSession() {
+  let sid = localStorage.getItem('qttrack_session_v6');
+  if (!sid) { sid = genId() + genId(); localStorage.setItem('qttrack_session_v6', sid); }
+  sessionId = sid;
+  document.getElementById('sessionDisplay').textContent = fmt(sid);
+  document.getElementById('sessionIdDisplay').value = fmt(sid);
+}
+
+function openSessionModal() { document.getElementById('sessionModal').style.display = 'flex'; }
+function closeSessionModal() { document.getElementById('sessionModal').style.display = 'none'; document.getElementById('joinSessionInput').value = ''; }
+
+function copySessionId() {
+  navigator.clipboard.writeText(sessionId)
+    .then(()=>showToast('Session ID copied — send to your friend!'))
+    .catch(()=>{ document.getElementById('sessionIdDisplay').select(); showToast('Long-press the ID above and copy'); });
+}
+
+function joinSession() {
+  const raw = document.getElementById('joinSessionInput').value.trim();
+  const clean = raw.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+  if (clean.length < 8) { showToast('Paste the session ID from your friend'); return; }
+
+  sessionId = clean;
+  lastSavedTs = 0;
+  localStorage.setItem('qttrack_session_v6', sessionId);
+  document.getElementById('sessionDisplay').textContent = fmt(sessionId);
+  document.getElementById('sessionIdDisplay').value = fmt(sessionId);
+
+  users = []; history = {};
+  if (mainChartInst) { mainChartInst.destroy(); mainChartInst = null; }
+  if (weeklyChartInst) { weeklyChartInst.destroy(); weeklyChartInst = null; }
+  loadData();
+  closeSessionModal();
+  showToast('Joined — fetching data…');
+}
+
+// ─── User actions ─────────────────────────────────────────────────────────────
+function openAddUser() { document.getElementById('addUserModal').style.display='flex'; setTimeout(()=>document.getElementById('newUserName').focus(),50); }
+function closeAddUser() { document.getElementById('addUserModal').style.display='none'; document.getElementById('newUserName').value=''; }
+
+function confirmAddUser() {
+  const name = document.getElementById('newUserName').value.trim();
+  if (!name) return;
+  const user = { id: genId(), name };
+  users.push(user);
+  render(); closeAddUser();
+  showSyncStatus('saving');
+  pushUser(user).then(ok => {
+    showSyncStatus(ok ? 'ok' : 'error');
+    if (!ok) showToast('Saved locally — check connection');
+  });
+  showToast(name + ' added!');
+}
+
+function deleteUser(uid) {
+  if (!confirm('Remove this person and their data?')) return;
+  users = users.filter(u => u.id !== uid);
+  Object.keys(history).forEach(dt => { delete history[dt][uid]; });
+  render();
+  showSyncStatus('saving');
+  deleteUserRemote(uid).then(ok => showSyncStatus(ok ? 'ok' : 'error'));
+}
+
+function addQs(uid) {
+  const phy = Math.max(0, parseInt(document.getElementById('phy_'+uid).value)||0);
+  const chem = Math.max(0, parseInt(document.getElementById('chem_'+uid).value)||0);
+  const math = Math.max(0, parseInt(document.getElementById('math_'+uid).value)||0);
+  if (!phy && !chem && !math) { showToast('Enter at least one value'); return; }
+  const dt = today();
+  if (!history[dt]) history[dt]={};
+  if (!history[dt][uid]) history[dt][uid]={phy:0,chem:0,math:0};
+  history[dt][uid].phy += phy;
+  history[dt][uid].chem += chem;
+  history[dt][uid].math += math;
+  render();
+  ['phy','chem','math'].forEach(s=>{ const el=document.getElementById(s+'_'+uid); if(el) el.value=''; });
+  showToast('Updated '+users.find(u=>u.id===uid)?.name);
+  const entry = history[dt][uid];
+  showSyncStatus('saving');
+  pushEntry(uid, dt, entry).then(ok => showSyncStatus(ok ? 'ok' : 'error'));
+}
+
+function toggleEdit(uid) {
+  const sec = document.getElementById('editsec_'+uid);
+  const btn = document.getElementById('editbtn_'+uid);
+  if (!sec) return;
+  const isOpen = sec.classList.contains('open');
+  sec.classList.toggle('open', !isOpen);
+  btn.classList.toggle('active', !isOpen);
+  if (!isOpen) {
+    // pre-fill with current today values
+    const cur = (history[today()]||{})[uid] || {phy:0,chem:0,math:0};
+    const ep = document.getElementById('ep_'+uid);
+    const ec = document.getElementById('ec_'+uid);
+    const em = document.getElementById('em_'+uid);
+    if(ep) ep.value = cur.phy || '';
+    if(ec) ec.value = cur.chem || '';
+    if(em) em.value = cur.math || '';
+  }
+}
+
+function saveEdit(uid) {
+  const phy  = Math.max(0, parseInt(document.getElementById('ep_'+uid)?.value)||0);
+  const chem = Math.max(0, parseInt(document.getElementById('ec_'+uid)?.value)||0);
+  const math = Math.max(0, parseInt(document.getElementById('em_'+uid)?.value)||0);
+  const dt = today();
+  if (!history[dt]) history[dt]={};
+  if (!phy && !chem && !math) {
+    delete history[dt][uid];
+  } else {
+    history[dt][uid] = {phy, chem, math, _edited: true};
+  }
+  render();
+  const editSection = document.getElementById('editsec_'+uid);
+  const toggleBtn = document.getElementById('editbtn_'+uid);
+  if(editSection) editSection.classList.remove('open');
+  if(toggleBtn) toggleBtn.classList.remove('active');
+  showToast('Corrected — '+users.find(u=>u.id===uid)?.name);
+  showSyncStatus('saving');
+  const entry = (history[dt] && history[dt][uid]) ? history[dt][uid] : {phy:0,chem:0,math:0,_edited:true};
+  pushEntry(uid, dt, entry).then(ok => showSyncStatus(ok ? 'ok' : 'error'));
+}
+
+// ─── Data aggregation helpers ─────────────────────────────────────────────────
+function getDayData(dt) {
+  const day = history[dt] || {};
+  return users.map(u => ({ ...u, ...(day[u.id] || {phy:0,chem:0,math:0}) }));
+}
+
+function getUserTotal(uid, scope) {
+  // scope: 'today' | 'week' | 'alltime' | datestring
+  if (scope === 'today') {
+    const d = (history[today()]||{})[uid] || {phy:0,chem:0,math:0};
+    return d.phy + d.chem + d.math;
+  }
+  if (scope === 'alltime') {
+    return Object.values(history).reduce((s, day) => {
+      const d = day[uid] || {phy:0,chem:0,math:0};
+      return s + d.phy + d.chem + d.math;
+    }, 0);
+  }
+  if (scope === 'week') {
+    const now = new Date(), dow = now.getDay();
+    const weekStart = new Date(now); weekStart.setDate(now.getDate() - dow);
+    return Object.keys(history).reduce((s, dt) => {
+      const [y,m,d] = dt.split('-');
+      if (new Date(+y,+m-1,+d) >= weekStart) {
+        const day = history[dt][uid] || {phy:0,chem:0,math:0};
+        return s + day.phy + day.chem + day.math;
+      }
+      return s;
+    }, 0);
+  }
+  // specific date
+  const d = (history[scope]||{})[uid] || {phy:0,chem:0,math:0};
+  return d.phy + d.chem + d.math;
+}
+
+function getScopedSubs(uid, scope) {
+  if (scope === 'today') return (history[today()]||{})[uid] || {phy:0,chem:0,math:0};
+  if (scope === 'alltime') {
+    return Object.values(history).reduce((acc, day) => {
+      const d = day[uid] || {phy:0,chem:0,math:0};
+      return {phy:acc.phy+d.phy, chem:acc.chem+d.chem, math:acc.math+d.math};
+    }, {phy:0,chem:0,math:0});
+  }
+  return (history[scope]||{})[uid] || {phy:0,chem:0,math:0};
+}
+
+// ─── Render all ───────────────────────────────────────────────────────────────
+function render() {
+  renderSummary();
+  renderMainChart();
+  renderWeeklyChart();
+  renderCalendar();
+  renderCards();
+}
+
+// ─── Summary ──────────────────────────────────────────────────────────────────
+function renderSummary() {
+  const todayTotal = Object.values((history[today()])||{}).reduce((s,d)=>s+d.phy+d.chem+d.math,0);
+  const allTime = Object.values(history).reduce((s,day)=>s+Object.values(day).reduce((ss,d)=>ss+d.phy+d.chem+d.math,0),0);
+  document.getElementById('statToday').textContent = todayTotal;
+  document.getElementById('statAllTime').textContent = allTime;
+
+  // top performer by all-time
+  const inner = document.getElementById('topPerformerInner');
+  if (!users.length) { inner.innerHTML = '<span style="color:var(--muted)">—</span>'; return; }
+  const ranked = [...users].map(u => ({...u, score: getUserTotal(u.id,'alltime')})).sort((a,b)=>b.score-a.score);
+  const top = ranked[0];
+  const second = ranked[1];
+  const lead = second ? top.score - second.score : top.score;
+  inner.innerHTML = `<span class="tp-name">${escHtml(top.name)}</span>${lead > 0 ? `<span class="tp-lead"><span class="tp-arrow">▲</span>${lead}</span>` : ''}`;
+}
+
+// ─── Main Chart ───────────────────────────────────────────────────────────────
+function setChartView(view, btn) {
+  chartView = view;
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const dpRow = document.getElementById('dayPickerRow');
+  if (view === 'day') {
+    dpRow.style.display = 'flex';
+    if (!document.getElementById('dayPickerInput').value) document.getElementById('dayPickerInput').value = today();
+  } else {
+    dpRow.style.display = 'none';
+  }
+  const titles = {today:"Today's questions",day:"Questions on selected day",week:"This week's questions",alltime:"All-time questions"};
+  document.getElementById('mainChartTitle').textContent = titles[view];
+  renderMainChart();
+}
+
+function renderMainChart() {
+  const canvas = document.getElementById('mainChart');
+  const msg = document.getElementById('noDataMsg');
+  if (!users.length) { canvas.style.display='none'; msg.style.display='block'; if(mainChartInst){mainChartInst.destroy();mainChartInst=null;} return; }
+
+  let scope = chartView;
+  if (chartView === 'day') {
+    scope = document.getElementById('dayPickerInput').value || today();
+  }
+
+  canvas.style.display='block'; msg.style.display='none';
+  const labels = users.map(u=>u.name);
+  const phyData = users.map(u=>getScopedSubs(u.id,scope).phy);
+  const chemData = users.map(u=>getScopedSubs(u.id,scope).chem);
+  const mathData = users.map(u=>getScopedSubs(u.id,scope).math);
+  buildOrUpdateBarChart('mainChart', mainChartInst, labels, phyData, chemData, mathData, inst => mainChartInst = inst);
+}
+
+function buildOrUpdateBarChart(canvasId, inst, labels, phyData, chemData, mathData, setInst) {
+  const canvas = document.getElementById(canvasId);
+  const datasets = [
+    {label:'Physics',data:phyData,backgroundColor:'#5b8dee',borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4},borderSkipped:false},
+    {label:'Chemistry',data:chemData,backgroundColor:'#e8724a',borderRadius:0,borderSkipped:false},
+    {label:'Maths',data:mathData,backgroundColor:'#4ecba4',borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},borderSkipped:false},
+  ];
+  if (inst) {
+    inst.data.labels = labels;
+    inst.data.datasets[0].data = phyData;
+    inst.data.datasets[1].data = chemData;
+    inst.data.datasets[2].data = mathData;
+    inst.update('active');
+    return;
+  }
+  const newInst = new Chart(canvas, {
+    type:'bar',
+    data:{labels,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#181819',borderColor:'#2e2e32',borderWidth:1,
+          titleColor:'#f0ede8',bodyColor:'#888885',
+          titleFont:{family:'Syne',weight:'700',size:12},bodyFont:{family:'DM Mono',size:11},
+          padding:11,
+          callbacks:{
+            footer:items=>'Total: '+items.reduce((s,i)=>s+i.raw,0),
+            footerColor:'#f0ede8',footerFont:{family:'Syne',weight:'700',size:11}
+          }
+        }
+      },
+      scales:{
+        x:{stacked:true,grid:{display:false},border:{display:false},ticks:{color:'#888885',font:{family:'Syne',weight:'700',size:11}}},
+        y:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},border:{display:false},ticks:{color:'#888885',font:{family:'DM Mono',size:10}},beginAtZero:true}
+      },
+      animation:{duration:350,easing:'easeOutCubic'}
+    }
+  });
+  setInst(newInst);
+}
+
+// ─── Weekly breakdown chart — shows Mon/Tue/Wed/Thu/Fri/Sat/Sun of CURRENT week ─
+function renderWeeklyChart() {
+  const canvas = document.getElementById('weeklyChart');
+  const msg = document.getElementById('noDataMsgW');
+
+  // Always show current week's 7 days (Mon → Sun), regardless of history
+  canvas.style.display = 'block';
+  msg.style.display = 'none';
+
+  // Build the 7 day slots for this week (Mon = day 0 of our display)
+  const now = new Date();
+  // getDay(): 0=Sun,1=Mon,...,6=Sat — shift so week starts Monday
+  const dow = now.getDay(); // 0=Sun
+  const mondayOffset = dow === 0 ? -6 : 1 - dow; // how many days back to Monday
+  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  const labels = [];
+  const dayKeys = []; // "YYYY-MM-DD" for each slot
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() + mondayOffset + i);
+    const yr = d.getFullYear();
+    const mo = String(d.getMonth()+1).padStart(2,'0');
+    const dy = String(d.getDate()).padStart(2,'0');
+    dayKeys.push(yr+'-'+mo+'-'+dy);
+    // label: "Mon 9" style
+    labels.push(dayNames[i] + ' ' + d.getDate());
+  }
+
+  // Sum all users per day slot
+  const phyData = dayKeys.map(ds =>
+    Object.values(history[ds] || {}).reduce((s,u) => s+(u.phy||0), 0)
+  );
+  const chemData = dayKeys.map(ds =>
+    Object.values(history[ds] || {}).reduce((s,u) => s+(u.chem||0), 0)
+  );
+  const mathData = dayKeys.map(ds =>
+    Object.values(history[ds] || {}).reduce((s,u) => s+(u.math||0), 0)
+  );
+
+  // Highlight today's bar with a slightly lighter shade via pointStyle in tooltip
+  const todayStr = today();
+  const todayIdx = dayKeys.indexOf(todayStr);
+
+  if (weeklyChartInst) {
+    weeklyChartInst.data.labels = labels;
+    weeklyChartInst.data.datasets[0].data = phyData;
+    weeklyChartInst.data.datasets[1].data = chemData;
+    weeklyChartInst.data.datasets[2].data = mathData;
+    weeklyChartInst.update('active');
+    return;
+  }
+
+  weeklyChartInst = new Chart(canvas, {
+    type: 'bar',
+    data: { labels, datasets: [
+      {label:'Physics', data:phyData, backgroundColor:'#5b8dee', borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4}, borderSkipped:false},
+      {label:'Chemistry', data:chemData, backgroundColor:'#e8724a', borderRadius:0, borderSkipped:false},
+      {label:'Maths', data:mathData, backgroundColor:'#4ecba4', borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0}, borderSkipped:false},
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#181819', borderColor: '#2e2e32', borderWidth: 1,
+          titleColor: '#f0ede8', bodyColor: '#888885',
+          titleFont: {family:'Syne',weight:'700',size:12}, bodyFont: {family:'DM Mono',size:11},
+          padding: 10,
+          callbacks: {
+            title: items => {
+              const idx = items[0].dataIndex;
+              return labels[idx] + (idx === todayIdx ? '  ← today' : '');
+            },
+            footer: items => 'Total: ' + items.reduce((s,i)=>s+i.raw,0),
+            footerColor: '#f0ede8', footerFont: {family:'Syne',weight:'700',size:11}
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true, grid: {display:false}, border: {display:false},
+          ticks: {
+            color: (ctx) => ctx.index === todayIdx ? '#f0ede8' : '#888885',
+            font: (ctx) => ({ family:'Syne', weight: ctx.index === todayIdx ? '800' : '700', size: 11 })
+          }
+        },
+        y: {
+          stacked: true, grid: {color:'rgba(255,255,255,0.05)'}, border: {display:false},
+          ticks: {color:'#888885', font:{family:'DM Mono',size:10}}, beginAtZero: true
+        }
+      },
+      animation: { duration: 350 }
+    }
+  });
+}
+
+// ─── Calendar ─────────────────────────────────────────────────────────────────
+function initCal() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+}
+
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth=0; calYear++; }
+  if (calMonth < 0) { calMonth=11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthLabel').textContent = monthNames[calMonth] + ' ' + calYear;
+
+  const grid = document.getElementById('calGrid');
+  const dayHeaders = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  let html = dayHeaders.map(d=>`<div class="cal-day-header">${d}</div>`).join('');
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const todayStr = today();
+
+  for (let i=0; i<firstDay; i++) html += '<div class="cal-day empty"></div>';
+
+  for (let d=1; d<=daysInMonth; d++) {
+    const ds = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const dayHist = history[ds];
+    const hasData = dayHist && Object.keys(dayHist).length > 0;
+    const total = hasData ? Object.values(dayHist).reduce((s,u)=>s+u.phy+u.chem+u.math,0) : 0;
+    const isToday = ds === todayStr;
+    const isSelected = ds === selectedCalDate;
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    if (isSelected) cls += ' selected';
+    if (hasData) cls += ' has-data';
+
+    let subsHtml = '';
+    if (hasData) {
+      const phy = Object.values(dayHist).reduce((s,u)=>s+(u.phy||0),0);
+      const chem = Object.values(dayHist).reduce((s,u)=>s+(u.chem||0),0);
+      const math = Object.values(dayHist).reduce((s,u)=>s+(u.math||0),0);
+      if (phy) subsHtml += `<div class="cal-sub-dot" style="background:#5b8dee"></div>`;
+      if (chem) subsHtml += `<div class="cal-sub-dot" style="background:#e8724a"></div>`;
+      if (math) subsHtml += `<div class="cal-sub-dot" style="background:#4ecba4"></div>`;
+    }
+
+    html += `<div class="${cls}" onclick="selectCalDay('${ds}')">
+      <div class="cal-day-num">${d}</div>
+      ${hasData ? `<div class="cal-day-total">${total}</div>` : ''}
+      <div class="cal-day-subs">${subsHtml}</div>
+    </div>`;
+  }
+
+  grid.innerHTML = html;
+
+  if (selectedCalDate) renderCalDetail(selectedCalDate);
+}
+
+function selectCalDay(ds) {
+  selectedCalDate = (selectedCalDate === ds) ? null : ds;
+  renderCalendar();
+  if (!selectedCalDate) { document.getElementById('calDetail').style.display='none'; }
+}
+
+function renderCalDetail(ds) {
+  const detail = document.getElementById('calDetail');
+  const dayHist = history[ds] || {};
+  const hasAny = users.some(u => dayHist[u.id] && (dayHist[u.id].phy||dayHist[u.id].chem||dayHist[u.id].math));
+
+  if (!users.length) { detail.style.display='none'; return; }
+  detail.style.display = 'block';
+
+  let rows = users.map(u => {
+    const d = dayHist[u.id] || {phy:0,chem:0,math:0};
+    const t = d.phy + d.chem + d.math;
+    return `<div class="cal-detail-row">
+      <div class="cal-detail-name">${escHtml(u.name)}</div>
+      <div class="cal-detail-subs">
+        <span style="color:#5b8dee">P: ${d.phy}</span>
+        <span style="color:#e8724a">C: ${d.chem}</span>
+        <span style="color:#4ecba4">M: ${d.math}</span>
+      </div>
+      <div class="cal-detail-total">${t} Q</div>
+    </div>`;
+  }).join('');
+
+  detail.innerHTML = `<div class="cal-detail">
+    <div class="cal-detail-title">${dateLabel(ds)}</div>
+    <div class="cal-detail-rows">${hasAny ? rows : '<div style="color:var(--muted);font-size:.8rem">No questions logged this day.</div>'}</div>
+  </div>`;
+}
+
+// ─── People cards ─────────────────────────────────────────────────────────────
+function renderCards() {
+  const grid = document.getElementById('usersGrid');
+  const emptyEl = document.getElementById('emptyGrid');
+
+  if (!users.length) {
+    grid.innerHTML = '';
+    grid.appendChild(emptyEl);
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  // compute rankings for arrows
+  const ranked = [...users].map(u=>({id:u.id, score:getUserTotal(u.id,'today')})).sort((a,b)=>b.score-a.score);
+  const maxScore = ranked[0]?.score || 0;
+
+  grid.querySelectorAll('.user-card').forEach(el => {
+    if (!users.find(u=>u.id===el.dataset.uid)) el.remove();
+  });
+
+  users.forEach(user => {
+    const subs = getScopedSubs(user.id, 'today');
+    const total = subs.phy + subs.chem + subs.math;
+    const rank = ranked.findIndex(r=>r.id===user.id);
+    const myScore = ranked[rank]?.score || 0;
+    const topScore = ranked[0]?.score || 0;
+    const diff = myScore - (ranked[rank+1]?.score || 0); // vs person below
+    const diffFromTop = topScore - myScore;
+
+    // badge
+    let badgeHtml = '';
+    if (ranked.length > 1) {
+      if (rank === 0) {
+        const lead = myScore - (ranked[1]?.score||0);
+        badgeHtml = `<span class="perf-badge up">▲ +${lead}</span>`;
+      } else {
+        badgeHtml = `<span class="perf-badge down">▼ −${diffFromTop}</span>`;
+      }
+    }
+
+    const allTimeSubs = getScopedSubs(user.id,'alltime');
+    const allTimeTotal = allTimeSubs.phy + allTimeSubs.chem + allTimeSubs.math;
+
+    const existing = grid.querySelector(`[data-uid="${user.id}"]`);
+    if (existing) {
+      existing.querySelector('.user-total').textContent = 'today: ' + total;
+      existing.querySelector('.perf-badge-wrap').innerHTML = badgeHtml;
+      updateBar(existing,'phy',subs.phy,total);
+      updateBar(existing,'chem',subs.chem,total);
+      updateBar(existing,'math',subs.math,total);
+      existing.querySelector('.cnt-phy').textContent = subs.phy;
+      existing.querySelector('.cnt-chem').textContent = subs.chem;
+      existing.querySelector('.cnt-math').textContent = subs.math;
+      existing.querySelector('.alltime-badge').textContent = 'all-time: ' + allTimeTotal;
+      return;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'user-card';
+    card.dataset.uid = user.id;
+    card.innerHTML = `
+      <div class="user-card-header">
+        <div class="user-name-row">
+          <div class="user-name">${escHtml(user.name)}</div>
+          <div class="perf-badge-wrap">${badgeHtml}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="user-total" style="font-size:.72rem">today: ${total}</span>
+          <button class="edit-toggle-btn" id="editbtn_${user.id}" onclick="toggleEdit('${user.id}')">Edit</button>
+          <button class="delete-user-btn" onclick="deleteUser('${user.id}')" title="Remove">✕</button>
+        </div>
+      </div>
+      <div style="font-size:.65rem;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:.7rem;" class="alltime-badge">all-time: ${allTimeTotal}</div>
+      <div class="subject-rows">
+        <div class="subject-row">
+          <div class="subject-label" style="color:#5b8dee">PHY</div>
+          <div class="subject-bar-bg" data-bar="phy"><div class="subject-bar-fill" style="background:#5b8dee;width:${pct(subs.phy,total)}%"></div></div>
+          <div class="subject-count cnt-phy">${subs.phy}</div>
+        </div>
+        <div class="subject-row">
+          <div class="subject-label" style="color:#e8724a">CHEM</div>
+          <div class="subject-bar-bg" data-bar="chem"><div class="subject-bar-fill" style="background:#e8724a;width:${pct(subs.chem,total)}%"></div></div>
+          <div class="subject-count cnt-chem">${subs.chem}</div>
+        </div>
+        <div class="subject-row">
+          <div class="subject-label" style="color:#4ecba4">MATH</div>
+          <div class="subject-bar-bg" data-bar="math"><div class="subject-bar-fill" style="background:#4ecba4;width:${pct(subs.math,total)}%"></div></div>
+          <div class="subject-count cnt-math">${subs.math}</div>
+        </div>
+      </div>
+      <div class="add-qs-section">
+        <div class="add-qs-label">Add questions done today</div>
+        <div class="add-qs-row">
+          <div class="subject-input-group">
+            <label style="color:#5b8dee">Phy</label>
+            <input type="number" inputmode="numeric" id="phy_${user.id}" min="0" placeholder="0">
+          </div>
+          <div class="subject-input-group">
+            <label style="color:#e8724a">Chem</label>
+            <input type="number" inputmode="numeric" id="chem_${user.id}" min="0" placeholder="0">
+          </div>
+          <div class="subject-input-group">
+            <label style="color:#4ecba4">Math</label>
+            <input type="number" inputmode="numeric" id="math_${user.id}" min="0" placeholder="0">
+          </div>
+          <button class="add-btn" onclick="addQs('${user.id}')">Add</button>
+        </div>
+      </div>
+      <div class="edit-section" id="editsec_${user.id}">
+        <div class="edit-label">Correct today's log</div>
+        <div class="edit-note">Sets the exact total for today — overwrites, does not add.</div>
+        <div class="edit-row">
+          <div class="edit-input-group">
+            <label style="color:#5b8dee">Phy</label>
+            <input type="number" id="ep_${user.id}" min="0" placeholder="0">
+          </div>
+          <div class="edit-input-group">
+            <label style="color:#e8724a">Chem</label>
+            <input type="number" id="ec_${user.id}" min="0" placeholder="0">
+          </div>
+          <div class="edit-input-group">
+            <label style="color:#4ecba4">Math</label>
+            <input type="number" id="em_${user.id}" min="0" placeholder="0">
+          </div>
+          <button class="edit-save-btn" onclick="saveEdit('${user.id}')">Save</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function updateBar(card, subject, val, total) {
+  const bar = card.querySelector(`[data-bar="${subject}"] .subject-bar-fill`);
+  if (bar) bar.style.width = pct(val,total) + '%';
+}
+function pct(val, total) { return total===0?0:Math.round((val/total)*100); }
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+initCal();
+loadSession();
+loadData();
+pollInterval = setInterval(pollData, 5000);
+</script>
+</body>
+</html>
