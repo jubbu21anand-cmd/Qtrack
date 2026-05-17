@@ -338,7 +338,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <sub>0.5.0</sub></div>
+    <div class="logo">Q<em>T</em>rack <sub>0.5.1</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -373,7 +373,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div style="flex:1"></div>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack 0.5.0 · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack 0.5.1 · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -464,7 +464,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 0.5.0 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 0.5.1 · Beta · qttrack.vercel.app</div>
 
     <div class="about-h2">How to Use</div>
     <div class="how-step"><div class="how-num">1</div><div class="how-text"><strong>Add people</strong> — tap "+ Person" in the header. Each person gets their own bar on the chart and their own card below.</div></div>
@@ -506,14 +506,12 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div class="cl-version">
       <div><span class="cl-ver-num">0.5.0</span></div>
       <ul class="cl-items">
-        <li>Full architectural rewrite — split into separate index.html, style.css, and app.js files</li>
-        <li>State management completely reworked — single source of truth, write-then-read pattern</li>
-        <li>All writes now use doWrite() which holds an isWriting mutex, pauses polling, writes to Firebase, re-fetches authoritative state, then resumes — eliminates all race conditions</li>
-        <li>Subjects: saving now commits a draft copy, not the live array — no partial-save bugs</li>
-        <li>Add person: fully reliable, no poll interference possible during or after write</li>
-        <li>Calendar detail fixed — only shows users who logged on that day</li>
+        <li>Full architectural rewrite</li>
+        <li>Adding people now saves reliably</li>
+        <li>Adding subjects now saves reliably</li>
+        <li>Calendar only shows days with activity</li>
         <ul class="cl-sub">
-          <li>Previous patch versions 0.4.1–0.4.4 attempted incremental fixes; 0.5.0 resolves the root cause</li>
+          <li>0.5.1 — Added a Report Bug button in the footer; update log rewritten in plain English</li>
         </ul>
       </ul>
     </div>
@@ -521,15 +519,17 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div class="cl-version">
       <div><span class="cl-ver-num">0.4.0</span></div>
       <ul class="cl-items">
-        <li>Sidebar navigation — Home, Leaderboard, About, Update Log</li>
-        <li>Light / dark mode toggle with sun/moon SVG icons</li>
-        <li>Custom subject system with colour picker (presets + gradient wheel)</li>
-        <li>Leaderboard — daily, weekly, monthly, all-time, per-subject</li>
-        <li>About page with how-to guide, description, and FAQ</li>
-        <li>Feedback system with star rating sent to developer by email</li>
-        <li>Subjects no longer hardcoded — any subject, any colour</li>
+        <li>New sidebar menu — Home, Leaderboard, About, Update Log</li>
+        <li>Light and dark mode toggle</li>
+        <li>Add your own subjects and pick a colour for each</li>
+        <li>Leaderboard — today, week, month, all-time</li>
+        <li>About page with how-to guide and FAQ</li>
+        <li>Send feedback with a star rating</li>
         <ul class="cl-sub">
-          <li>0.4.1–0.4.4 — Session auto-restore; mobile fixes; first-visit tooltip; multiple incremental attempts at sync race condition fix</li>
+          <li>0.4.1 — Your session is remembered next time you open the app</li>
+          <li>0.4.2 — Layout fixes on phones</li>
+          <li>0.4.3 — First-visit tip pointing to the menu</li>
+          <li>0.4.4 — Smoother live sync between devices</li>
         </ul>
       </ul>
     </div>
@@ -537,21 +537,21 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div class="cl-version">
       <div><span class="cl-ver-num">0.3.0</span></div>
       <ul class="cl-items">
-        <li>Rewrote sync — each user writes to their own Firebase node</li>
-        <li>Fixed data wipe when two devices saved simultaneously</li>
-        <li>Offline fallback to localStorage; sync status dot in header</li>
+        <li>Faster, more reliable sync between devices</li>
+        <li>Fixed data loss when two people saved at once</li>
+        <li>Works offline; sync status dot in the header</li>
       </ul>
     </div>
 
     <div class="cl-version">
       <div><span class="cl-ver-num">0.2.0</span></div>
       <ul class="cl-items">
-        <li>Switched backend to Firebase Realtime Database</li>
-        <li>Edit mode on cards — correct today's log</li>
-        <li>Weekly chart fixed — Mon/Tue/Wed not Week 1/2</li>
-        <li>Today() fixed for local timezone</li>
+        <li>Live cloud sync added</li>
+        <li>Edit today's log from each person's card</li>
+        <li>Weekly chart now shows Mon, Tue, Wed…</li>
+        <li>Dates fixed for your local timezone</li>
         <ul class="cl-sub">
-          <li>0.2.1 — Numeric keyboard on mobile; single-column layout on small screens</li>
+          <li>0.2.1 — Number keyboard on phones; single-column layout on small screens</li>
         </ul>
       </ul>
     </div>
@@ -559,9 +559,9 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div class="cl-version">
       <div><span class="cl-ver-num">0.1.0</span></div>
       <ul class="cl-items">
-        <li>Initial release — stacked bar chart, session sharing, manual question entry</li>
-        <li>Daily reset with full date history and calendar view</li>
-        <li>Dark minimal UI — Syne + DM Mono typefaces</li>
+        <li>First release — bar chart, shared sessions, manual question entry</li>
+        <li>Daily reset with full history and calendar view</li>
+        <li>Dark minimal look</li>
       </ul>
     </div>
 
@@ -574,9 +574,10 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 0.5.0</span>
+  <span>QTrack 0.5.1</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
+  <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
 </footer>
 
 <!-- ═══ MODALS ══════════════════════════════════════════════════ -->
@@ -671,6 +672,22 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
   </div>
 </div>
 
+<!-- Report Bug -->
+<div class="modal-overlay" id="bugModal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <h2>Report a Bug</h2>
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem;line-height:1.65">Describe what went wrong — the more detail, the faster it gets fixed.</p>
+    <div class="field-label">What happened?</div>
+    <textarea class="feedback-ta" id="bugText" placeholder="Steps to reproduce, what you expected, what actually happened…"></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('bugModal')">Cancel</button>
+      <button class="btn-confirm" onclick="submitBug()">Send</button>
+    </div>
+  </div>
+</div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -680,7 +697,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.5.0';
+const VERSION = '0.5.1';
 
 /* ── State ── */
 let sessionId = '';
@@ -1419,17 +1436,32 @@ function showPage(pageId, navId) {
 
 function toggleFaq(el) { el.classList.toggle('open'); }
 
-function submitFeedback() {
+async function submitFeedback() {
   if (!window._starRating) { showToast('Please select a rating'); return; }
   const msg = document.getElementById('feedbackText').value.trim();
-  const sub = encodeURIComponent(`QTrack Feedback — ${window._starRating} star${window._starRating > 1 ? 's' : ''}`);
-  const body = encodeURIComponent(`Rating: ${window._starRating}/5\n\n${msg || '(no message)'}\n\n— QTrack ${VERSION}`);
-  window.open(`mailto:jubbu21anand@gmail.com?subject=${sub}&body=${body}`, '_blank');
+  const ts = Date.now();
+  const payload = { rating: window._starRating, message: msg, version: VERSION, session: sessionId, time: ts };
+  try {
+    await fetch(`${FB}/feedbacks/${ts}.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    showToast('Feedback sent — thank you!');
+  } catch (e) { showToast('Failed to send'); return; }
   closeModal('feedbackModal');
   document.getElementById('feedbackText').value = '';
   window._starRating = 0;
   document.querySelectorAll('.star-btn').forEach(b => b.classList.remove('lit'));
-  showToast('Opening mail app…');
+}
+
+async function submitBug() {
+  const msg = document.getElementById('bugText').value.trim();
+  if (!msg) { showToast('Please describe the bug'); return; }
+  const ts = Date.now();
+  const payload = { message: msg, version: VERSION, session: sessionId, userAgent: navigator.userAgent, time: ts };
+  try {
+    await fetch(`${FB}/bugs/${ts}.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    showToast('Bug report sent — thank you!');
+  } catch (e) { showToast('Failed to send'); return; }
+  closeModal('bugModal');
+  document.getElementById('bugText').value = '';
 }
 
 function setRating(n) {
