@@ -92,6 +92,14 @@ header {
 @media (min-width: 600px) { .page { padding: 1.5rem 1.75rem 6rem; } }
 @media (min-width: 900px) { .page { padding: 1.75rem 2.5rem 6rem; } }
 
+/* ── Dev Warning Banner ── */
+.dev-warning { display: flex; align-items: center; gap: .65rem; background: var(--card); border: 1px solid #6b4a1a; border-left: 3px solid #e0a83a; color: #e0a83a; padding: .7rem .85rem; border-radius: 10px; font-size: .8rem; font-weight: 500; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+.dev-warning.hidden { display: none; }
+.dev-warning-icon { font-size: .95rem; flex-shrink: 0; }
+.dev-warning-text { flex: 1; line-height: 1.4; }
+.dev-warning-close { background: transparent; border: none; color: #e0a83a; cursor: pointer; font-size: .95rem; padding: .15rem .35rem; border-radius: 6px; flex-shrink: 0; opacity: .75; transition: opacity .15s, background .15s; }
+.dev-warning-close:hover { opacity: 1; background: rgba(224,168,58,.12); }
+
 /* ── Summary Strip ── */
 .summary-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin-bottom: 1rem; }
 .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .8rem .9rem; transition: background .22s, border-color .22s; }
@@ -381,6 +389,12 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 
 <!-- HOME -------------------------------------------------------- -->
 <div class="page active" id="homePage">
+
+  <div class="dev-warning" id="devWarning" role="alert">
+    <span class="dev-warning-icon" aria-hidden="true">⚠</span>
+    <span class="dev-warning-text">The app is in development phase and may cause bugs and errors. Apologies from the developer's end in advance.</span>
+    <button type="button" class="dev-warning-close" id="devWarningClose" aria-label="Dismiss warning">✕</button>
+  </div>
 
   <div class="summary-strip">
     <div class="stat-card"><div class="stat-label">Today</div><div class="stat-value" id="statToday">0</div></div>
@@ -1486,6 +1500,30 @@ function dismissHint() {
   try { localStorage.setItem('qttrack_visited', '1'); } catch (e) {}
 }
 
+function initDevWarning() {
+  const w = document.getElementById('devWarning');
+  if (!w) return;
+  try {
+    if (localStorage.getItem('qttrack_dev_warning_dismissed') === '1') {
+      w.classList.add('hidden');
+    }
+  } catch (e) {}
+  const btn = document.getElementById('devWarningClose');
+  if (btn) {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      w.classList.add('hidden');
+      try { localStorage.setItem('qttrack_dev_warning_dismissed', '1'); } catch (err) {}
+    });
+  }
+}
+function dismissDevWarning() {
+  const w = document.getElementById('devWarning');
+  if (w) w.classList.add('hidden');
+  try { localStorage.setItem('qttrack_dev_warning_dismissed', '1'); } catch (e) {}
+}
+
 /* ════════════════════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════════════════════ */
@@ -1498,6 +1536,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadRemote(); // then sync from Firebase
   startPoll();
   checkFirstVisit();
+  initDevWarning();
 
   // Modal overlay dismiss
   document.querySelectorAll('.modal-overlay').forEach(o => {
