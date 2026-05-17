@@ -363,7 +363,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <!-- ═══ FIRST VISIT HINT ══════════════════════════════════════ -->
 <div class="first-hint" id="firstHint">
   <button class="hint-close" onclick="dismissHint()">✕</button>
-  👋 New here? Tap the <em>☰ menu</em> and open <em>About</em> for a quick guide.
+ New here? Tap the <em>☰ menu</em> and open <em>About</em> for a quick guide.
 </div>
 
 <!-- ═══ SIDEBAR ══════════════════════════════════════════════ -->
@@ -392,7 +392,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 
   <div class="dev-warning" id="devWarning" role="alert">
     <span class="dev-warning-icon" aria-hidden="true">⚠</span>
-    <span class="dev-warning-text">The app is in development phase and may cause bugs and errors. Apologies from the developer's end in advance.</span>
+    <span class="dev-warning-text">The app is in development phase and may cause bugs and errors. Apologies from the developer's end in advance. Please report any bugs!</span>
     <button type="button" class="dev-warning-close" id="devWarningClose" aria-label="Dismiss warning">✕</button>
   </div>
 
@@ -525,7 +525,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
         <li>Adding subjects now saves reliably</li>
         <li>Calendar only shows days with activity</li>
         <ul class="cl-sub">
-          <li>0.5.1 — Added a Report Bug button in the footer; update log rewritten in plain English</li>
+          <li>0.5.1 — Added a Report Bug button added</li>
         </ul>
       </ul>
     </div>
@@ -535,10 +535,10 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
       <ul class="cl-items">
         <li>New sidebar menu — Home, Leaderboard, About, Update Log</li>
         <li>Light and dark mode toggle</li>
-        <li>Add your own subjects and pick a colour for each</li>
-        <li>Leaderboard — today, week, month, all-time</li>
+        <li>add subject feature introduced</li>
+        <li>Leaderboard added</li>
         <li>About page with how-to guide and FAQ</li>
-        <li>Send feedback with a star rating</li>
+        <li>Send feedback button added</li>
         <ul class="cl-sub">
           <li>0.4.1 — Your session is remembered next time you open the app</li>
           <li>0.4.2 — Layout fixes on phones</li>
@@ -693,7 +693,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <h2>Report a Bug</h2>
     <p style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem;line-height:1.65">Describe what went wrong — the more detail, the faster it gets fixed.</p>
     <div class="field-label">What happened?</div>
-    <textarea class="feedback-ta" id="bugText" placeholder="Steps to reproduce, what you expected, what actually happened…"></textarea>
+    <textarea class="feedback-ta" id="bugText" placeholder="We are sorry for the bug :("></textarea>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal('bugModal')">Cancel</button>
       <button class="btn-confirm" onclick="submitBug()">Send</button>
