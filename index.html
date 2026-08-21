@@ -19,10 +19,35 @@
   --input-bg:#1c1c1e;
 }
 [data-theme="light"] {
-  --bg:#f5f4f1; --surface:#ffffff; --surface2:#f0eff0; --border:#e0dedd;
-  --text:#1a1a1b; --muted:#888885; --muted2:#d0cecb; --overlay:rgba(0,0,0,0.38);
-  --input-bg:#f5f4f1;
+  --bg:#ffffff; --surface:#ffffff; --surface2:#f7f7f6; --border:#1a1a1b;
+  --text:#111112; --muted:#5c5c5f; --muted2:#c7c6c3; --overlay:rgba(0,0,0,0.42);
+  --input-bg:#ffffff;
 }
+/* Light mode: crisper, higher-contrast borders instead of the old soft/bland grey look */
+[data-theme="light"] .stat-card,
+[data-theme="light"] .chart-section,
+[data-theme="light"] .user-card,
+[data-theme="light"] .lb-table,
+[data-theme="light"] .cal-day,
+[data-theme="light"] .cal-detail,
+[data-theme="light"] .faq-item,
+[data-theme="light"] .subj-item,
+[data-theme="light"] .modal { border-width: 1.5px; border-color: rgba(17,17,18,.16); }
+[data-theme="light"] .card-btn,
+[data-theme="light"] .view-btn,
+[data-theme="light"] .lb-scope-btn,
+[data-theme="light"] .cal-nav-btn,
+[data-theme="light"] .btn-cancel,
+[data-theme="light"] .session-badge,
+[data-theme="light"] .theme-toggle,
+[data-theme="light"] .footer-feedback { border-width: 1.5px; border-color: rgba(17,17,18,.22); }
+[data-theme="light"] .btn-confirm,
+[data-theme="light"] .add-user-btn,
+[data-theme="light"] .add-q-btn,
+[data-theme="light"] .add-subj-btn { background: #111112; color: #ffffff; }
+[data-theme="light"] .view-btn.active,
+[data-theme="light"] .lb-scope-btn.active { border-color: #111112; background: #111112; color: #ffffff; }
+[data-theme="light"] .cal-day.today { border-color: #111112; }
 
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -44,6 +69,7 @@ header {
 .logo { font-size: 1.05rem; font-weight: 800; letter-spacing: -.03em; white-space: nowrap; }
 .logo em { color: #5b8dee; font-style: normal; }
 .logo sub { font-size: .46rem; color: var(--muted); font-family: 'DM Mono', monospace; font-weight: 400; vertical-align: baseline; margin-left: 2px; }
+.beta-tag { font-family: 'DM Mono', monospace; font-size: .5rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #5b8dee; background: rgba(91,141,238,.12); border: 1px solid rgba(91,141,238,.35); border-radius: 5px; padding: 1px 5px; vertical-align: middle; margin-left: 1px; }
 .header-right { display: flex; align-items: center; gap: .45rem; min-width: 0; }
 .sync-wrap { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
 #syncDot { width: 6px; height: 6px; border-radius: 50%; background: #888; flex-shrink: 0; transition: background .3s; }
@@ -347,7 +373,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <sub>0.5.1</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.6.1</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -382,7 +408,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div style="flex:1"></div>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack 0.5.1 · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack 0.6.1 · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -399,7 +425,11 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 
   <div class="summary-strip">
     <div class="stat-card"><div class="stat-label">Today</div><div class="stat-value" id="statToday">0</div></div>
-    <div class="stat-card"><div class="stat-label">All-Time</div><div class="stat-value" id="statAllTime">0</div></div>
+    <div class="stat-card" style="position:relative">
+      <div class="stat-label" style="display:flex;align-items:center;justify-content:space-between">All-Time <button id="allTimeDropBtn" onclick="toggleAllTimeDrop()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.6rem;padding:0">▾</button></div>
+      <div class="stat-value" id="statAllTime">0</div>
+      <div id="allTimeDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.4rem;z-index:50;max-height:200px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,.18)"></div>
+    </div>
     <div class="stat-card"><div class="stat-label">Leading</div><div class="stat-value sm"><div class="tp-inner" id="topPerformerInner"><span style="color:var(--muted)">—</span></div></div></div>
   </div>
 
@@ -479,7 +509,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 0.5.1 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 0.6.1 · Beta · qttrack.vercel.app</div>
 
     <div class="about-h2">How to Use</div>
     <div class="how-step"><div class="how-num">1</div><div class="how-text"><strong>Add people</strong> — tap "+ Person" in the header. Each person gets their own bar on the chart and their own card below.</div></div>
@@ -517,6 +547,21 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <!-- CHANGELOG --------------------------------------------------- -->
 <div class="page" id="changelogPage">
   <div class="changelog-wrap">
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.6.1</span></div>
+      <ul class="cl-items">
+        <li>New day starts at 5 AM instead of midnight, so late-night study sessions still count for the right day</li>
+        <li>"Done for today" button — lock in today's log with a check animation; locked days can't be edited by mistake</li>
+        <li>Backdated logging — add a day picker in Add Questions to log for a forgotten past day (as long as that day isn't locked yet)</li>
+        <li>Trend line added over the weekly and monthly charts, one line per person</li>
+        <li>New "Month" chart view with per-day breakdown and per-person trend lines</li>
+        <li>Session history — see and quickly rejoin sessions you've joined before</li>
+        <li>All-Time counter now has a dropdown to see each person's individual all-time total</li>
+        <li>Light mode redesigned — higher contrast, cleaner borders, less bland</li>
+        <li>"beta" tag added next to the logo</li>
+      </ul>
+    </div>
 
     <div class="cl-version">
       <div><span class="cl-ver-num">0.5.0</span></div>
@@ -589,7 +634,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 0.5.1</span>
+  <span>QTrack 0.6.1</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -712,7 +757,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.5.1';
+const VERSION = '0.6.1';
 
 /* ── State ── */
 let sessionId = '';
@@ -1112,7 +1157,30 @@ function renderSummary() {
   const ranked = [...users].map(u => ({ ...u, score: getUserTotal(u.id, 'alltime') })).sort((a, b) => b.score - a.score);
   const lead = ranked[1] ? ranked[0].score - ranked[1].score : ranked[0].score;
   inner.innerHTML = `<span class="tp-name">${escHtml(ranked[0].name)}</span>${lead > 0 ? `<span class="tp-lead">▲${lead}</span>` : ''}`;
+  renderAllTimeDrop(ranked);
 }
+
+/* Per-user all-time dropdown */
+function renderAllTimeDrop(ranked) {
+  const el = document.getElementById('allTimeDropdown');
+  if (!el) return;
+  if (!ranked.length) { el.innerHTML = '<div style="font-size:.7rem;color:var(--muted);padding:.3rem">No people yet.</div>'; return; }
+  el.innerHTML = ranked.map(u => `
+    <div style="display:flex;justify-content:space-between;gap:.6rem;font-size:.72rem;padding:.3rem .3rem">
+      <span style="font-weight:600">${escHtml(u.name)}</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--muted)">${u.score}</span>
+    </div>`).join('');
+}
+function toggleAllTimeDrop() {
+  const el = document.getElementById('allTimeDropdown');
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', (e) => {
+  const drop = document.getElementById('allTimeDropdown');
+  const btn = document.getElementById('allTimeDropBtn');
+  if (drop && drop.style.display === 'block' && !drop.contains(e.target) && e.target !== btn) drop.style.display = 'none';
+});
 
 function renderLegend() {
   const html = state.subjects.map(s =>
