@@ -135,7 +135,7 @@ It helps motivate further development!
 
 ## 👨‍💻 Author
 
-**Jubbu Anand**
+**Arnav Anand**
 
 GitHub: https://github.com/jubbu21anand-cmd
 
