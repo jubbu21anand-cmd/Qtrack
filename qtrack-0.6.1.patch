@@ -1,0 +1,483 @@
+diff --git a/index.html b/index.html
+index 32ecbb9..117747b 100644
+--- a/index.html
++++ b/index.html
+@@ -48,6 +48,38 @@
+ [data-theme="light"] .view-btn.active,
+ [data-theme="light"] .lb-scope-btn.active { border-color: #111112; background: #111112; color: #ffffff; }
+ [data-theme="light"] .cal-day.today { border-color: #111112; }
++[data-theme="light"] .sess-hist-row { border-width: 1.5px; border-color: rgba(17,17,18,.16); }
++[data-theme="light"] .log-date-inp, [data-theme="light"] .sess-hist-join { border-width: 1.5px; border-color: rgba(17,17,18,.22); }
++[data-theme="light"] .user-card:hover { border-color: #111112; }
++[data-theme="light"] .stat-value, [data-theme="light"] .card-name, [data-theme="light"] .lb-tot { color: #000; }
++
++/* ── Done-log / lock UI ── */
++.log-date-row { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin-bottom: .6rem; }
++.log-date-row label { font-size: .52rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
++.log-date-inp { background: var(--input-bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 3px 6px; font-family: 'DM Mono', monospace; font-size: .66rem; outline: none; }
++.done-btn { margin-left: auto; background: rgba(78,203,164,.12); border: 1px solid rgba(78,203,164,.4); color: #4ecba4; border-radius: 6px; font-family: 'Syne', sans-serif; font-size: .58rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 4px 9px; cursor: pointer; transition: all .18s; }
++.done-btn:hover { background: rgba(78,203,164,.22); }
++.locked-badge { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-family: 'DM Mono', monospace; font-size: .58rem; color: #4ecba4; background: rgba(78,203,164,.12); border: 1px solid rgba(78,203,164,.32); border-radius: 6px; padding: 3px 8px; }
++.user-card.locked .q-inp-grp input, .user-card.locked .add-q-btn { opacity: .45; pointer-events: none; }
++.locked-note { font-size: .6rem; color: var(--muted); font-style: italic; padding-top: .3rem; }
++.user-card { position: relative; }
++.done-check { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: color-mix(in srgb, var(--surface) 82%, transparent); border-radius: 12px; z-index: 5; pointer-events: none; }
++.done-check.show { display: flex; animation: doneFade 1.5s ease forwards; }
++.done-check svg { width: 54px; height: 54px; color: #4ecba4; }
++.done-check svg circle, .done-check svg path { stroke-dasharray: 180; stroke-dashoffset: 180; animation: doneDraw .55s ease forwards; }
++.done-check svg path { animation-delay: .3s; }
++@keyframes doneDraw { to { stroke-dashoffset: 0; } }
++@keyframes doneFade { 0% { opacity: 0; } 12% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
++
++/* ── Session history ── */
++.sess-hist { display: flex; flex-direction: column; gap: .3rem; max-height: 170px; overflow-y: auto; margin-bottom: .6rem; }
++.sess-hist-row { display: flex; align-items: center; gap: .5rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: .35rem .55rem; }
++.sess-hist-id { font-family: 'DM Mono', monospace; font-size: .72rem; flex: 1; }
++.sess-hist-when { font-family: 'DM Mono', monospace; font-size: .55rem; color: var(--muted); }
++.sess-hist-join { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 5px; font-family: 'Syne', sans-serif; font-size: .58rem; font-weight: 700; text-transform: uppercase; padding: 3px 8px; cursor: pointer; }
++.sess-hist-join:hover { border-color: var(--muted); color: var(--text); }
++.sess-hist-cur { font-size: .5rem; color: #4ecba4; font-family: 'DM Mono', monospace; }
++.sess-hist-empty { font-size: .7rem; color: var(--muted); padding: .3rem 0; }
+ 
+ /* ── Reset ── */
+ *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+@@ -441,6 +473,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
+           <button class="view-btn active" onclick="setChartView('today',this)">Today</button>
+           <button class="view-btn" onclick="setChartView('day',this)">By Day</button>
+           <button class="view-btn" onclick="setChartView('week',this)">Week</button>
++          <button class="view-btn" onclick="setChartView('month',this)">Month</button>
+           <button class="view-btn" onclick="setChartView('alltime',this)">All-Time</button>
+         </div>
+         <div class="legend" id="mainLegend"></div>
+@@ -666,6 +699,8 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
+       <input type="text" id="sessionIdDisplay" readonly style="font-family:'DM Mono',monospace;font-size:.75rem;cursor:default">
+       <button class="btn-cancel" onclick="copySession()" style="white-space:nowrap">Copy</button>
+     </div>
++    <div class="field-label" style="margin-top:.9rem">Session History</div>
++    <div class="sess-hist" id="sessHistList"></div>
+     <div class="field-label" style="margin-top:.75rem">Join a Friend's Session</div>
+     <input type="text" id="joinSidInput" placeholder="Paste session ID here" style="font-family:'DM Mono',monospace;font-size:.75rem;text-transform:uppercase">
+     <div class="modal-btns">
+@@ -761,7 +796,7 @@ const VERSION = '0.6.1';
+ 
+ /* ── State ── */
+ let sessionId = '';
+-let state = { users: {}, history: {}, subjects: [], meta: { ts: 0 } };
++let state = { users: {}, history: {}, subjects: [], locks: {}, meta: { ts: 0 } };
+ /* subjects: [{id, name, color}] */
+ 
+ let lastKnownTs = 0;
+@@ -831,6 +866,7 @@ function applyRemote(remote) {
+   const usersObj = remote.users || {};
+   state.users = usersObj;
+   state.history = remote.history || {};
++  state.locks = remote.locks || {};
+   // Subjects: stored as array
+   if (Array.isArray(remote.subjects) && remote.subjects.length > 0) {
+     state.subjects = remote.subjects;
+@@ -858,6 +894,49 @@ function initSession() {
+   sessionId = sid;
+   document.getElementById('sessionDisplay').textContent = fmtSid(sid);
+   document.getElementById('sessionIdDisplay').value = fmtSid(sid);
++  recordSessionHistory(sid);
++}
++
++/* ── Session history (stored on this device) ── */
++const SESS_HIST_KEY = 'qttrack_session_history';
++function getSessionHistory() {
++  try { return JSON.parse(localStorage.getItem(SESS_HIST_KEY) || '[]'); } catch (e) { return []; }
++}
++function recordSessionHistory(sid) {
++  let list = getSessionHistory().filter(x => x.id !== sid);
++  list.unshift({ id: sid, ts: Date.now() });
++  list = list.slice(0, 12);
++  try { localStorage.setItem(SESS_HIST_KEY, JSON.stringify(list)); } catch (e) {}
++  renderSessionHistory();
++}
++function renderSessionHistory() {
++  const el = document.getElementById('sessHistList');
++  if (!el) return;
++  const list = getSessionHistory();
++  if (!list.length) { el.innerHTML = '<div class="sess-hist-empty">No previous sessions yet.</div>'; return; }
++  el.innerHTML = list.map(x => {
++    const cur = x.id === sessionId;
++    const when = new Date(x.ts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
++    return `<div class="sess-hist-row">
++      <span class="sess-hist-id">${fmtSid(x.id)}</span>
++      <span class="sess-hist-when">${when}</span>
++      ${cur ? '<span class="sess-hist-cur">current</span>'
++            : `<button class="sess-hist-join" onclick="joinSessionId('${x.id}')">Join</button>`}
++    </div>`;
++  }).join('');
++}
++async function joinSessionId(sid) {
++  if (sid === sessionId) return;
++  sessionId = sid;
++  localStorage.setItem('qttrack_sid_v5', sid);
++  document.getElementById('sessionDisplay').textContent = fmtSid(sid);
++  document.getElementById('sessionIdDisplay').value = fmtSid(sid);
++  state = { users: {}, history: {}, subjects: [], locks: {}, meta: { ts: 0 } };
++  lastKnownTs = 0;
++  recordSessionHistory(sid);
++  closeModal('sessionModal');
++  await loadRemote();
++  showToast('Switched session');
+ }
+ 
+ function randId() { return Math.random().toString(36).slice(2, 8).toUpperCase(); }
+@@ -877,9 +956,10 @@ async function joinSession() {
+   localStorage.setItem('qttrack_sid_v5', clean);
+   document.getElementById('sessionDisplay').textContent = fmtSid(clean);
+   document.getElementById('sessionIdDisplay').value = fmtSid(clean);
+-  state = { users: {}, history: {}, subjects: [], meta: { ts: 0 } };
++  state = { users: {}, history: {}, subjects: [], locks: {}, meta: { ts: 0 } };
+   lastKnownTs = 0;
+   closeModal('sessionModal');
++  recordSessionHistory(clean);
+   await loadRemote();
+   showToast('Joined!');
+ }
+@@ -944,12 +1024,41 @@ function deleteUser(uid) {
+     // Remove all history for this user
+     const dates = Object.keys(state.history);
+     await Promise.all(dates.map(dt => fbDelete('/history/' + dt + '/' + uid)));
++    const lockDates = Object.keys(state.locks || {});
++    await Promise.all(lockDates.map(dt => fbDelete('/locks/' + dt + '/' + uid)));
+   });
+ }
+ 
++/* ── Day locking ("Log done") ── */
++function isLocked(uid, dt) { return !!((state.locks || {})[dt] || {})[uid]; }
++function selectedLogDate(uid) {
++  const el = document.getElementById('logdate_' + uid);
++  const v = el && el.value ? el.value : todayStr();
++  return v > todayStr() ? todayStr() : v;
++}
++function onLogDateChange(uid) { logDatePick[uid] = selectedLogDate(uid); renderCards(); }
++
++function markLogDone(uid) {
++  const dt = selectedLogDate(uid);
++  if (isLocked(uid, dt)) { showToast('Already locked'); return; }
++  if (!confirm('Lock the log for ' + dateLabel(dt) + '? It can no longer be changed.')) return;
++  doWrite(() => fbPut('/locks/' + dt + '/' + uid, Date.now()))
++    .then(ok => { if (ok) playDoneCheck(uid); });
++}
++function playDoneCheck(uid) {
++  const el = document.getElementById('donecheck_' + uid);
++  if (!el) return;
++  el.classList.remove('show');
++  void el.offsetWidth;
++  el.classList.add('show');
++  setTimeout(() => el.classList.remove('show'), 1600);
++}
++
+ function addQuestions(uid) {
+   const subj = state.subjects;
+   if (!subj.length) { showToast('Add subjects first (tap Subjects on this card)'); return; }
++  const dt = selectedLogDate(uid);
++  if (isLocked(uid, dt)) { showToast('That day is locked'); return; }
+   const vals = {};
+   let any = false;
+   subj.forEach(s => {
+@@ -959,7 +1068,6 @@ function addQuestions(uid) {
+     if (v) any = true;
+   });
+   if (!any) { showToast('Enter at least one value'); return; }
+-  const dt = todayStr();
+   // Build merged entry
+   const cur = (state.history[dt] || {})[uid] || {};
+   const entry = {};
+@@ -968,12 +1076,13 @@ function addQuestions(uid) {
+   subj.forEach(s => { const el = document.getElementById(`inp_${s.id}_${uid}`); if (el) el.value = ''; });
+   const userName = state.users[uid]?.name || '';
+   doWrite(() => fbPut('/history/' + dt + '/' + uid, entry))
+-    .then(ok => { if (ok) showToast('Updated ' + userName); });
++    .then(ok => { if (ok) showToast('Updated ' + userName + (dt === todayStr() ? '' : ' · ' + dateLabel(dt))); });
+ }
+ 
+ function saveEdit(uid) {
+   const subj = state.subjects;
+-  const dt = todayStr();
++  const dt = selectedLogDate(uid);
++  if (isLocked(uid, dt)) { showToast('That day is locked'); return; }
+   const entry = {};
+   let any = false;
+   subj.forEach(s => {
+@@ -1079,8 +1188,16 @@ function applyColor() {
+ /* ════════════════════════════════════════════════════════════
+    DATE UTILS
+ ════════════════════════════════════════════════════════════ */
+-function todayStr() {
++/* A new day starts at 5 AM, not midnight — late-night study still counts
++   towards the previous calendar day. */
++const DAY_START_HOUR = 5;
++function logicalNow() {
+   const d = new Date();
++  d.setHours(d.getHours() - DAY_START_HOUR);
++  return d;
++}
++function todayStr() {
++  const d = logicalNow();
+   return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+ }
+ function pad(n) { return String(n).padStart(2, '0'); }
+@@ -1089,10 +1206,10 @@ function dateLabel(ds) {
+   return new Date(+y, +m - 1, +d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+ }
+ function getMondayOfWeek() {
+-  const n = new Date(), dow = n.getDay();
++  const n = logicalNow(), dow = n.getDay();
+   const d = new Date(n); d.setDate(n.getDate() - (dow === 0 ? 6 : dow - 1)); d.setHours(0, 0, 0, 0); return d;
+ }
+-function getMonthStart() { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1); }
++function getMonthStart() { const n = logicalNow(); return new Date(n.getFullYear(), n.getMonth(), 1); }
+ 
+ /* ════════════════════════════════════════════════════════════
+    DATA HELPERS
+@@ -1198,11 +1315,51 @@ function setChartView(view, btn) {
+   dpRow.classList.toggle('show', view === 'day');
+   if (view === 'day' && !document.getElementById('dayPickerInput').value)
+     document.getElementById('dayPickerInput').value = todayStr();
+-  const titles = { today: "Today's Questions", day: "Selected Day", week: "This Week", alltime: "All-Time" };
++  const titles = { today: "Today's Questions", day: "Selected Day", week: "This Week — day 1 onwards", month: "By Month — per person trend", alltime: "All-Time" };
+   document.getElementById('mainChartTitle').textContent = titles[view];
+   renderMainChart();
+ }
+ 
++function userColor(i) { return PRESET_COLORS[i % PRESET_COLORS.length]; }
++
++/* day total for one person on one date */
++function dayTotal(uid, ds) {
++  const d = (state.history[ds] || {})[uid] || {};
++  return state.subjects.reduce((t, s) => t + (d[s.id] || 0), 0);
++}
++
++/* Build the timeline for the Week view: current week, day 1 (Mon) onwards. */
++function weekTimeline() {
++  const mon = getMondayOfWeek();
++  const keys = [], labels = [];
++  for (let i = 0; i < 7; i++) {
++    const d = new Date(mon); d.setDate(mon.getDate() + i);
++    keys.push(d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()));
++    labels.push('Day ' + (i + 1));
++  }
++  return { keys, labels };
++}
++
++/* Build the timeline for the Month view: every month that has data, each
++   starting at day 1, months separated by a blank gap column. */
++function monthTimeline() {
++  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
++  const months = [...new Set(Object.keys(state.history).map(k => k.slice(0, 7)))].sort();
++  if (!months.length) months.push(todayStr().slice(0, 7));
++  const keys = [], labels = [];
++  months.forEach((m, mi) => {
++    const [y, mo] = m.split('-').map(Number);
++    const dim = new Date(y, mo, 0).getDate();
++    const last = (m === todayStr().slice(0, 7)) ? Number(todayStr().slice(8)) : dim;
++    for (let d = 1; d <= last; d++) {
++      keys.push(m + '-' + pad(d));
++      labels.push(d === 1 ? MON[mo - 1] : (d % 5 === 0 ? String(d) : ''));
++    }
++    if (mi < months.length - 1) { keys.push(null); labels.push(''); }   // gap between months
++  });
++  return { keys, labels };
++}
++
+ function renderMainChart() {
+   const canvas = document.getElementById('mainChart');
+   const msg = document.getElementById('noDataMsg');
+@@ -1213,14 +1370,45 @@ function renderMainChart() {
+     if (mainChart) { mainChart.destroy(); mainChart = null; } return;
+   }
+   canvas.style.display = 'block'; msg.style.display = 'none';
++  if (mainChart) { mainChart.destroy(); mainChart = null; }
++
++  // Timeline views: Week / Month — bars per day + one trend line per person
++  if (chartView === 'week' || chartView === 'month') {
++    const tl = chartView === 'week' ? weekTimeline() : monthTimeline();
++    const bars = users.map((u, i) => ({
++      label: u.name,
++      data: tl.keys.map(k => k ? dayTotal(u.id, k) : 0),
++      backgroundColor: userColor(i), borderRadius: 3, borderSkipped: false,
++      stack: 'total', order: 2
++    }));
++    const lines = users.map((u, i) => ({
++      type: 'line',
++      label: u.name + ' trend',
++      data: tl.keys.map(k => k ? dayTotal(u.id, k) : null),
++      borderColor: userColor(i), backgroundColor: userColor(i),
++      borderWidth: 2, borderDash: [5, 4], pointRadius: 0, tension: .35,
++      spanGaps: true, fill: false, yAxisID: 'yLine', order: 1
++    }));
++    mainChart = buildChart('mainChart', tl.labels, [...bars, ...lines], tl.keys.indexOf(todayStr()));
++    renderPeopleLegend();
++    return;
++  }
++
++  // Snapshot views: Today / Selected day / All-time — stacked by subject
+   const scope = chartView === 'day' ? (document.getElementById('dayPickerInput').value || todayStr()) : chartView;
+   const labels = users.map(u => u.name);
+   const datasets = state.subjects.map(s => ({
+     label: s.name, data: users.map(u => getUserSubj(u.id, scope)[s.id] || 0),
+     backgroundColor: s.color, borderRadius: 4, borderSkipped: false
+   }));
+-  if (mainChart) { mainChart.data.labels = labels; mainChart.data.datasets = datasets; mainChart.update('active'); return; }
+   mainChart = buildChart('mainChart', labels, datasets);
++  renderLegend();
++}
++
++/* Legend showing people (used by the Week/Month trend views) */
++function renderPeopleLegend() {
++  document.getElementById('mainLegend').innerHTML = userList().map((u, i) =>
++    `<div class="legend-item"><div class="legend-dot" style="background:${userColor(i)}"></div>${escHtml(u.name)}</div>`).join('');
+ }
+ 
+ /* ── Weekly chart ── */
+@@ -1229,7 +1417,7 @@ function renderWeekChart() {
+   const msg = document.getElementById('noDataMsgW');
+   if (!state.subjects.length) { canvas.style.display = 'none'; msg.style.display = 'block'; if (weekChart) { weekChart.destroy(); weekChart = null; } return; }
+   canvas.style.display = 'block'; msg.style.display = 'none';
+-  const now = new Date(), dow = now.getDay(), offset = dow === 0 ? -6 : 1 - dow;
++  const now = logicalNow(), dow = now.getDay(), offset = dow === 0 ? -6 : 1 - dow;
+   const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+   const keys = [], labels = [];
+   for (let i = 0; i < 7; i++) {
+@@ -1241,9 +1429,17 @@ function renderWeekChart() {
+   const datasets = state.subjects.map(s => ({
+     label: s.name,
+     data: keys.map(dt => Object.values(state.history[dt] || {}).reduce((sum, u) => sum + (u[s.id] || 0), 0)),
+-    backgroundColor: s.color, borderRadius: 4, borderSkipped: false
++    backgroundColor: s.color, borderRadius: 4, borderSkipped: false, order: 2
+   }));
+-  if (weekChart) { weekChart.data.labels = labels; weekChart.data.datasets = datasets; weekChart.update('active'); return; }
++  // Trend line over the bars — total questions per day
++  const trendColor = document.documentElement.dataset.theme === 'light' ? '#111112' : '#f0ede8';
++  datasets.push({
++    type: 'line', label: 'Trend',
++    data: keys.map(dt => Object.values(state.history[dt] || {}).reduce((sum, u) => sum + state.subjects.reduce((t, s) => t + (u[s.id] || 0), 0), 0)),
++    borderColor: trendColor, borderWidth: 2, borderDash: [5, 4], pointRadius: 0,
++    tension: .35, fill: false, yAxisID: 'yLine', order: 1
++  });
++  if (weekChart) { weekChart.destroy(); weekChart = null; }
+   weekChart = buildChart('weeklyChart', labels, datasets, todayIdx);
+ }
+ 
+@@ -1268,8 +1464,10 @@ function buildChart(id, labels, datasets, todayIdx = -1) {
+         }
+       },
+       scales: {
+-        x: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { color: ctx => ctx.index === todayIdx ? tx : tc, font: { family: 'Syne', weight: '700', size: 10 }, maxRotation: 0 } },
+-        y: { stacked: true, grid: { color: gc }, border: { display: false }, ticks: { color: tc, font: { family: 'DM Mono', size: 9 } }, beginAtZero: true }
++        x: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { color: ctx => ctx.index === todayIdx ? tx : tc, font: { family: 'Syne', weight: '700', size: 10 }, maxRotation: 0, autoSkip: false } },
++        y: { stacked: true, grid: { color: gc }, border: { display: false }, ticks: { color: tc, font: { family: 'DM Mono', size: 9 } }, beginAtZero: true },
++        // Separate (hidden) axis so trend lines are not stacked with the bars
++        yLine: { display: false, stacked: false, beginAtZero: true, grace: '8%' }
+       },
+       animation: { duration: 300, easing: 'easeOutCubic' }
+     }
+@@ -1283,7 +1481,7 @@ function rebuildCharts() {
+ }
+ 
+ /* ── Calendar ── */
+-function initCal() { const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth(); }
++function initCal() { const n = logicalNow(); calYear = n.getFullYear(); calMonth = n.getMonth(); }
+ function calNav(dir) { calMonth += dir; if (calMonth > 11) { calMonth = 0; calYear++; } if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
+ 
+ function renderCalendar() {
+@@ -1337,21 +1535,22 @@ function renderCalDetail(ds) {
+ }
+ 
+ /* ── People cards ── */
++const logDatePick = {};   // per-person selected log date (defaults to today)
++
+ function renderCards() {
+   const grid = document.getElementById('usersGrid');
+-  const empty = document.getElementById('emptyGrid');
+   const users = userList();
+   if (!users.length) {
+-    grid.innerHTML = '';
+-    grid.appendChild(empty);
+-    empty.style.display = 'block';
++    // Rebuild the empty-state node (it gets wiped whenever cards are rendered)
++    grid.innerHTML = '<div class="empty-state" id="emptyGrid">No people added yet.<br>Tap <strong>+ Person</strong> in the header to begin.</div>';
+     return;
+   }
+-  empty.style.display = 'none';
+   const ranked = [...users].map(u => ({ id: u.id, score: getUserTotal(u.id, 'today') })).sort((a, b) => b.score - a.score);
+   // Full rebuild every time — subjects may have changed
+   grid.innerHTML = '';
+   users.forEach(user => {
++    const logDate = (logDatePick[user.id] && logDatePick[user.id] <= todayStr()) ? logDatePick[user.id] : todayStr();
++    const locked = isLocked(user.id, logDate);
+     const subs = getUserSubj(user.id, 'today');
+     const total = state.subjects.reduce((s, sub) => s + (subs[sub.id] || 0), 0);
+     const allTot = getUserTotal(user.id, 'alltime');
+@@ -1381,8 +1580,14 @@ function renderCards() {
+         <label style="color:${s.color}">${escHtml(s.name.slice(0, 6))}</label>
+         <input type="number" inputmode="numeric" id="einp_${s.id}_${user.id}" min="0" placeholder="0">
+       </div>`).join('');
++    const dayVals = (state.history[logDate] || {})[user.id] || {};
++    const addInputsDated = state.subjects.map(s => `
++      <div class="q-inp-grp">
++        <label style="color:${s.color}">${escHtml(s.name.slice(0, 6))}</label>
++        <input type="number" inputmode="numeric" id="inp_${s.id}_${user.id}" min="0" placeholder="0">
++      </div>`).join('');
+     const card = document.createElement('div');
+-    card.className = 'user-card';
++    card.className = 'user-card' + (locked ? ' locked' : '');
+     card.dataset.uid = user.id;
+     card.innerHTML = `
+       <div class="card-head">
+@@ -1393,7 +1598,7 @@ function renderCards() {
+         <div class="card-actions">
+           <span class="card-today">today: ${total}</span>
+           <button class="card-btn subj-btn" onclick="openSubjModal()">Subjects</button>
+-          ${state.subjects.length ? `<button class="card-btn edit-btn" id="editbtn_${user.id}" onclick="toggleEdit('${user.id}')">Edit</button>` : ''}
++          ${state.subjects.length && !locked ? `<button class="card-btn edit-btn" id="editbtn_${user.id}" onclick="toggleEdit('${user.id}')">Edit</button>` : ''}
+           <button class="card-btn del-btn" onclick="deleteUser('${user.id}')">✕</button>
+         </div>
+       </div>
+@@ -1401,14 +1606,28 @@ function renderCards() {
+       <div class="subj-rows">${subRows}</div>
+       ${state.subjects.length ? `
+       <div class="add-qs-wrap">
+-        <div class="add-qs-label">Add questions done today</div>
+-        <div class="q-inp-row">${addInputs}<button class="add-q-btn" onclick="addQuestions('${user.id}')">Add</button></div>
++        <div class="log-date-row">
++          <label>Log for</label>
++          <input class="log-date-inp" type="date" id="logdate_${user.id}" value="${logDate}" max="${todayStr()}" onchange="onLogDateChange('${user.id}')">
++          ${locked
++            ? `<span class="locked-badge">✓ Log done</span>`
++            : `<button class="done-btn" id="donebtn_${user.id}" onclick="markLogDone('${user.id}')">✓ Log done</button>`}
++        </div>
++        <div class="add-qs-label">${logDate === todayStr() ? 'Add questions done today' : 'Add questions for ' + dateLabel(logDate)} · currently ${state.subjects.reduce((t, s) => t + (dayVals[s.id] || 0), 0)}Q</div>
++        <div class="q-inp-row">${addInputsDated}<button class="add-q-btn" onclick="addQuestions('${user.id}')">Add</button></div>
++        ${locked ? `<div class="locked-note">This day is locked — no further changes.</div>` : ''}
+       </div>
++      ${locked ? '' : `
+       <div class="edit-wrap" id="editwrap_${user.id}" style="display:none">
+-        <div class="edit-label">Correct today's log</div>
+-        <div class="edit-note">Sets exact totals — overwrites today's data for this person.</div>
++        <div class="edit-label">Correct the log for ${dateLabel(logDate)}</div>
++        <div class="edit-note">Sets exact totals — overwrites that day's data for this person.</div>
+         <div class="q-inp-row">${editInputs}<button class="save-edit-btn" onclick="saveEdit('${user.id}')">Save</button></div>
+-      </div>` : ''}`;
++      </div>`}` : ''}
++      <div class="done-check" id="donecheck_${user.id}">
++        <svg viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
++          <circle cx="26" cy="26" r="23"/><path d="M15 27l8 8 15-16"/>
++        </svg>
++      </div>`;
+     grid.appendChild(card);
+   });
+ }
+@@ -1421,7 +1640,7 @@ function toggleEdit(uid) {
+   wrap.style.display = open ? 'block' : 'none';
+   if (btn) btn.classList.toggle('active', open);
+   if (open) {
+-    const cur = (state.history[todayStr()] || {})[uid] || {};
++    const cur = (state.history[selectedLogDate(uid)] || {})[uid] || {};
+     state.subjects.forEach(s => { const el = document.getElementById(`einp_${s.id}_${uid}`); if (el) el.value = cur[s.id] || ''; });
+   }
+ }
