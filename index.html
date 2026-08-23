@@ -601,7 +601,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.8.1</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.1</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -639,7 +639,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div style="flex:1"></div>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack 0.8.1 · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack 0.9.1 · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -827,7 +827,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 0.8.1 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 0.9.1 · Beta · qttrack.vercel.app</div>
 
     <div class="about-h2">How to Use</div>
     <div class="how-step"><div class="how-num">1</div><div class="how-text"><strong>Add people</strong> — tap "+ Person" in the header. Each person gets their own bar on the chart and their own card below.</div></div>
@@ -881,6 +881,32 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <!-- CHANGELOG --------------------------------------------------- -->
 <div class="page" id="changelogPage">
   <div class="changelog-wrap">
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.9.1</span></div>
+      <ul class="cl-items">
+        <li>New: Exam Analytics now has a per-person toggle at the top, matching Study Tracker and Syllabus Tracker — each person's tests are their own</li>
+        <li>New: Optional password lock on Exam Analytics — tap the ⚙ next to a name to set a PIN (hashed, never stored in plain text); anyone else opening that person's tab on this session needs the correct PIN before they can view or edit it</li>
+        <li>Changed: Removed per-subject Rank/Percentile fields from test entry; replaced with a single Overall Rank and Overall Percentile per test</li>
+        <li>Removed: Total Errors and Negative Marking fields — out of scope for now</li>
+        <li>Redesigned: Summary boxes on a test are now square, colour-coded cards matching the Question Tracker's person cards, instead of thin grey strips</li>
+        <li>New: Analysis button on every logged test — rate the paper's difficulty (Tough / Moderate / Easy), and estimate how much each broad topic was asked and how well you think you did in it, per subject</li>
+        <li>New: Difficulty badge shown on the test tab and summary once an analysis is filled in</li>
+        <li>New: Category Insights radar chart — per subject, compares how much each broad topic showed up on your papers against your self-rated performance in it, so mismatches (heavily-asked but weak) stand out</li>
+      </ul>
+    </div>
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.9.0</span></div>
+      <ul class="cl-items">
+        <li>New: Syllabus Tracker — a dedicated page for tracking chapter-by-chapter coverage, separate from daily question logging</li>
+        <li>JEE and NEET chapter lists pre-loaded with Priority A / Adv / B / C / D weighting (3.0x / 2.5x / 2.0x / 1.5x / 1.0x)</li>
+        <li>Per-person progress toggle — each person's chapter status (Pending / Theory Done / PYQs Solved / Mastered) is tracked privately on their own tab</li>
+        <li>Overall and per-subject completion % calculated live as weighted priority coverage over everything currently visible</li>
+        <li>"Other" mode lets you build a fully custom subject and chapter list with your own priority tiers</li>
+        <li>Fixed: Update Log — point releases (e.g. 0.8.1) now nest properly under their parent version instead of appearing as separate top-level entries</li>
+      </ul>
+    </div>
 
     <div class="cl-version">
       <div><span class="cl-ver-num">0.8.0</span></div>
@@ -998,7 +1024,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 0.8.1</span>
+  <span>QTrack 0.9.1</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -1070,11 +1096,11 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div class="exam-modal-grid">
       <div><div class="field-label">Total marks</div><input type="number" id="examTotalMarks" placeholder="300"></div>
       <div><div class="field-label">Marks obtained</div><input type="number" id="examObtMarks" placeholder="210"></div>
-      <div><div class="field-label">Total errors</div><input type="number" id="examTotalErrors" placeholder="8"></div>
-      <div><div class="field-label">Neg. marking / wrong</div><input type="number" step="0.25" id="examNegMark" placeholder="1"></div>
+      <div><div class="field-label">Overall rank</div><input type="number" id="examOverallRank" placeholder="1240"></div>
+      <div><div class="field-label">Overall percentile</div><input type="number" step="0.01" id="examOverallPercentile" placeholder="98.5"></div>
     </div>
     <div class="field-label" style="margin-top:.2rem">Subject-wise breakdown</div>
-    <div class="exam-subj-hdr"><span>Subject</span><span>Score</span><span>Max</span><span>Rank</span><span>%ile</span><span></span></div>
+    <div class="exam-subj-hdr" style="grid-template-columns:2fr 1fr 1fr 22px"><span>Subject</span><span>Score</span><span>Max</span><span></span></div>
     <div id="examSubjRows"></div>
     <button class="add-subj-btn" style="margin:.3rem 0 .5rem" onclick="addExamSubjRow()">+ Add subject row</button>
     <div class="field-label">Personal note</div>
@@ -1151,12 +1177,12 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.8.1';
+const VERSION = '0.9.1';
 
 /* ── State ── */
 let sessionId = '';
 let deviceId = '';
-let state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {} }, syllabus: { customSubjects: {}, progress: {} }, meta: { ts: 0 } };
+let state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {}, locks: {} }, syllabus: { customSubjects: {}, progress: {} }, meta: { ts: 0 } };
 /* subjects: [{id, name, color}] */
 /* syllabus.customSubjects: { [subjId]: { id, name, chapters: { [chId]: {id,name,priority} } } } — shared "Other" subjects
    syllabus.progress: { [userId]: { [mode]: { [chapterId]: 'pending'|'theory'|'pyq'|'mastered' } } } — private per user */
@@ -1231,8 +1257,9 @@ function applyRemote(remote) {
   state.locks = remote.locks || {};
   state.study = remote.study || { logs: {} };
   if (!state.study.logs) state.study.logs = {};
-  state.exams = remote.exams || { tests: {} };
+  state.exams = remote.exams || { tests: {}, locks: {} };
   if (!state.exams.tests) state.exams.tests = {};
+  if (!state.exams.locks) state.exams.locks = {};
   state.syllabus = remote.syllabus || { customSubjects: {}, progress: {} };
   if (!state.syllabus.customSubjects) state.syllabus.customSubjects = {};
   if (!state.syllabus.progress) state.syllabus.progress = {};
@@ -1307,7 +1334,7 @@ async function joinSessionId(sid) {
   localStorage.setItem('qttrack_sid_v5', sid);
   document.getElementById('sessionDisplay').textContent = fmtSid(sid);
   document.getElementById('sessionIdDisplay').value = fmtSid(sid);
-  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {} }, syllabus: { customSubjects: {}, progress: {} }, meta: { ts: 0 } };
+  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {}, locks: {} }, syllabus: { customSubjects: {}, progress: {} }, meta: { ts: 0 } };
   lastKnownTs = 0;
   recordSessionHistory(sid);
   closeModal('sessionModal');
@@ -1332,7 +1359,7 @@ async function joinSession() {
   localStorage.setItem('qttrack_sid_v5', clean);
   document.getElementById('sessionDisplay').textContent = fmtSid(clean);
   document.getElementById('sessionIdDisplay').value = fmtSid(clean);
-  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {} }, syllabus: { customSubjects: {}, progress: {} }, meta: { ts: 0 } };
+  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {}, locks: {} }, syllabus: { customSubjects: {}, progress: {} }, meta: { ts: 0 } };
   lastKnownTs = 0;
   closeModal('sessionModal');
   recordSessionHistory(clean);
