@@ -182,6 +182,74 @@
 .exam-charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
 #examTestModal .btn-confirm { background: linear-gradient(135deg, #22c55e, #15803d) !important; }
 
+/* ═══════════════════════════════════════════════════
+   SYLLABUS TRACKER — indigo / black theme
+═══════════════════════════════════════════════════ */
+.syl-wrap { --sy-bg:#0a0a14; --sy-surface:#12121f; --sy-surface2:#181829; --sy-border:#2a2a45; --sy-accent:#6366f1; --sy-accent2:#4338ca; --sy-text:#eeeeff; --sy-muted:#8a8aad;
+  background: var(--sy-bg); margin: -1rem -1rem 0; padding: 1.1rem 1rem 1.6rem; border-radius: 0 0 16px 16px; color: var(--sy-text); min-height: calc(100vh - var(--header-h)); }
+.syl-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .7rem; }
+.syl-title { font-size: 1.2rem; font-weight: 800; letter-spacing: -.02em; color: var(--sy-text); }
+.syl-title em { font-style: normal; color: var(--sy-accent); }
+
+.syl-user-row { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .8rem; }
+.syl-user-chip { background: var(--sy-surface); border: 1px solid var(--sy-border); color: var(--sy-muted); border-radius: 18px; padding: 6px 13px; font-family: 'Syne', sans-serif; font-size: .7rem; font-weight: 700; cursor: pointer; transition: all .18s; }
+.syl-user-chip.active { background: linear-gradient(135deg, var(--sy-accent), var(--sy-accent2)); color: #fff; border-color: transparent; box-shadow: 0 0 16px rgba(99,102,241,.35); }
+.syl-user-empty { font-size: .74rem; color: var(--sy-muted); padding: .3rem 0 .6rem; }
+
+.syl-mode-toggle { display: flex; gap: .35rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.syl-mode-btn { background: var(--sy-surface2); border: 1px solid var(--sy-border); color: var(--sy-muted); border-radius: 18px; padding: 6px 13px; font-family: 'Syne', sans-serif; font-size: .68rem; font-weight: 700; cursor: pointer; transition: all .18s; }
+.syl-mode-btn.active { background: linear-gradient(135deg, var(--sy-accent), var(--sy-accent2)); color: #fff; border-color: transparent; box-shadow: 0 0 16px rgba(99,102,241,.3); }
+
+.syl-overall-card { background: var(--sy-surface); border: 1px solid var(--sy-border); border-radius: 12px; padding: .9rem 1rem; margin-bottom: 1rem; }
+.syl-overall-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: .5rem; }
+.syl-overall-pct { font-family: 'DM Mono', monospace; font-size: 1.5rem; font-weight: 500; color: var(--sy-accent); }
+.syl-overall-label { font-size: .58rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sy-muted); }
+.syl-overall-sub { font-size: .68rem; color: var(--sy-muted); font-family: 'DM Mono', monospace; }
+.syl-bar-track { height: 8px; border-radius: 5px; background: var(--sy-surface2); overflow: hidden; }
+.syl-bar-fill { height: 100%; background: linear-gradient(90deg, var(--sy-accent), #a78bfa); border-radius: 5px; transition: width .5s ease; }
+
+.syl-search { width: 100%; background: var(--sy-surface); border: 1px solid var(--sy-border); color: var(--sy-text); border-radius: 8px; padding: 8px 11px; font-family: 'DM Mono', monospace; font-size: .72rem; margin-bottom: .9rem; outline: none; }
+.syl-search::placeholder { color: var(--sy-muted); }
+
+.syl-subject-card { background: var(--sy-surface); border: 1px solid var(--sy-border); border-radius: 12px; margin-bottom: .8rem; overflow: hidden; }
+.syl-subject-head { display: flex; align-items: center; justify-content: space-between; padding: .8rem .9rem; cursor: pointer; gap: .6rem; }
+.syl-subject-name { font-weight: 700; font-size: .86rem; color: var(--sy-text); }
+.syl-subject-meta { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+.syl-subject-pct { font-family: 'DM Mono', monospace; font-size: .78rem; color: var(--sy-accent); }
+.syl-subject-chev { color: var(--sy-muted); transition: transform .2s; width: 14px; height: 14px; }
+.syl-subject-card.open .syl-subject-chev { transform: rotate(180deg); }
+.syl-subject-bar { padding: 0 .9rem .7rem; }
+.syl-subject-body { display: none; padding: 0 .9rem .9rem; border-top: 1px solid var(--sy-border); }
+.syl-subject-card.open .syl-subject-body { display: block; padding-top: .7rem; }
+.syl-subject-del { background: none; border: none; color: var(--sy-muted); cursor: pointer; font-size: .7rem; padding: 2px 5px; }
+.syl-subject-del:hover { color: #ef4444; }
+
+.syl-priority-label { font-size: .56rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sy-muted); margin: .7rem 0 .4rem; display: flex; align-items: center; gap: 6px; }
+.syl-priority-label:first-child { margin-top: 0; }
+.syl-priority-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+.syl-chapter-row { border: 1px solid var(--sy-border); border-radius: 9px; padding: .55rem .65rem; margin-bottom: .4rem; background: var(--sy-surface2); }
+.syl-chapter-top { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .45rem; }
+.syl-chapter-name { font-size: .74rem; font-weight: 600; color: var(--sy-text); line-height: 1.3; }
+.syl-priority-badge { flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: .58rem; font-weight: 700; border-radius: 5px; padding: 2px 6px; color: #fff; white-space: nowrap; }
+.syl-status-group { display: flex; gap: 4px; }
+.syl-status-btn { flex: 1; background: var(--sy-surface); border: 1px solid var(--sy-border); color: var(--sy-muted); border-radius: 6px; padding: 5px 4px; font-family: 'Syne', sans-serif; font-size: .58rem; font-weight: 700; cursor: pointer; text-align: center; transition: all .16s; }
+.syl-status-btn.active-pending { background: rgba(136,136,133,.16); border-color: var(--sy-muted); color: var(--sy-text); }
+.syl-status-btn.active-theory { background: rgba(251,191,36,.16); border-color: #fbbf24; color: #fbbf24; }
+.syl-status-btn.active-pyq { background: rgba(99,102,241,.18); border-color: var(--sy-accent); color: #a5a6fa; }
+.syl-status-btn.active-mastered { background: rgba(78,203,164,.18); border-color: #4ecba4; color: #4ecba4; }
+.syl-chapter-del { background: none; border: none; color: var(--sy-muted); cursor: pointer; font-size: .68rem; flex-shrink: 0; }
+.syl-chapter-del:hover { color: #ef4444; }
+
+.syl-add-box { border: 1px dashed var(--sy-border); border-radius: 9px; padding: .6rem; margin-top: .5rem; }
+.syl-add-row { display: flex; gap: .4rem; margin-bottom: .4rem; flex-wrap: wrap; }
+.syl-add-row input, .syl-add-row select { flex: 1; min-width: 90px; background: var(--sy-surface); border: 1px solid var(--sy-border); color: var(--sy-text); border-radius: 6px; padding: 6px 8px; font-family: 'DM Mono', monospace; font-size: .68rem; }
+.syl-add-btn { background: linear-gradient(135deg, var(--sy-accent), var(--sy-accent2)); border: none; color: #fff; border-radius: 6px; padding: 6px 12px; font-family: 'Syne', sans-serif; font-size: .66rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.syl-new-subj-row { display: flex; gap: .4rem; margin-bottom: .8rem; }
+.syl-new-subj-row input { flex: 1; background: var(--sy-surface); border: 1px solid var(--sy-border); color: var(--sy-text); border-radius: 8px; padding: 8px 11px; font-family: 'DM Mono', monospace; font-size: .72rem; }
+.syl-empty-msg { color: var(--sy-muted); font-size: .78rem; text-align: center; padding: 1.5rem 1rem; }
+#syllabusTestModal .btn-confirm { background: linear-gradient(135deg, #6366f1, #4338ca) !important; }
+
 /* ── Session history ── */
 .sess-hist { display: flex; flex-direction: column; gap: .3rem; max-height: 170px; overflow-y: auto; margin-bottom: .6rem; }
 .sess-hist-row { display: flex; align-items: center; gap: .5rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: .35rem .55rem; }
@@ -438,6 +506,10 @@ header {
 .cl-sub li { font-size: .72rem; padding-left: 2.2rem; position: relative; }
 .cl-sub li::before { content: '–'; position: absolute; left: 1.15rem; color: var(--muted2); }
 .cl-sub li::after { content: ''; position: absolute; left: 0; top: 50%; width: 1.1rem; height: 1px; background: var(--border); }
+.cl-subversion { margin: .7rem 0 .1rem 1.1rem; padding-left: .9rem; border-left: 2px dashed var(--muted2); }
+.cl-subver-num { font-family: 'DM Mono', monospace; font-size: .72rem; font-weight: 700; display: block; margin-bottom: .4rem; color: var(--muted); }
+.cl-subversion .cl-items { padding-left: 1.4rem; }
+.cl-subversion .cl-items li { font-size: .74rem; }
 
 /* ── Modals ── */
 .modal-overlay { position: fixed; inset: 0; background: var(--overlay); z-index: 500; display: none; align-items: flex-end; justify-content: center; }
@@ -561,6 +633,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <button class="nav-item active" onclick="showPage('homePage','homeNav')" id="homeNav">Question Tracker</button>
     <button class="nav-item" onclick="showPage('studyPage','studyNav')" id="studyNav">Study Tracker</button>
     <button class="nav-item" onclick="showPage('examPage','examNav')" id="examNav">Exam Analytics</button>
+    <button class="nav-item" onclick="showPage('syllabusPage','syllabusNav')" id="syllabusNav">Syllabus Tracker</button>
     <button class="nav-item" onclick="showPage('leaderboardPage','leaderboardNav')" id="leaderboardNav">Leaderboard</button>
     <button class="nav-item" onclick="showPage('changelogPage','changelogNav')" id="changelogNav">Update Log</button>
     <div style="flex:1"></div>
@@ -721,6 +794,19 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
   </div>
 </div><!-- /examPage -->
 
+<!-- SYLLABUS TRACKER --------------------------------------------- -->
+<div class="page" id="syllabusPage">
+  <div class="syl-wrap">
+    <div class="syl-head">
+      <div class="syl-title">Syllabus <em>Tracker</em></div>
+    </div>
+
+    <div id="sylUserRow" class="syl-user-row"></div>
+
+    <div id="sylBody"></div>
+  </div>
+</div><!-- /syllabusPage -->
+
 <!-- LEADERBOARD ------------------------------------------------- -->
 <div class="page" id="leaderboardPage">
   <div style="margin-bottom:.85rem">
@@ -797,13 +883,6 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
   <div class="changelog-wrap">
 
     <div class="cl-version">
-      <div><span class="cl-ver-num">0.8.1</span></div>
-      <ul class="cl-items">
-        <li>Exam Analytics re-themed to green &amp; black, matching its own identity separate from Study Tracker's purple</li>
-      </ul>
-    </div>
-
-    <div class="cl-version">
       <div><span class="cl-ver-num">0.8.0</span></div>
       <ul class="cl-items">
         <li>New: Exam Analytics — log full test results (marks, errors, negative marking, per-subject score/rank/percentile, notes), browse them as tabs, and view progress-over-time, subject-strength, and subject-breakdown charts</li>
@@ -814,6 +893,12 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
         <li>Fixed: Study Tracker's fluid fill/drain animation, which wasn't rendering</li>
         <li>Updated About, How to Use, and FAQ sections for all of the above</li>
       </ul>
+      <div class="cl-subversion">
+        <span class="cl-subver-num">0.8.1</span>
+        <ul class="cl-items">
+          <li>Exam Analytics re-themed to green &amp; black, matching its own identity separate from Study Tracker's purple</li>
+        </ul>
+      </div>
     </div>
 
     <div class="cl-version">
@@ -1071,8 +1156,10 @@ const VERSION = '0.8.1';
 /* ── State ── */
 let sessionId = '';
 let deviceId = '';
-let state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {} }, meta: { ts: 0 } };
+let state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {} }, syllabus: { customSubjects: {}, progress: {} }, meta: { ts: 0 } };
 /* subjects: [{id, name, color}] */
+/* syllabus.customSubjects: { [subjId]: { id, name, chapters: { [chId]: {id,name,priority} } } } — shared "Other" subjects
+   syllabus.progress: { [userId]: { [mode]: { [chapterId]: 'pending'|'theory'|'pyq'|'mastered' } } } — private per user */
 
 let lastKnownTs = 0;
 let pollTimer = null;
@@ -1146,6 +1233,9 @@ function applyRemote(remote) {
   if (!state.study.logs) state.study.logs = {};
   state.exams = remote.exams || { tests: {} };
   if (!state.exams.tests) state.exams.tests = {};
+  state.syllabus = remote.syllabus || { customSubjects: {}, progress: {} };
+  if (!state.syllabus.customSubjects) state.syllabus.customSubjects = {};
+  if (!state.syllabus.progress) state.syllabus.progress = {};
   // Subjects: stored as array
   if (Array.isArray(remote.subjects) && remote.subjects.length > 0) {
     state.subjects = remote.subjects;
@@ -1156,6 +1246,7 @@ function applyRemote(remote) {
   renderStudyChips();
   renderStudyStats();
   if (document.getElementById('examPage')?.classList.contains('active')) renderExamPage();
+  if (document.getElementById('syllabusPage')?.classList.contains('active')) renderSyllabusPage();
 }
 
 /* ── LocalStorage cache ── */
@@ -1216,7 +1307,7 @@ async function joinSessionId(sid) {
   localStorage.setItem('qttrack_sid_v5', sid);
   document.getElementById('sessionDisplay').textContent = fmtSid(sid);
   document.getElementById('sessionIdDisplay').value = fmtSid(sid);
-  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {} }, meta: { ts: 0 } };
+  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {} }, syllabus: { customSubjects: {}, progress: {} }, meta: { ts: 0 } };
   lastKnownTs = 0;
   recordSessionHistory(sid);
   closeModal('sessionModal');
@@ -1241,7 +1332,7 @@ async function joinSession() {
   localStorage.setItem('qttrack_sid_v5', clean);
   document.getElementById('sessionDisplay').textContent = fmtSid(clean);
   document.getElementById('sessionIdDisplay').value = fmtSid(clean);
-  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {} }, meta: { ts: 0 } };
+  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {} }, syllabus: { customSubjects: {}, progress: {} }, meta: { ts: 0 } };
   lastKnownTs = 0;
   closeModal('sessionModal');
   recordSessionHistory(clean);
@@ -2127,6 +2218,7 @@ function showPage(pageId, navId) {
   if (pageId === 'leaderboardPage') renderLeaderboard();
   if (pageId === 'studyPage') renderStudyPage();
   if (pageId === 'examPage') renderExamPage();
+  if (pageId === 'syllabusPage') renderSyllabusPage();
 }
 
 function toggleFaq(el) { el.classList.toggle('open'); }
@@ -2715,6 +2807,258 @@ function updateRingVisual(uid) {
       phaseEl.style.display = 'block';
     } else phaseEl.style.display = 'none';
   }
+}
+
+/* ════════════════════════════════════════════════════════════
+   SYLLABUS TRACKER
+════════════════════════════════════════════════════════════ */
+const SYL_PRIORITY_WEIGHTS = { A: 3.0, Adv: 2.5, B: 2.0, C: 1.5, D: 1.0 };
+const SYL_PRIORITY_COLORS  = { A: '#ef4444', Adv: '#f97316', B: '#eab308', C: '#6366f1', D: '#64748b' };
+const SYL_STATUS_VALUES = { pending: 0, theory: 0.5, pyq: 1.0, mastered: 1.0 };
+const SYL_STATUS_LABELS = { pending: 'Pending', theory: 'Theory Done', pyq: 'PYQs Solved', mastered: 'Mastered' };
+const SYL_MODES = [
+  { id: 'jee', label: 'JEE' },
+  { id: 'neet', label: 'NEET' },
+  { id: 'other', label: 'Other' }
+];
+
+function sylSlug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
+function sylMkSubject(name, groups) {
+  const chapters = [];
+  Object.keys(groups).forEach(pr => (groups[pr] || []).forEach(n => {
+    chapters.push({ id: sylSlug(name) + '--' + sylSlug(n), name: n, priority: pr });
+  }));
+  return { id: sylSlug(name), name, chapters };
+}
+
+const SYLLABUS_FIXED = {
+  jee: [
+    sylMkSubject('Physics', {
+      A: ['Modern Physics & Semiconductor Electronics','Current Electricity','Electrostatics & Capacitance','Magnetic Effects of Current & Magnetism','Electromagnetic Induction & AC','Ray & Wave Optics','Rotational Motion','Work, Energy & Power'],
+      B: ["Newton's Laws & Friction",'Kinematics','Simple Harmonic Motion','Waves & Sound','Thermodynamics & Kinetic Theory','Gravitation','Fluids'],
+      C: ['Centre of Mass, Momentum & Collisions','Mechanical Properties of Solids','Thermal Properties of Matter','Units, Dimensions & Errors','Experimental Physics'],
+      D: ['Communication / EM Waves'],
+      Adv: ['Basic Mathematics for Physics']
+    }),
+    sylMkSubject('Chemistry', {
+      A: ['Chemical Bonding & Molecular Structure','Coordination Compounds','General Organic Chemistry (GOC) + Isomerism','Aldehydes, Ketones & Carboxylic Acids','Amines','Electrochemistry','Chemical Kinetics','Thermodynamics & Thermochemistry'],
+      B: ['Mole Concept & Stoichiometry','Atomic Structure','Chemical & Ionic Equilibrium','Periodic Table & Periodicity','p-Block Elements','d- and f-Block Elements','Alcohols, Phenols & Ethers','Hydrocarbons'],
+      C: ['Solutions','States of Matter','Redox Reactions','Haloalkanes & Haloarenes','Biomolecules','Practical/Qualitative Chemistry','Metallurgy'],
+      D: ['Solid State','Surface Chemistry','Polymers & Chemistry in Everyday Life','Environmental Chemistry']
+    }),
+    sylMkSubject('Mathematics', {
+      A: ['Limits, Continuity & Differentiability','Application of Derivatives','Indefinite Integration','Definite Integration & Area','Matrices & Determinants','Coordinate Geometry: Straight Line & Circle','Conic Sections','Probability'],
+      B: ['Complex Numbers & Quadratic Equations','Sequence & Series','Differential Equations','Vector Algebra','3D Geometry','Trigonometry & Inverse Trigonometry','Binomial Theorem'],
+      C: ['Functions','Sets & Relations','Permutations & Combinations','Mathematical Reasoning','Statistics','Linear Programming'],
+      D: ['Mathematical Induction'],
+      Adv: ['Basic Algebra & Inequalities']
+    })
+  ],
+  neet: [
+    sylMkSubject('Physics', {
+      A: ['Modern Physics','Current Electricity','Electrostatics & Capacitance','Magnetic Effects & Magnetism','EMI & Alternating Current','Ray & Wave Optics','Semiconductor Electronics'],
+      B: ['Laws of Motion & Friction','Work, Energy & Power','Rotational Motion','Thermodynamics','SHM & Waves','Kinematics','Gravitation'],
+      C: ['Properties of Matter','Thermal Properties & Kinetic Theory','Experimental Physics & Measurement','Electromagnetic Waves']
+    }),
+    sylMkSubject('Chemistry', {
+      A: ['Chemical Bonding','General Organic Chemistry + Isomerism','Coordination Compounds','Thermodynamics','Chemical Equilibrium','Ionic Equilibrium','Electrochemistry','Chemical Kinetics'],
+      B: ['Mole Concept & Redox','Atomic Structure','Periodic Classification','p-Block','d- and f-Block','Hydrocarbons','Haloalkanes & Haloarenes','Alcohols, Phenols & Ethers','Aldehydes, Ketones & Carboxylic Acids','Amines'],
+      C: ['Solutions','States of Matter','Biomolecules','Practical Chemistry','Metallurgy','Solid State','Surface Chemistry']
+    }),
+    sylMkSubject('Biology', {
+      A: ['Human Physiology','Molecular Basis of Inheritance','Principles of Inheritance & Variation','Human Reproduction','Sexual Reproduction in Flowering Plants','Cell: Structure & Function','Biomolecules','Biotechnology: Principles & Processes + Applications','Ecology: Ecosystem & Biodiversity'],
+      B: ['Cell Cycle & Cell Division','Evolution','Reproductive Health','Microbes in Human Welfare','Organisms & Populations','Environmental Issues','Plant Kingdom','Animal Kingdom'],
+      C: ['Morphology of Flowering Plants','Anatomy of Flowering Plants','Transport in Plants','Photosynthesis in Plants','Respiration in Plants','Plant Growth & Development','Structural Organisation in Animals','Neural Control & Chemical Coordination']
+    })
+  ]
+};
+
+let sylActiveUser = null;
+let sylMode = 'jee';
+let sylOpenSubjects = {}; // subjId -> bool
+let sylSearchQ = '';
+
+function sylSubjectsForMode(mode) {
+  if (mode === 'other') {
+    return Object.values(state.syllabus.customSubjects || {}).map(s => ({
+      id: s.id, name: s.name,
+      chapters: Object.values(s.chapters || {})
+    }));
+  }
+  return SYLLABUS_FIXED[mode] || [];
+}
+
+function sylUserProgress(uid, mode) {
+  return (((state.syllabus.progress || {})[uid] || {})[mode]) || {};
+}
+
+function sylStatusOf(uid, mode, chId) {
+  return sylUserProgress(uid, mode)[chId] || 'pending';
+}
+
+/* weighted % = Σ(priority weight × status value) / Σ(priority weight) over currently visible chapters */
+function sylComputeProgress(uid, mode, chapters) {
+  let potential = 0, earned = 0;
+  chapters.forEach(ch => {
+    const w = SYL_PRIORITY_WEIGHTS[ch.priority] || 1;
+    potential += w;
+    earned += w * SYL_STATUS_VALUES[sylStatusOf(uid, mode, ch.id)];
+  });
+  return potential ? (earned / potential) * 100 : 0;
+}
+
+function renderSyllabusPage() {
+  renderSylUserRow();
+  const users = userList();
+  if (!sylActiveUser || !users.find(u => u.id === sylActiveUser)) sylActiveUser = users.length ? users[0].id : null;
+  renderSylBody();
+}
+
+function renderSylUserRow() {
+  const row = document.getElementById('sylUserRow');
+  if (!row) return;
+  const users = userList();
+  if (!users.length) { row.innerHTML = '<div class="syl-user-empty">Add a person from the header to start tracking.</div>'; return; }
+  row.innerHTML = users.map(u =>
+    `<button class="syl-user-chip ${u.id === sylActiveUser ? 'active' : ''}" onclick="setSylUser('${u.id}')">${escHtml(u.name)}</button>`
+  ).join('');
+}
+
+function setSylUser(uid) { sylActiveUser = uid; renderSylBody(); }
+
+function setSylMode(mode) { sylMode = mode; sylOpenSubjects = {}; renderSylBody(); }
+
+function renderSylBody() {
+  const body = document.getElementById('sylBody');
+  if (!body) return;
+  if (!sylActiveUser) { body.innerHTML = '<div class="syl-empty-msg">Add a person to start tracking their syllabus.</div>'; return; }
+
+  const subjects = sylSubjectsForMode(sylMode);
+  const allChapters = subjects.flatMap(s => s.chapters);
+  const overallPct = sylComputeProgress(sylActiveUser, sylMode, allChapters);
+  const q = sylSearchQ.trim().toLowerCase();
+
+  let html = `<div class="syl-mode-toggle">${SYL_MODES.map(m =>
+    `<button class="syl-mode-btn ${m.id === sylMode ? 'active' : ''}" onclick="setSylMode('${m.id}')">${m.label}</button>`).join('')}</div>`;
+
+  html += `<div class="syl-overall-card">
+    <div class="syl-overall-top">
+      <div><div class="syl-overall-label">Overall Covered</div><div class="syl-overall-pct">${overallPct.toFixed(1)}%</div></div>
+      <div class="syl-overall-sub">${allChapters.length} chapter${allChapters.length === 1 ? '' : 's'}</div>
+    </div>
+    <div class="syl-bar-track"><div class="syl-bar-fill" style="width:${overallPct}%"></div></div>
+  </div>`;
+
+  html += `<input class="syl-search" id="sylSearchInp" placeholder="Search chapters…" value="${escHtml(sylSearchQ)}" oninput="onSylSearch(this.value)">`;
+
+  if (sylMode === 'other') {
+    html += `<div class="syl-new-subj-row">
+      <input id="sylNewSubjInp" placeholder="New subject name (e.g. Biology)">
+      <button class="syl-add-btn" onclick="addSylCustomSubject()">+ Subject</button>
+    </div>`;
+  }
+
+  if (!subjects.length) {
+    html += `<div class="syl-empty-msg">${sylMode === 'other' ? 'No custom subjects yet — add one above.' : 'No chapters loaded yet.'}</div>`;
+  } else {
+    subjects.forEach(subj => {
+      let chapters = subj.chapters;
+      if (q) chapters = chapters.filter(c => c.name.toLowerCase().includes(q));
+      if (q && !chapters.length) return;
+      const subjPct = sylComputeProgress(sylActiveUser, sylMode, subj.chapters);
+      const isOpen = !!sylOpenSubjects[subj.id] || !!q;
+      const order = ['A', 'Adv', 'B', 'C', 'D'];
+      html += `<div class="syl-subject-card ${isOpen ? 'open' : ''}" id="sylCard_${subj.id}">
+        <div class="syl-subject-head" onclick="toggleSylSubject('${subj.id}')">
+          <div class="syl-subject-name">${escHtml(subj.name)}</div>
+          <div class="syl-subject-meta">
+            <span class="syl-subject-pct">${subjPct.toFixed(0)}%</span>
+            ${sylMode === 'other' ? `<button class="syl-subject-del" onclick="event.stopPropagation();deleteSylCustomSubject('${subj.id}')">✕</button>` : ''}
+            <svg class="syl-subject-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div class="syl-subject-bar"><div class="syl-bar-track"><div class="syl-bar-fill" style="width:${subjPct}%"></div></div></div>
+        <div class="syl-subject-body">`;
+      order.forEach(pr => {
+        const inTier = chapters.filter(c => c.priority === pr);
+        if (!inTier.length) return;
+        html += `<div class="syl-priority-label"><span class="syl-priority-dot" style="background:${SYL_PRIORITY_COLORS[pr]}"></span>Priority ${pr} · ${SYL_PRIORITY_WEIGHTS[pr]}x</div>`;
+        inTier.forEach(ch => { html += sylChapterRowHtml(subj, ch); });
+      });
+      if (sylMode === 'other') {
+        html += `<div class="syl-add-box">
+          <div class="syl-add-row">
+            <input id="sylNewChName_${subj.id}" placeholder="Chapter name">
+            <select id="sylNewChPr_${subj.id}">
+              <option value="A">Priority A (3.0x)</option>
+              <option value="Adv">Priority Adv (2.5x)</option>
+              <option value="B" selected>Priority B (2.0x)</option>
+              <option value="C">Priority C (1.5x)</option>
+              <option value="D">Priority D (1.0x)</option>
+            </select>
+          </div>
+          <button class="syl-add-btn" onclick="addSylCustomChapter('${subj.id}')">+ Chapter</button>
+        </div>`;
+      }
+      html += `</div></div>`;
+    });
+  }
+
+  body.innerHTML = html;
+}
+
+function sylChapterRowHtml(subj, ch) {
+  const status = sylStatusOf(sylActiveUser, sylMode, ch.id);
+  const btns = ['pending', 'theory', 'pyq', 'mastered'].map(s =>
+    `<button class="syl-status-btn ${status === s ? 'active-' + s : ''}" onclick="setSylStatus('${subj.id}','${ch.id}','${s}')">${SYL_STATUS_LABELS[s]}</button>`
+  ).join('');
+  return `<div class="syl-chapter-row">
+    <div class="syl-chapter-top">
+      <div class="syl-chapter-name">${escHtml(ch.name)}</div>
+      <span class="syl-priority-badge" style="background:${SYL_PRIORITY_COLORS[ch.priority]}">${ch.priority}</span>
+      ${sylMode === 'other' ? `<button class="syl-chapter-del" onclick="deleteSylCustomChapter('${subj.id}','${ch.id}')">✕</button>` : ''}
+    </div>
+    <div class="syl-status-group">${btns}</div>
+  </div>`;
+}
+
+function toggleSylSubject(subjId) { sylOpenSubjects[subjId] = !sylOpenSubjects[subjId]; renderSylBody(); }
+
+function onSylSearch(v) { sylSearchQ = v; renderSylBody(); }
+
+function setSylStatus(subjId, chId, status) {
+  if (!sylActiveUser) return;
+  doWrite(() => fbPut(`/syllabus/progress/${sylActiveUser}/${sylMode}/${chId}`, status));
+}
+
+function addSylCustomSubject() {
+  const inp = document.getElementById('sylNewSubjInp');
+  const name = inp.value.trim();
+  if (!name) return;
+  const id = 'cs' + Date.now();
+  inp.value = '';
+  doWrite(() => fbPut(`/syllabus/customSubjects/${id}`, { id, name, chapters: {} }))
+    .then(ok => { if (ok) showToast(name + ' added!'); });
+}
+
+function deleteSylCustomSubject(subjId) {
+  if (!confirm('Delete this subject and all its chapters?')) return;
+  doWrite(() => fbDelete(`/syllabus/customSubjects/${subjId}`));
+}
+
+function addSylCustomChapter(subjId) {
+  const nameInp = document.getElementById('sylNewChName_' + subjId);
+  const prSel = document.getElementById('sylNewChPr_' + subjId);
+  const name = nameInp.value.trim();
+  if (!name) return;
+  const priority = prSel.value;
+  const chId = sylSlug(subjId) + '--' + sylSlug(name) + '-' + Date.now();
+  doWrite(() => fbPut(`/syllabus/customSubjects/${subjId}/chapters/${chId}`, { id: chId, name, priority }))
+    .then(ok => { if (ok) { nameInp.value = ''; sylOpenSubjects[subjId] = true; } });
+}
+
+function deleteSylCustomChapter(subjId, chId) {
+  doWrite(() => fbDelete(`/syllabus/customSubjects/${subjId}/chapters/${chId}`));
 }
 
 /* ── Study calendar ── */
