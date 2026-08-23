@@ -60,6 +60,9 @@
 .done-btn { margin-left: auto; background: rgba(78,203,164,.12); border: 1px solid rgba(78,203,164,.4); color: #4ecba4; border-radius: 6px; font-family: 'Syne', sans-serif; font-size: .58rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 4px 9px; cursor: pointer; transition: all .18s; }
 .done-btn:hover { background: rgba(78,203,164,.22); }
 .locked-badge { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-family: 'DM Mono', monospace; font-size: .58rem; color: #4ecba4; background: rgba(78,203,164,.12); border: 1px solid rgba(78,203,164,.32); border-radius: 6px; padding: 3px 8px; }
+.card-bottom-row { margin-top: .7rem; padding-top: .7rem; border-top: 1px solid var(--border); }
+.done-btn-bottom { width: 100%; margin-left: 0; padding: 9px 9px; font-size: .68rem; }
+.locked-badge-bottom { width: 100%; margin-left: 0; justify-content: center; padding: 8px 9px; font-size: .64rem; }
 .user-card.locked .q-inp-grp input, .user-card.locked .add-q-btn { opacity: .45; pointer-events: none; }
 .locked-note { font-size: .6rem; color: var(--muted); font-style: italic; padding-top: .3rem; }
 .user-card { position: relative; }
@@ -70,6 +73,71 @@
 .done-check svg path { animation-delay: .3s; }
 @keyframes doneDraw { to { stroke-dashoffset: 0; } }
 @keyframes doneFade { 0% { opacity: 0; } 12% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ═══════════════════════════════════════════════════
+   STUDY TRACKER — purple / black theme
+═══════════════════════════════════════════════════ */
+.study-wrap { --sp-bg:#0a0812; --sp-surface:#150f24; --sp-surface2:#1d1533; --sp-border:#332856; --sp-purple:#a855f7; --sp-purple2:#6d28d9; --sp-text:#f1ecff; --sp-muted:#9182bd;
+  background: var(--sp-bg); margin: -1rem -1rem 0; padding: 1.4rem 1rem 2rem; border-radius: 0 0 16px 16px; color: var(--sp-text); min-height: calc(100vh - var(--header-h)); }
+.study-head { text-align: center; margin-bottom: 1.1rem; }
+.study-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; }
+.study-title em { font-style: normal; color: var(--sp-purple); }
+.study-sub { font-size: .74rem; color: var(--sp-muted); margin-top: .3rem; }
+
+.study-chip-row { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin-bottom: 1.4rem; }
+.study-chip { background: var(--sp-surface); border: 1px solid var(--sp-border); color: var(--sp-muted); border-radius: 20px; padding: 7px 14px; font-family: 'Syne', sans-serif; font-size: .74rem; font-weight: 700; cursor: pointer; transition: all .18s; }
+.study-chip.active { background: linear-gradient(135deg, var(--sp-purple), var(--sp-purple2)); color: #fff; border-color: transparent; box-shadow: 0 0 18px rgba(168,85,247,.35); }
+
+.study-rings { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: 1.6rem; min-height: 120px; margin-bottom: 1.6rem; }
+.study-empty { color: var(--sp-muted); font-size: .8rem; text-align: center; padding: 2rem 1rem; width: 100%; }
+.study-ring-card { width: min(80vw, 320px); display: flex; flex-direction: column; align-items: center; transition: width .3s ease; }
+.study-rings[data-count="2"] .study-ring-card { width: min(46vw, 250px); }
+.study-rings[data-count="3"] .study-ring-card,
+.study-rings[data-count="4"] .study-ring-card { width: min(38vw, 200px); }
+.study-rings[data-count="5"] .study-ring-card,
+.study-rings[data-count="6"] .study-ring-card { width: min(30vw, 165px); }
+
+.sr-name { font-weight: 700; font-size: .82rem; margin-bottom: .5rem; color: var(--sp-text); }
+.sr-mode-toggle { display: flex; background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: 20px; padding: 3px; margin-bottom: .55rem; }
+.sr-mode-btn { background: none; border: none; color: var(--sp-muted); font-family: 'Syne', sans-serif; font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 5px 11px; border-radius: 16px; cursor: pointer; transition: all .18s; }
+.sr-mode-btn.active { background: linear-gradient(135deg, var(--sp-purple), var(--sp-purple2)); color: #fff; }
+.sr-duration-row { margin-bottom: .5rem; }
+.sr-duration-row input { width: 90px; text-align: center; background: var(--sp-surface); border: 1px solid var(--sp-border); color: var(--sp-text); border-radius: 8px; padding: 5px 8px; font-family: 'DM Mono', monospace; font-size: .78rem; }
+
+.sr-ring-wrap { position: relative; width: 100%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; }
+.sr-ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.sr-track { fill: var(--sp-surface); stroke: var(--sp-border); stroke-width: 3; }
+.sr-progress { fill: none; stroke: url(#srGradGlobal); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset .9s linear; filter: drop-shadow(0 0 6px rgba(168,85,247,.55)); }
+.sr-fluid-rect { transition: y .9s linear, height .9s linear; opacity: .8; }
+.sr-fluid-wave { opacity: .5; animation: fluidFlow 2.6s linear infinite; transition: transform .9s linear; }
+@keyframes fluidFlow { from { transform: translateX(0); } to { transform: translateX(-200px); } }
+.sr-time { position: absolute; font-family: 'DM Mono', monospace; font-weight: 500; font-size: clamp(1.1rem, 6.5vw, 2.1rem); color: #fff; letter-spacing: -.01em; text-shadow: 0 0 18px rgba(168,85,247,.5); }
+.sr-complete-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 6px; background: rgba(10,8,18,.82); border-radius: 50%; font-weight: 800; font-size: .95rem; color: var(--sp-purple); }
+.sr-complete-overlay.show { display: flex; animation: srPulse 1.8s ease; }
+@keyframes srPulse { 0% { transform: scale(.7); opacity: 0; } 25% { transform: scale(1.08); opacity: 1; } 40% { transform: scale(1); } 100% { transform: scale(1); opacity: 1; } }
+
+.sr-controls { display: flex; gap: .4rem; margin-top: .7rem; }
+.sr-btn { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .68rem; border-radius: 8px; padding: 7px 12px; cursor: pointer; border: 1px solid var(--sp-border); background: var(--sp-surface); color: var(--sp-text); transition: all .18s; }
+.sr-start { background: linear-gradient(135deg, var(--sp-purple), var(--sp-purple2)); border-color: transparent; color: #fff; }
+.sr-start.running { background: var(--sp-surface2); color: #fff; }
+.sr-remove { color: var(--sp-muted); padding: 7px 10px; }
+.sr-btn:hover { opacity: .85; }
+
+.study-section { background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: 12px; padding: .9rem; margin-bottom: 1rem; }
+.study-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+.study-section-title { font-size: .82rem; font-weight: 700; }
+.sr-purple { background: var(--sp-surface2) !important; border-color: var(--sp-border) !important; color: var(--sp-text) !important; }
+.study-cal-grid .cal-day { border-color: var(--sp-border); }
+.study-cal-grid .cal-day.has-data { background: rgba(168,85,247,.16); }
+.study-cal-grid .cal-day.today { border-color: var(--sp-purple); }
+
+/* ── Exam Analytics teaser ── */
+.exam-teaser { position: relative; margin: -1rem -1rem 0; min-height: calc(100vh - var(--header-h)); overflow: hidden; background: #0a0a0b; display: flex; align-items: center; justify-content: center; }
+.exam-teaser-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .22; filter: blur(6px) saturate(1.1); }
+.exam-teaser-veil { position: absolute; inset: 0; backdrop-filter: blur(14px); background: rgba(10,10,11,.62); }
+.exam-teaser-content { position: relative; z-index: 2; text-align: center; padding: 1rem; }
+.exam-teaser-badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: .72rem; font-weight: 700; letter-spacing: .12em; color: #0a0a0b; background: #f0ede8; border-radius: 20px; padding: 7px 16px; margin-bottom: .8rem; }
+.exam-teaser-text { font-size: 1.1rem; font-weight: 700; color: #f0ede8; opacity: .85; }
 
 /* ── Session history ── */
 .sess-hist { display: flex; flex-direction: column; gap: .3rem; max-height: 170px; overflow-y: auto; margin-bottom: .6rem; }
@@ -192,6 +260,8 @@ header {
 .cal-nav-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 5px; width: 28px; height: 28px; cursor: pointer; font-size: .85rem; display: flex; align-items: center; justify-content: center; transition: background .18s; }
 .cal-nav-btn:hover { background: var(--border); }
 .cal-month-label { font-size: .75rem; font-weight: 700; min-width: 105px; text-align: center; }
+.chart-nav-row { display: flex; align-items: center; justify-content: center; gap: .6rem; margin-bottom: .6rem; }
+.month-picker { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 8px; font-family: 'Syne', sans-serif; font-size: .72rem; font-weight: 700; cursor: pointer; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
 .cal-hdr { font-size: .5rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); text-align: center; padding: 2px 0; }
 .cal-day { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; min-height: 40px; padding: 3px; cursor: pointer; position: relative; transition: border-color .15s; }
@@ -307,8 +377,8 @@ header {
 /* ── Changelog ── */
 .changelog-wrap { max-width: 580px; }
 .cl-version { margin-bottom: 1.5rem; }
-.cl-ver-num { font-family: 'DM Mono', monospace; font-size: .88rem; font-weight: 700; }
-.cl-items { list-style: none; padding-left: 1rem; border-left: 2px solid var(--border); }
+.cl-ver-num { font-family: 'DM Mono', monospace; font-size: .88rem; font-weight: 700; display: block; margin-bottom: .55rem; }
+.cl-items { list-style: none; padding-left: 1.8rem; border-left: 2px solid var(--border); margin-left: .3rem; }
 .cl-items li { font-size: .78rem; line-height: 1.75; color: var(--muted); padding: .12rem 0 .12rem .7rem; position: relative; }
 .cl-items li::before { content: '–'; position: absolute; left: -.2rem; color: var(--muted2); }
 .cl-sub { margin-top: .25rem; padding-left: 0; list-style: none; }
@@ -405,7 +475,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.6.0</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.7.0</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -434,13 +504,15 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
   </div>
   <div class="sidebar-nav">
     <button class="nav-item" onclick="showPage('aboutPage','aboutNav')" id="aboutNav">About</button>
-    <button class="nav-item active" onclick="showPage('homePage','homeNav')" id="homeNav">Home</button>
+    <button class="nav-item active" onclick="showPage('homePage','homeNav')" id="homeNav">Question Tracker</button>
+    <button class="nav-item" onclick="showPage('studyPage','studyNav')" id="studyNav">Study Tracker</button>
+    <button class="nav-item" onclick="showPage('examPage','examNav')" id="examNav">Exam Analytics</button>
     <button class="nav-item" onclick="showPage('leaderboardPage','leaderboardNav')" id="leaderboardNav">Leaderboard</button>
     <button class="nav-item" onclick="showPage('changelogPage','changelogNav')" id="changelogNav">Update Log</button>
     <div style="flex:1"></div>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack 0.6.0 · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack 0.7.0 · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -458,7 +530,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
   <div class="summary-strip">
     <div class="stat-card"><div class="stat-label">Today</div><div class="stat-value" id="statToday">0</div></div>
     <div class="stat-card" style="position:relative">
-      <div class="stat-label" style="display:flex;align-items:center;justify-content:space-between">All-Time <button id="allTimeDropBtn" onclick="toggleAllTimeDrop()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.6rem;padding:0">▾</button></div>
+      <div class="stat-label" style="display:flex;align-items:center;justify-content:space-between">All-Time <button id="allTimeDropBtn" onclick="toggleAllTimeDrop()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.05rem;line-height:1;padding:0 2px">▾</button></div>
       <div class="stat-value" id="statAllTime">0</div>
       <div id="allTimeDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.4rem;z-index:50;max-height:200px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,.18)"></div>
     </div>
@@ -483,6 +555,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
       <label>Date</label>
       <input type="date" id="dayPickerInput" onchange="renderMainChart()">
     </div>
+    <div class="chart-nav-row" id="chartNavRow" style="display:none"></div>
     <div class="chart-wrap">
       <div class="no-data-msg" id="noDataMsg"><strong>No data yet</strong>Add a person to start.</div>
       <canvas id="mainChart" style="display:none"></canvas>
@@ -522,6 +595,68 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 
 </div><!-- /homePage -->
 
+<!-- STUDY TRACKER ------------------------------------------------ -->
+<div class="page" id="studyPage">
+  <div class="study-wrap" data-theme-force="purple">
+    <div class="study-head">
+      <div class="study-title">Study <em>Tracker</em></div>
+      <div class="study-sub">Pick who's studying, then start a stopwatch or set a timer.</div>
+    </div>
+
+    <div class="study-chip-row" id="studyChipRow"></div>
+
+    <div class="study-rings" id="studyRings" data-count="0">
+      <div class="study-empty" id="studyEmpty">Select a person above to start tracking focus time.</div>
+    </div>
+
+    <div class="study-section">
+      <div class="study-section-head">
+        <div class="study-section-title">Focus Calendar</div>
+        <div class="cal-nav">
+          <button class="cal-nav-btn sr-purple" onclick="studyCalNav(-1)">‹</button>
+          <div class="cal-month-label" id="studyCalMonthLabel"></div>
+          <button class="cal-nav-btn sr-purple" onclick="studyCalNav(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-grid study-cal-grid" id="studyCalGrid"></div>
+      <div id="studyCalDetail" style="display:none"></div>
+    </div>
+
+    <div class="study-section">
+      <div class="study-section-head">
+        <div class="study-section-title">Focus Hours — last 7 days</div>
+        <div class="legend" id="studyLegend"></div>
+      </div>
+      <div class="chart-wrap" style="height:200px;">
+        <div class="no-data-msg" id="studyNoDataMsg"><strong>No focus sessions yet</strong>Start a timer above.</div>
+        <canvas id="studyChart" style="display:none"></canvas>
+      </div>
+    </div>
+  </div>
+</div><!-- /studyPage -->
+
+<!-- EXAM ANALYTICS (coming soon) ---------------------------------- -->
+<div class="page" id="examPage">
+  <div class="exam-teaser">
+    <svg class="exam-teaser-canvas" viewBox="0 0 400 260" preserveAspectRatio="none">
+      <rect x="0" y="0" width="400" height="260" fill="#0e0e0f"/>
+      <rect x="30" y="150" width="30" height="80" fill="#5b8dee" opacity=".5"/>
+      <rect x="75" y="110" width="30" height="120" fill="#b06aed" opacity=".5"/>
+      <rect x="120" y="70" width="30" height="160" fill="#4ecba4" opacity=".4"/>
+      <rect x="165" y="130" width="30" height="100" fill="#f5c842" opacity=".45"/>
+      <rect x="210" y="40" width="30" height="190" fill="#e84a8a" opacity=".4"/>
+      <polyline points="45,140 90,95 135,55 180,115 225,25" fill="none" stroke="#f0ede8" stroke-width="3" opacity=".35"/>
+      <circle cx="330" cy="70" r="46" fill="#5b8dee" opacity=".3"/>
+      <circle cx="300" cy="190" r="30" fill="#b06aed" opacity=".28"/>
+    </svg>
+    <div class="exam-teaser-veil"></div>
+    <div class="exam-teaser-content">
+      <div class="exam-teaser-badge">COMING SOON</div>
+      <div class="exam-teaser-text">We're working on some new stuff!</div>
+    </div>
+  </div>
+</div><!-- /examPage -->
+
 <!-- LEADERBOARD ------------------------------------------------- -->
 <div class="page" id="leaderboardPage">
   <div style="margin-bottom:.85rem">
@@ -542,18 +677,19 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 0.6.0 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 0.7.0 · Beta · qttrack.vercel.app</div>
 
     <div class="about-h2">How to Use</div>
     <div class="how-step"><div class="how-num">1</div><div class="how-text"><strong>Add people</strong> — tap "+ Person" in the header. Each person gets their own bar on the chart and their own card below.</div></div>
     <div class="how-step"><div class="how-num">2</div><div class="how-text"><strong>Add subjects</strong> — on any person's card, tap the <strong>Subjects</strong> button. Add whatever subjects you study, pick a colour for each, and tap Save. Subjects are shared across all people in your session.</div></div>
     <div class="how-step"><div class="how-num">3</div><div class="how-text"><strong>Log questions</strong> — enter how many you did per subject and tap Add. The chart and totals update immediately.</div></div>
     <div class="how-step"><div class="how-num">4</div><div class="how-text"><strong>Connect a friend</strong> — tap ⚡ in the header, copy your Session ID, and send it. Your friend pastes it in "Join a Session" and hits Join. Both boards sync live.</div></div>
-    <div class="how-step"><div class="how-num">5</div><div class="how-text"><strong>Track progress</strong> — use the chart views (Today / By Day / Week / All-Time), the calendar, and the Leaderboard tab.</div></div>
+    <div class="how-step"><div class="how-num">5</div><div class="how-text"><strong>Track progress</strong> — use the chart views (Today / By Day / Week / Month / All-Time), the calendar, and the Leaderboard tab. Week and Month views let you browse previous periods and compare people side-by-side.</div></div>
+    <div class="how-step"><div class="how-num">6</div><div class="how-text"><strong>Study Tracker</strong> — open it from the ☰ menu. Tap a person's name to give them a ring timer, choose Stopwatch or Timer mode, and hit Start. Several people can track focus time at once on the same device. Your focus time is saved automatically to that person's Focus Calendar and weekly chart.</div></div>
 
     <div class="about-h2">About QTrack</div>
     <p class="about-p">QTrack is a simple study tracking platform designed to help users organise their work, monitor progress, and keep everything in one place. It supports all subjects and is made to work across devices so your data stays connected wherever you use it.</p>
-    <p class="about-p">The goal of QTrack is to provide a clean and straightforward experience without unnecessary complexity. You can track completed questions, manage subjects, and maintain a clear record of your progress without relying on scattered notes or multiple apps pretending to "increase productivity" while mainly increasing screen time.</p>
+    <p class="about-p">The goal of QTrack is to provide a clean and straightforward experience without unnecessary complexity. You can track completed questions, manage subjects, log focus time with the Study Tracker, and maintain a clear record of your progress without relying on scattered notes or multiple apps pretending to "increase productivity" while mainly increasing screen time.</p>
     <p class="about-p">QTrack is independently developed with the help of modern AI tools to improve features, usability, and development speed while keeping the platform simple and user-focused.</p>
     <div class="about-note">⚠️ The app is in development phase and may cause bugs and errors. Apologies from the developer's end in advance.</div>
 
@@ -574,12 +710,34 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
       <div class="faq-q">How can my friends join my session? <span class="faq-chevron">▼</span></div>
       <div class="faq-a">(1) Tap ⚡ in the header. (2) Copy your Session ID. (3) Send it via WhatsApp or any messaging app. (4) Your friend opens QTrack, taps ⚡, pastes the ID and hits Join. They'll immediately see your board and can add themselves as a person.</div>
     </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What is the Study Tracker? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">It's a focus-time tracker separate from question logging. Pick one or more people from the chip list at the top, and each gets their own ring-shaped timer. Choose Stopwatch to count up freely, or Timer to count down a set number of minutes — a fluid fill animation inside the ring rises or drains as time passes. Multiple people can run their own timers on the same device at once; the rings shrink and stay centred as more people join in. When a timer finishes you'll see a completion animation, and all focus time is added to that person's Focus Calendar and 7-day chart automatically.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What is Exam Analytics? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">It's a new section we're actively building — exam-level performance breakdowns and analytics. It's not live yet, so the menu item currently shows a "Coming soon" preview.</div>
+    </div>
   </div>
 </div>
 
 <!-- CHANGELOG --------------------------------------------------- -->
 <div class="page" id="changelogPage">
   <div class="changelog-wrap">
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.7.0</span></div>
+      <ul class="cl-items">
+        <li>New: Study Tracker — purple/black-themed focus timer with ring-shaped stopwatch/timer, fluid fill animation, and multi-person simultaneous tracking</li>
+        <li>New: Exam Analytics tab (coming soon preview)</li>
+        <li>Renamed "Home" to "Question Tracker" in the menu</li>
+        <li>Removed the confirmation popup when marking a day's log as done</li>
+        <li>"Log done" button moved to the bottom of each person's card</li>
+        <li>Enlarged the All-Time dropdown arrow</li>
+        <li>Week/Month charts: browse previous weeks and months, with people shown as separate side-by-side bars instead of stacked</li>
+        <li>Update Log formatting: entries now indented and listed below each version number</li>
+      </ul>
+    </div>
 
     <div class="cl-version">
       <div><span class="cl-ver-num">0.6.0</span></div>
@@ -664,7 +822,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 0.6.0</span>
+  <span>QTrack 0.7.0</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -789,11 +947,11 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.6.0';
+const VERSION = '0.7.0';
 
 /* ── State ── */
 let sessionId = '';
-let state = { users: {}, history: {}, subjects: [], locks: {}, meta: { ts: 0 } };
+let state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, meta: { ts: 0 } };
 /* subjects: [{id, name, color}] */
 
 let lastKnownTs = 0;
@@ -864,6 +1022,8 @@ function applyRemote(remote) {
   state.users = usersObj;
   state.history = remote.history || {};
   state.locks = remote.locks || {};
+  state.study = remote.study || { logs: {} };
+  if (!state.study.logs) state.study.logs = {};
   // Subjects: stored as array
   if (Array.isArray(remote.subjects) && remote.subjects.length > 0) {
     state.subjects = remote.subjects;
@@ -871,6 +1031,8 @@ function applyRemote(remote) {
   if (remote.meta && remote.meta.ts) lastKnownTs = remote.meta.ts;
   saveLocal();
   renderAll();
+  renderStudyChips();
+  renderStudyStats();
 }
 
 /* ── LocalStorage cache ── */
@@ -928,7 +1090,7 @@ async function joinSessionId(sid) {
   localStorage.setItem('qttrack_sid_v5', sid);
   document.getElementById('sessionDisplay').textContent = fmtSid(sid);
   document.getElementById('sessionIdDisplay').value = fmtSid(sid);
-  state = { users: {}, history: {}, subjects: [], locks: {}, meta: { ts: 0 } };
+  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, meta: { ts: 0 } };
   lastKnownTs = 0;
   recordSessionHistory(sid);
   closeModal('sessionModal');
@@ -953,7 +1115,7 @@ async function joinSession() {
   localStorage.setItem('qttrack_sid_v5', clean);
   document.getElementById('sessionDisplay').textContent = fmtSid(clean);
   document.getElementById('sessionIdDisplay').value = fmtSid(clean);
-  state = { users: {}, history: {}, subjects: [], locks: {}, meta: { ts: 0 } };
+  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, meta: { ts: 0 } };
   lastKnownTs = 0;
   closeModal('sessionModal');
   recordSessionHistory(clean);
@@ -1038,7 +1200,6 @@ function onLogDateChange(uid) { logDatePick[uid] = selectedLogDate(uid); renderC
 function markLogDone(uid) {
   const dt = selectedLogDate(uid);
   if (isLocked(uid, dt)) { showToast('Already locked'); return; }
-  if (!confirm('Lock the log for ' + dateLabel(dt) + '? It can no longer be changed.')) return;
   doWrite(() => fbPut('/locks/' + dt + '/' + uid, Date.now()))
     .then(ok => { if (ok) playDoneCheck(uid); });
 }
@@ -1248,6 +1409,8 @@ let mainChart = null, weekChart = null;
 let chartView = 'today';
 let calYear, calMonth, selCalDate = null;
 let lbScope = 'today', lbSubj = 'all';
+let weekOffset = 0;      // 0 = current week, -1 = previous week, ...
+let monthSel = null;     // 'YYYY-MM' of month currently shown in Week/Month main-chart view
 
 function renderAll() {
   renderSummary();
@@ -1312,8 +1475,10 @@ function setChartView(view, btn) {
   dpRow.classList.toggle('show', view === 'day');
   if (view === 'day' && !document.getElementById('dayPickerInput').value)
     document.getElementById('dayPickerInput').value = todayStr();
-  const titles = { today: "Today's Questions", day: "Selected Day", week: "This Week — day 1 onwards", month: "By Month — per person trend", alltime: "All-Time" };
+  const titles = { today: "Today's Questions", day: "Selected Day", week: "Week — per person", month: "Month — per person trend", alltime: "All-Time" };
   document.getElementById('mainChartTitle').textContent = titles[view];
+  if (view === 'week') weekOffset = 0;
+  if (view === 'month') monthSel = todayStr().slice(0, 7);
   renderMainChart();
 }
 
@@ -1325,37 +1490,62 @@ function dayTotal(uid, ds) {
   return state.subjects.reduce((t, s) => t + (d[s.id] || 0), 0);
 }
 
-/* Build the timeline for the Week view: current week, day 1 (Mon) onwards. */
+/* Build the timeline for the Week view: Monday onwards for the week at `weekOffset`
+   weeks relative to the current week (0 = this week, -1 = previous week, ...). */
 function weekTimeline() {
   const mon = getMondayOfWeek();
+  mon.setDate(mon.getDate() + weekOffset * 7);
   const keys = [], labels = [];
+  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   for (let i = 0; i < 7; i++) {
     const d = new Date(mon); d.setDate(mon.getDate() + i);
     keys.push(d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()));
-    labels.push('Day ' + (i + 1));
+    labels.push(dayNames[i] + ' ' + d.getDate());
   }
   return { keys, labels };
 }
 
-/* Build the timeline for the Month view: every month that has data, each
-   starting at day 1, months separated by a blank gap column. */
+function weekRangeLabel() {
+  const tl = weekTimeline();
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const first = tl.keys[0].split('-'), last = tl.keys[6].split('-');
+  const f = `${MON[+first[1]-1]} ${+first[2]}`, l = `${MON[+last[1]-1]} ${+last[2]}`;
+  return weekOffset === 0 ? `This week · ${f} – ${l}` : `${f} – ${l}`;
+}
+
+/* Build the timeline for the Month view: every day of the single month `monthSel`
+   ('YYYY-MM'). */
 function monthTimeline() {
   const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const months = [...new Set(Object.keys(state.history).map(k => k.slice(0, 7)))].sort();
-  if (!months.length) months.push(todayStr().slice(0, 7));
+  if (!monthSel) monthSel = todayStr().slice(0, 7);
+  const [y, mo] = monthSel.split('-').map(Number);
+  const dim = new Date(y, mo, 0).getDate();
+  const last = (monthSel === todayStr().slice(0, 7)) ? Number(todayStr().slice(8)) : dim;
   const keys = [], labels = [];
-  months.forEach((m, mi) => {
-    const [y, mo] = m.split('-').map(Number);
-    const dim = new Date(y, mo, 0).getDate();
-    const last = (m === todayStr().slice(0, 7)) ? Number(todayStr().slice(8)) : dim;
-    for (let d = 1; d <= last; d++) {
-      keys.push(m + '-' + pad(d));
-      labels.push(d === 1 ? MON[mo - 1] : (d % 5 === 0 ? String(d) : ''));
-    }
-    if (mi < months.length - 1) { keys.push(null); labels.push(''); }   // gap between months
-  });
-  return { keys, labels };
+  for (let d = 1; d <= last; d++) {
+    keys.push(monthSel + '-' + pad(d));
+    labels.push(String(d));
+  }
+  return { keys, labels, monthName: MON[mo - 1] + ' ' + y };
 }
+
+/* Months (YYYY-MM) that have any history, plus the current month — newest first. */
+function availableMonths() {
+  const set = new Set(Object.keys(state.history).map(k => k.slice(0, 7)));
+  set.add(todayStr().slice(0, 7));
+  return [...set].sort().reverse();
+}
+
+function navWeek(dir) { weekOffset += dir; if (weekOffset > 0) weekOffset = 0; renderMainChart(); }
+function navMonth(dir) {
+  const months = availableMonths().sort(); // ascending
+  if (!monthSel) monthSel = todayStr().slice(0, 7);
+  let idx = months.indexOf(monthSel);
+  idx = Math.min(Math.max(idx + dir, 0), months.length - 1);
+  monthSel = months[idx];
+  renderMainChart();
+}
+function pickMonth(val) { monthSel = val; renderMainChart(); }
 
 function renderMainChart() {
   const canvas = document.getElementById('mainChart');
@@ -1369,14 +1559,15 @@ function renderMainChart() {
   canvas.style.display = 'block'; msg.style.display = 'none';
   if (mainChart) { mainChart.destroy(); mainChart = null; }
 
-  // Timeline views: Week / Month — bars per day + one trend line per person
+  // Timeline views: Week / Month — one individual bar per person per day
+  // (grouped side-by-side, not stacked) + one trend line per person
   if (chartView === 'week' || chartView === 'month') {
     const tl = chartView === 'week' ? weekTimeline() : monthTimeline();
     const bars = users.map((u, i) => ({
       label: u.name,
       data: tl.keys.map(k => k ? dayTotal(u.id, k) : 0),
       backgroundColor: userColor(i), borderRadius: 3, borderSkipped: false,
-      stack: 'total', order: 2
+      barPercentage: 0.9, categoryPercentage: 0.7, order: 2
     }));
     const lines = users.map((u, i) => ({
       type: 'line',
@@ -1386,10 +1577,12 @@ function renderMainChart() {
       borderWidth: 2, borderDash: [5, 4], pointRadius: 0, tension: .35,
       spanGaps: true, fill: false, yAxisID: 'yLine', order: 1
     }));
-    mainChart = buildChart('mainChart', tl.labels, [...bars, ...lines], tl.keys.indexOf(todayStr()));
+    mainChart = buildChart('mainChart', tl.labels, [...bars, ...lines], tl.keys.indexOf(todayStr()), false);
     renderPeopleLegend();
+    renderChartNav(tl);
     return;
   }
+  renderChartNav(null);
 
   // Snapshot views: Today / Selected day / All-time — stacked by subject
   const scope = chartView === 'day' ? (document.getElementById('dayPickerInput').value || todayStr()) : chartView;
@@ -1440,7 +1633,7 @@ function renderWeekChart() {
   weekChart = buildChart('weeklyChart', labels, datasets, todayIdx);
 }
 
-function buildChart(id, labels, datasets, todayIdx = -1) {
+function buildChart(id, labels, datasets, todayIdx = -1, stackedBars = true) {
   const dark = document.documentElement.dataset.theme !== 'light';
   const gc = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
   const tc = dark ? '#888885' : '#aaa';
@@ -1461,14 +1654,39 @@ function buildChart(id, labels, datasets, todayIdx = -1) {
         }
       },
       scales: {
-        x: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { color: ctx => ctx.index === todayIdx ? tx : tc, font: { family: 'Syne', weight: '700', size: 10 }, maxRotation: 0, autoSkip: false } },
-        y: { stacked: true, grid: { color: gc }, border: { display: false }, ticks: { color: tc, font: { family: 'DM Mono', size: 9 } }, beginAtZero: true },
+        x: { stacked: stackedBars, grid: { display: false }, border: { display: false }, ticks: { color: ctx => ctx.index === todayIdx ? tx : tc, font: { family: 'Syne', weight: '700', size: 10 }, maxRotation: 0, autoSkip: false } },
+        y: { stacked: stackedBars, grid: { color: gc }, border: { display: false }, ticks: { color: tc, font: { family: 'DM Mono', size: 9 } }, beginAtZero: true },
         // Separate (hidden) axis so trend lines are not stacked with the bars
         yLine: { display: false, stacked: false, beginAtZero: true, grace: '8%' }
       },
       animation: { duration: 300, easing: 'easeOutCubic' }
     }
   });
+}
+
+/* Prev/next (and month-picker) navigation shown above the main chart for Week/Month views */
+function renderChartNav(tl) {
+  let host = document.getElementById('chartNavRow');
+  if (chartView !== 'week' && chartView !== 'month') { if (host) host.style.display = 'none'; return; }
+  if (!host) return;
+  host.style.display = 'flex';
+  if (chartView === 'week') {
+    host.innerHTML = `
+      <button class="cal-nav-btn" onclick="navWeek(-1)">‹</button>
+      <div class="cal-month-label">${weekRangeLabel()}</div>
+      <button class="cal-nav-btn" onclick="navWeek(1)" ${weekOffset === 0 ? 'disabled style="opacity:.3"' : ''}>›</button>`;
+  } else {
+    const months = availableMonths(); // newest first, for the dropdown
+    const opts = months.map(m => {
+      const [y, mo] = m.split('-').map(Number);
+      const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `<option value="${m}" ${m === monthSel ? 'selected' : ''}>${MON[mo-1]} ${y}</option>`;
+    }).join('');
+    host.innerHTML = `
+      <button class="cal-nav-btn" onclick="navMonth(-1)">‹</button>
+      <select class="month-picker" onchange="pickMonth(this.value)">${opts}</select>
+      <button class="cal-nav-btn" onclick="navMonth(1)">›</button>`;
+  }
 }
 
 function rebuildCharts() {
@@ -1606,9 +1824,6 @@ function renderCards() {
         <div class="log-date-row">
           <label>Log for</label>
           <input class="log-date-inp" type="date" id="logdate_${user.id}" value="${logDate}" max="${todayStr()}" onchange="onLogDateChange('${user.id}')">
-          ${locked
-            ? `<span class="locked-badge">✓ Log done</span>`
-            : `<button class="done-btn" id="donebtn_${user.id}" onclick="markLogDone('${user.id}')">✓ Log done</button>`}
         </div>
         <div class="add-qs-label">${logDate === todayStr() ? 'Add questions done today' : 'Add questions for ' + dateLabel(logDate)} · currently ${state.subjects.reduce((t, s) => t + (dayVals[s.id] || 0), 0)}Q</div>
         <div class="q-inp-row">${addInputsDated}<button class="add-q-btn" onclick="addQuestions('${user.id}')">Add</button></div>
@@ -1620,6 +1835,11 @@ function renderCards() {
         <div class="edit-note">Sets exact totals — overwrites that day's data for this person.</div>
         <div class="q-inp-row">${editInputs}<button class="save-edit-btn" onclick="saveEdit('${user.id}')">Save</button></div>
       </div>`}` : ''}
+      <div class="card-bottom-row">
+        ${locked
+          ? `<span class="locked-badge locked-badge-bottom">✓ Log done</span>`
+          : `<button class="done-btn done-btn-bottom" id="donebtn_${user.id}" onclick="markLogDone('${user.id}')">✓ Log done</button>`}
+      </div>
       <div class="done-check" id="donecheck_${user.id}">
         <svg viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="26" cy="26" r="23"/><path d="M15 27l8 8 15-16"/>
@@ -1731,6 +1951,7 @@ function showPage(pageId, navId) {
   document.getElementById(navId).classList.add('active');
   closeSidebar();
   if (pageId === 'leaderboardPage') renderLeaderboard();
+  if (pageId === 'studyPage') renderStudyPage();
 }
 
 function toggleFaq(el) { el.classList.toggle('open'); }
@@ -1812,11 +2033,309 @@ function dismissDevWarning() {
 }
 
 /* ════════════════════════════════════════════════════════════
+   STUDY TRACKER
+════════════════════════════════════════════════════════════ */
+let studyActive = {};           // uid -> { mode, running, elapsed, remaining, durationSec, flushedSec, intervalId }
+let studyCalYear, studyCalMonth, studySelCalDate = null;
+const SR_CIRC = 2 * Math.PI * 86; // r=86
+
+function initStudyCal() { const n = logicalNow(); studyCalYear = n.getFullYear(); studyCalMonth = n.getMonth(); }
+
+function renderStudyPage() {
+  if (!studyCalYear) initStudyCal();
+  renderStudyChips();
+  renderStudyRings();
+  renderStudyStats();
+}
+
+function renderStudyChips() {
+  const row = document.getElementById('studyChipRow');
+  if (!row) return;
+  const users = userList();
+  if (!users.length) { row.innerHTML = '<div class="study-empty" style="padding:.5rem">Add a person on the Question Tracker page first.</div>'; return; }
+  row.innerHTML = users.map(u =>
+    `<button class="study-chip ${studyActive[u.id] ? 'active' : ''}" onclick="toggleStudyUser('${u.id}')">${escHtml(u.name)}</button>`).join('');
+}
+
+function toggleStudyUser(uid) {
+  if (studyActive[uid]) {
+    removeStudyUser(uid);
+  } else {
+    studyActive[uid] = { mode: 'stopwatch', running: false, elapsed: 0, remaining: 0, durationSec: 25 * 60, flushedSec: 0, intervalId: null };
+    renderStudyChips();
+    renderStudyRings();
+  }
+}
+
+function removeStudyUser(uid) {
+  const t = studyActive[uid];
+  if (!t) return;
+  if (t.intervalId) clearInterval(t.intervalId);
+  flushStudyTime(uid);
+  delete studyActive[uid];
+  renderStudyChips();
+  renderStudyRings();
+}
+
+function fmtHMS(sec) {
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return pad(h) + ':' + pad(m) + ':' + pad(s);
+}
+
+function renderStudyRings() {
+  const host = document.getElementById('studyRings');
+  const empty = document.getElementById('studyEmpty');
+  const uids = Object.keys(studyActive);
+  host.dataset.count = String(uids.length);
+  if (!uids.length) {
+    host.innerHTML = '<div class="study-empty" id="studyEmpty">Select a person above to start tracking focus time.</div>';
+    return;
+  }
+  host.innerHTML = uids.map(uid => buildRingHTML(uid)).join('');
+  uids.forEach(uid => updateRingVisual(uid));
+}
+
+function buildRingHTML(uid) {
+  const t = studyActive[uid];
+  const name = state.users[uid]?.name || '?';
+  return `
+  <div class="study-ring-card" data-uid="${uid}">
+    <div class="sr-name">${escHtml(name)}</div>
+    <div class="sr-mode-toggle">
+      <button class="sr-mode-btn ${t.mode === 'stopwatch' ? 'active' : ''}" onclick="setStudyMode('${uid}','stopwatch')">Stopwatch</button>
+      <button class="sr-mode-btn ${t.mode === 'timer' ? 'active' : ''}" onclick="setStudyMode('${uid}','timer')">Timer</button>
+    </div>
+    <div class="sr-duration-row" id="srDurRow_${uid}" style="${t.mode === 'timer' && !t.running ? '' : 'display:none'}">
+      <input type="number" min="1" max="300" id="srDurInp_${uid}" value="${Math.round(t.durationSec/60)}" onchange="setStudyDuration('${uid}',this.value)"> min
+    </div>
+    <div class="sr-ring-wrap">
+      <svg class="sr-ring-svg" viewBox="0 0 200 200">
+        <defs>
+          <clipPath id="srClip_${uid}"><circle cx="100" cy="100" r="86"/></clipPath>
+          <linearGradient id="srGrad_${uid}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#c084fc"/><stop offset="100%" stop-color="#6d28d9"/>
+          </linearGradient>
+        </defs>
+        <circle class="sr-track" cx="100" cy="100" r="86"/>
+        <g clip-path="url(#srClip_${uid})">
+          <path class="sr-fluid-wave" id="srWave_${uid}" fill="url(#srGrad_${uid})"
+            d="M-200,200 C-170,190 -150,190 -120,200 C-90,210 -70,210 -40,200 C-10,190 10,190 40,200 C70,210 90,210 120,200 C150,190 170,190 200,200 C230,210 250,210 280,200 C310,190 330,190 360,200 L360,400 L-200,400 Z"/>
+        </g>
+        <circle class="sr-progress" id="srProgress_${uid}" cx="100" cy="100" r="86"
+          stroke-dasharray="${SR_CIRC}" stroke-dashoffset="${SR_CIRC}" stroke="url(#srGrad_${uid})"/>
+      </svg>
+      <div class="sr-time" id="srTime_${uid}">00:00:00</div>
+      <div class="sr-complete-overlay" id="srComplete_${uid}">✓<div>Session complete!</div></div>
+    </div>
+    <div class="sr-controls">
+      <button class="sr-btn sr-start ${t.running ? 'running' : ''}" id="srStartBtn_${uid}" onclick="toggleStudyRun('${uid}')">${t.running ? 'Pause' : 'Start'}</button>
+      <button class="sr-btn sr-reset" onclick="resetStudyTimer('${uid}')">Reset</button>
+      <button class="sr-btn sr-remove" onclick="removeStudyUser('${uid}')">✕</button>
+    </div>
+  </div>`;
+}
+
+function setStudyMode(uid, mode) {
+  const t = studyActive[uid];
+  if (!t || t.running) return; // must pause first
+  t.mode = mode;
+  t.elapsed = 0; t.remaining = t.durationSec;
+  renderStudyRings();
+}
+
+function setStudyDuration(uid, mins) {
+  const t = studyActive[uid];
+  if (!t) return;
+  const m = Math.max(1, Math.min(300, parseInt(mins) || 25));
+  t.durationSec = m * 60;
+  t.remaining = m * 60;
+  updateRingVisual(uid);
+}
+
+function toggleStudyRun(uid) {
+  const t = studyActive[uid];
+  if (!t) return;
+  if (t.running) {
+    t.running = false;
+    clearInterval(t.intervalId); t.intervalId = null;
+    flushStudyTime(uid);
+  } else {
+    if (t.mode === 'timer' && t.remaining <= 0) t.remaining = t.durationSec;
+    t.running = true;
+    t.intervalId = setInterval(() => studyTick(uid), 1000);
+  }
+  renderStudyRings();
+}
+
+function studyTick(uid) {
+  const t = studyActive[uid];
+  if (!t || !t.running) return;
+  t.elapsed += 1;
+  if (t.mode === 'timer') {
+    t.remaining -= 1;
+    if (t.remaining <= 0) { t.remaining = 0; completeStudyTimer(uid); return; }
+  }
+  updateRingVisual(uid);
+}
+
+function completeStudyTimer(uid) {
+  const t = studyActive[uid];
+  clearInterval(t.intervalId); t.intervalId = null;
+  t.running = false;
+  flushStudyTime(uid);
+  updateRingVisual(uid);
+  const btn = document.getElementById('srStartBtn_' + uid);
+  if (btn) { btn.textContent = 'Start'; btn.classList.remove('running'); }
+  const overlay = document.getElementById('srComplete_' + uid);
+  if (overlay) { overlay.classList.remove('show'); void overlay.offsetWidth; overlay.classList.add('show'); setTimeout(() => overlay.classList.remove('show'), 2200); }
+  t.elapsed = 0; t.remaining = t.durationSec;
+  setTimeout(() => updateRingVisual(uid), 2200);
+}
+
+function resetStudyTimer(uid) {
+  const t = studyActive[uid];
+  if (!t) return;
+  if (t.intervalId) clearInterval(t.intervalId);
+  flushStudyTime(uid);
+  t.running = false; t.intervalId = null;
+  t.elapsed = 0; t.remaining = t.durationSec;
+  renderStudyRings();
+}
+
+/* Save the newly-studied seconds (since the last flush) to Firebase. */
+function flushStudyTime(uid) {
+  const t = studyActive[uid];
+  if (!t) return;
+  const delta = t.elapsed - t.flushedSec;
+  t.flushedSec = t.elapsed;
+  if (delta <= 0) return;
+  const dt = todayStr();
+  const cur = ((state.study.logs[dt] || {})[uid]) || 0;
+  const next = cur + delta;
+  state.study.logs[dt] = state.study.logs[dt] || {};
+  state.study.logs[dt][uid] = next; // optimistic
+  doWrite(() => fbPut('/study/logs/' + dt + '/' + uid, next)).then(() => renderStudyStats());
+}
+
+function updateRingVisual(uid) {
+  const t = studyActive[uid];
+  if (!t) return;
+  const timeEl = document.getElementById('srTime_' + uid);
+  const progEl = document.getElementById('srProgress_' + uid);
+  const waveEl = document.getElementById('srWave_' + uid);
+  if (!timeEl || !progEl) return;
+  let pct, displaySec;
+  if (t.mode === 'timer') {
+    displaySec = t.remaining;
+    pct = t.durationSec ? t.remaining / t.durationSec : 0; // drains
+  } else {
+    displaySec = t.elapsed;
+    pct = (t.elapsed % 3600) / 3600; // fills up, laps every hour
+  }
+  timeEl.textContent = fmtHMS(displaySec);
+  progEl.style.strokeDashoffset = String(SR_CIRC * (1 - pct));
+  if (waveEl) {
+    const fillY = 200 - (pct * 200); // 0 = full at top, 200 = empty at bottom
+    waveEl.style.transform = `translateY(${fillY}px)`;
+  }
+}
+
+/* ── Study calendar ── */
+function studyCalNav(dir) {
+  studyCalMonth += dir;
+  if (studyCalMonth > 11) { studyCalMonth = 0; studyCalYear++; }
+  if (studyCalMonth < 0) { studyCalMonth = 11; studyCalYear--; }
+  renderStudyCal();
+}
+
+function studyDayTotalSec(ds) {
+  const d = state.study.logs[ds] || {};
+  return Object.values(d).reduce((s, v) => s + v, 0);
+}
+
+function renderStudyCal() {
+  if (!studyCalYear) initStudyCal();
+  const MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('studyCalMonthLabel').textContent = MON[studyCalMonth] + ' ' + studyCalYear;
+  const first = new Date(studyCalYear, studyCalMonth, 1);
+  const startDow = (first.getDay() + 6) % 7; // Mon=0
+  const dim = new Date(studyCalYear, studyCalMonth + 1, 0).getDate();
+  const grid = document.getElementById('studyCalGrid');
+  if (!grid) return;
+  let html = ['Mo','Tu','We','Th','Fr','Sa','Su'].map(d => `<div class="cal-hdr">${d}</div>`).join('');
+  for (let i = 0; i < startDow; i++) html += '<div class="cal-day empty"></div>';
+  for (let d = 1; d <= dim; d++) {
+    const ds = studyCalYear + '-' + pad(studyCalMonth + 1) + '-' + pad(d);
+    const sec = studyDayTotalSec(ds);
+    const isToday = ds === todayStr();
+    html += `<div class="cal-day ${sec ? 'has-data' : ''} ${isToday ? 'today' : ''}" onclick="selectStudyCalDay('${ds}')">
+      <div class="cal-num">${d}</div>${sec ? `<div class="cal-tot">${Math.round(sec/60)}m</div>` : ''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+  if (studySelCalDate) renderStudyCalDetail(studySelCalDate);
+}
+
+function selectStudyCalDay(ds) {
+  studySelCalDate = ds;
+  renderStudyCalDetail(ds);
+}
+
+function renderStudyCalDetail(ds) {
+  const box = document.getElementById('studyCalDetail');
+  if (!box) return;
+  const d = state.study.logs[ds] || {};
+  const rows = userList().map(u => `<div class="subj-row"><div class="subj-lbl">${escHtml(u.name)}</div><div class="subj-cnt">${fmtHMS(d[u.id] || 0)}</div></div>`).join('');
+  box.style.display = 'block';
+  box.innerHTML = `<div class="section-label" style="margin:.6rem 0 .3rem">${dateLabel(ds)}</div>${rows || '<div class="no-subj-msg">No focus time logged.</div>'}`;
+}
+
+/* ── Study bar chart (last 7 days, grouped by person) ── */
+let studyChart = null;
+function renderStudyStats() {
+  renderStudyCal();
+  renderStudyChart();
+}
+function renderStudyChart() {
+  const canvas = document.getElementById('studyChart');
+  const msg = document.getElementById('studyNoDataMsg');
+  if (!canvas) return;
+  const users = userList();
+  const totalAll = Object.values(state.study.logs || {}).reduce((s, day) => s + Object.values(day).reduce((a, b) => a + b, 0), 0);
+  if (!users.length || !totalAll) {
+    canvas.style.display = 'none'; if (msg) msg.style.display = 'block';
+    if (studyChart) { studyChart.destroy(); studyChart = null; }
+    return;
+  }
+  canvas.style.display = 'block'; if (msg) msg.style.display = 'none';
+  const now = logicalNow();
+  const keys = [], labels = [];
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now); d.setDate(now.getDate() - i);
+    keys.push(d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()));
+    labels.push(dayNames[d.getDay()] + ' ' + d.getDate());
+  }
+  const datasets = users.map((u, i) => ({
+    label: u.name,
+    data: keys.map(k => Math.round(((state.study.logs[k] || {})[u.id] || 0) / 60)), // minutes
+    backgroundColor: userColor(i), borderRadius: 3, borderSkipped: false,
+    barPercentage: 0.9, categoryPercentage: 0.7
+  }));
+  document.getElementById('studyLegend').innerHTML = users.map((u, i) =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${userColor(i)}"></div>${escHtml(u.name)}</div>`).join('');
+  if (studyChart) { studyChart.destroy(); studyChart = null; }
+  studyChart = buildChart('studyChart', labels, datasets, keys.indexOf(todayStr()), false);
+}
+
+/* ════════════════════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', async () => {
   loadTheme();
   initCal();
+  initStudyCal();
   initSession();
   loadLocal();   // instant render from cache
   renderAll();
