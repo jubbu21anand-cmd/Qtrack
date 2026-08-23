@@ -108,9 +108,19 @@
 .sr-ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .sr-track { fill: var(--sp-surface); stroke: var(--sp-border); stroke-width: 3; }
 .sr-progress { fill: none; stroke: url(#srGradGlobal); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset .9s linear; filter: drop-shadow(0 0 6px rgba(168,85,247,.55)); }
-.sr-fluid-rect { transition: y .9s linear, height .9s linear; opacity: .8; }
-.sr-fluid-wave { opacity: .5; animation: fluidFlow 2.6s linear infinite; transition: transform .9s linear; }
-@keyframes fluidFlow { from { transform: translateX(0); } to { transform: translateX(-200px); } }
+.sr-fluid-level { transition: transform .9s linear; }
+.sr-fluid-wave-back { animation: fluidFlowBack 3.4s linear infinite; }
+.sr-fluid-wave-front { animation: fluidFlowFront 2.1s linear infinite; }
+@keyframes fluidFlowBack { from { transform: translateX(0); } to { transform: translateX(-240px); } }
+@keyframes fluidFlowFront { from { transform: translateX(-240px); } to { transform: translateX(0); } }
+.sr-phase-label { position: absolute; bottom: 14%; font-family: 'Syne', sans-serif; font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--sp-muted); display: none; }
+.study-ring-card.is-break .sr-name, .study-ring-card.is-break .sr-phase-label { color: #fbbf24; }
+.study-ring-card.is-break .sr-progress { filter: drop-shadow(0 0 6px rgba(251,191,36,.55)); }
+.sr-skip { color: var(--sp-muted); }
+.pomo-flash { position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center; text-align: center; padding: 2rem; color: #fff; font-family: 'Syne', sans-serif; font-size: 1.35rem; font-weight: 800; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+.pomo-flash.show { opacity: 1; }
+.pomo-flash.work-flash { background: rgba(10,8,18,.94); }
+.pomo-flash.break-flash { background: rgba(120,72,10,.94); }
 .sr-time { position: absolute; font-family: 'DM Mono', monospace; font-weight: 500; font-size: clamp(1.1rem, 6.5vw, 2.1rem); color: #fff; letter-spacing: -.01em; text-shadow: 0 0 18px rgba(168,85,247,.5); }
 .sr-complete-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 6px; background: rgba(10,8,18,.82); border-radius: 50%; font-weight: 800; font-size: .95rem; color: var(--sp-purple); }
 .sr-complete-overlay.show { display: flex; animation: srPulse 1.8s ease; }
@@ -131,13 +141,46 @@
 .study-cal-grid .cal-day.has-data { background: rgba(168,85,247,.16); }
 .study-cal-grid .cal-day.today { border-color: var(--sp-purple); }
 
-/* ── Exam Analytics teaser ── */
-.exam-teaser { position: relative; margin: -1rem -1rem 0; min-height: calc(100vh - var(--header-h)); overflow: hidden; background: #0a0a0b; display: flex; align-items: center; justify-content: center; }
-.exam-teaser-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .22; filter: blur(6px) saturate(1.1); }
-.exam-teaser-veil { position: absolute; inset: 0; backdrop-filter: blur(14px); background: rgba(10,10,11,.62); }
-.exam-teaser-content { position: relative; z-index: 2; text-align: center; padding: 1rem; }
-.exam-teaser-badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: .72rem; font-weight: 700; letter-spacing: .12em; color: #0a0a0b; background: #f0ede8; border-radius: 20px; padding: 7px 16px; margin-bottom: .8rem; }
-.exam-teaser-text { font-size: 1.1rem; font-weight: 700; color: #f0ede8; opacity: .85; }
+/* ── Exam Analytics — green / black theme ── */
+.exam-wrap { --ex-bg:#04120b; --ex-surface:#0c2117; --ex-surface2:#123322; --ex-border:#1f4a30; --ex-green:#22c55e; --ex-green2:#15803d; --ex-text:#e9fff1; --ex-muted:#7fae8f;
+  background: var(--ex-bg); margin: -1rem -1rem 0; padding: 1.1rem 1rem 1.6rem; border-radius: 0 0 16px 16px; color: var(--ex-text); min-height: calc(100vh - var(--header-h)); }
+.exam-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .7rem; }
+.exam-title { font-size: 1.2rem; font-weight: 800; letter-spacing: -.02em; color: var(--ex-text); }
+.exam-title em { font-style: normal; color: var(--ex-green); }
+.ex-add-btn { background: linear-gradient(135deg, var(--ex-green), var(--ex-green2)); border: none; color: #06170e; font-weight: 800; }
+.exam-mode-toggle { display: flex; gap: .35rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.exam-mode-btn { background: var(--ex-surface2); border: 1px solid var(--ex-border); color: var(--ex-muted); border-radius: 18px; padding: 6px 13px; font-family: 'Syne', sans-serif; font-size: .68rem; font-weight: 700; cursor: pointer; transition: all .18s; }
+.exam-mode-btn.active { background: linear-gradient(135deg, var(--ex-green), var(--ex-green2)); color: #06170e; border-color: transparent; box-shadow: 0 0 16px rgba(34,197,94,.3); }
+.exam-tabs-row { display: flex; gap: .4rem; overflow-x: auto; padding-bottom: .3rem; margin-bottom: .8rem; }
+.exam-tab-btn { flex-shrink: 0; background: var(--ex-surface); border: 1px solid var(--ex-border); color: var(--ex-muted); border-radius: 8px; padding: 6px 12px; font-family: 'Syne', sans-serif; font-size: .68rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.exam-tab-btn.active { background: rgba(34,197,94,.14); border-color: var(--ex-green); color: var(--ex-green); }
+.exam-empty { color: var(--ex-muted); font-size: .8rem; text-align: center; padding: 1.5rem 1rem; }
+.exam-summary-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; margin-bottom: .8rem; }
+.exam-summary-card { background: var(--ex-surface); border: 1px solid var(--ex-border); border-radius: 10px; padding: .6rem .7rem; }
+.exam-summary-label { font-size: .52rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ex-muted); margin-bottom: .2rem; }
+.exam-summary-value { font-family: 'DM Mono', monospace; font-size: 1.05rem; font-weight: 500; color: var(--ex-text); }
+.exam-detail-card { background: var(--ex-surface); border: 1px solid var(--ex-border); border-radius: 12px; padding: .9rem; margin-bottom: 1rem; }
+.exam-detail-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .5rem; }
+.exam-detail-name { font-weight: 700; font-size: .9rem; color: var(--ex-text); }
+.exam-detail-date { font-size: .66rem; color: var(--ex-muted); font-family: 'DM Mono', monospace; }
+.exam-subj-table { width: 100%; border-collapse: collapse; margin-top: .5rem; font-size: .72rem; color: var(--ex-text); }
+.exam-subj-table th { text-align: left; color: var(--ex-muted); font-weight: 700; text-transform: uppercase; font-size: .55rem; letter-spacing: .06em; padding: 4px 6px; border-bottom: 1px solid var(--ex-border); }
+.exam-subj-table td { padding: 5px 6px; border-bottom: 1px solid var(--ex-border); }
+.exam-note-box { margin-top: .6rem; font-size: .72rem; color: var(--ex-muted); background: var(--ex-surface2); border-radius: 8px; padding: .6rem .7rem; line-height: 1.5; }
+.exam-section { background: var(--ex-surface); border: 1px solid var(--ex-border); border-radius: 12px; padding: .9rem; margin-bottom: 1rem; }
+.exam-section-title { font-size: .82rem; font-weight: 700; margin-bottom: .6rem; color: var(--ex-text); }
+.ex-no-data { color: var(--ex-muted) !important; }
+.exam-modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 .6rem; }
+.exam-subj-hdr { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 22px; gap: 4px; font-size: .5rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 0 2px; margin-bottom: 2px; }
+.exam-subj-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 22px; gap: 4px; align-items: center; margin-bottom: 5px; }
+.exam-subj-row input { margin-bottom: 0 !important; padding: 6px 6px !important; font-size: .72rem !important; min-height: 32px !important; }
+.exam-subj-row-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: .8rem; padding: 0; }
+.exam-tab-actions { display: flex; gap: .4rem; }
+.exam-icon-btn { background: none; border: 1px solid var(--ex-border); color: var(--ex-muted); border-radius: 6px; font-size: .66rem; padding: 3px 8px; cursor: pointer; }
+.exam-icon-btn:hover { border-color: var(--ex-green); color: var(--ex-green); }
+@media (max-width: 480px) { .exam-charts-row { grid-template-columns: 1fr !important; } .exam-summary-strip { grid-template-columns: repeat(2, 1fr); } }
+.exam-charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+#examTestModal .btn-confirm { background: linear-gradient(135deg, #22c55e, #15803d) !important; }
 
 /* ── Session history ── */
 .sess-hist { display: flex; flex-direction: column; gap: .3rem; max-height: 170px; overflow-y: auto; margin-bottom: .6rem; }
@@ -299,6 +342,11 @@ header {
 .perf-badge { display: inline-flex; align-items: center; gap: 2px; font-family: 'DM Mono', monospace; font-size: .58rem; border-radius: 4px; padding: 1px 5px; font-weight: 600; flex-shrink: 0; }
 .perf-badge.up { color: #4ecba4; background: rgba(78,203,164,.12); }
 .perf-badge.down { color: #e8724a; background: rgba(232,114,74,.12); }
+.anon-badge { font-family: 'DM Mono', monospace; font-size: .58rem; font-weight: 600; color: var(--muted); background: rgba(120,120,120,.15); border-radius: 4px; padding: 1px 6px; flex-shrink: 0; }
+.anon-badge.mine { color: #a855f7; background: rgba(168,85,247,.14); }
+.anon-btn.active { color: #a855f7; border-color: #a855f7; background: rgba(168,85,247,.12); }
+.anon-locked-card { background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); padding: .9rem; }
+.anon-locked-msg { font-size: .74rem; color: var(--muted); line-height: 1.5; padding: .6rem 0 .2rem; }
 .card-actions { display: flex; align-items: center; gap: 3px; flex-shrink: 0; flex-wrap: wrap; }
 .card-today { font-family: 'DM Mono', monospace; font-size: .65rem; color: var(--muted); white-space: nowrap; }
 .card-alltime { font-size: .56rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: .65rem; }
@@ -366,6 +414,8 @@ header {
 .about-h2 { font-size: .6rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; padding-bottom: .35rem; border-bottom: 1px solid var(--border); margin-top: 1.5rem; }
 .about-p { font-size: .82rem; line-height: 1.8; color: var(--text); margin-bottom: .65rem; }
 .about-note { font-size: .72rem; line-height: 1.65; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .75rem .9rem; margin-top: .85rem; }
+.about-note-yellow { font-size: .72rem; line-height: 1.65; color: #a07800; background: rgba(245,200,66,.14); border: 1px solid rgba(245,200,66,.4); border-radius: 8px; padding: .75rem .9rem; margin-top: .6rem; }
+[data-theme="light"] .about-note-yellow { color: #7a5c00; }
 .how-step { display: flex; gap: .75rem; margin-bottom: .75rem; align-items: flex-start; }
 .how-num { width: 22px; height: 22px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: .6rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
 .how-text { font-size: .8rem; line-height: 1.7; }
@@ -397,7 +447,8 @@ header {
 @media (min-width: 600px) { .modal { border-radius: 14px; max-height: 85vh; } }
 .modal-drag { width: 32px; height: 3px; background: var(--border); border-radius: 2px; margin: 0 auto 1.1rem; }
 .modal h2 { font-size: .95rem; font-weight: 800; letter-spacing: -.03em; margin-bottom: .85rem; }
-.modal input[type=text], .modal input[type=number] { background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif; font-size: .85rem; padding: 9px 12px; width: 100%; outline: none; margin-bottom: .75rem; min-height: 40px; transition: border-color .18s; }
+.modal input[type=text], .modal input[type=number], .modal input[type=date], .modal textarea { background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif; font-size: .85rem; padding: 9px 12px; width: 100%; outline: none; margin-bottom: .75rem; min-height: 40px; transition: border-color .18s; }
+.modal textarea { min-height: 70px; resize: vertical; font-family: inherit; }
 .modal input:focus { border-color: var(--muted); }
 .modal-btns { display: flex; gap: 6px; justify-content: flex-end; margin-top: .2rem; }
 .btn-cancel { background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-family: 'Syne', sans-serif; font-size: .78rem; font-weight: 600; padding: 8px 14px; cursor: pointer; min-height: 36px; transition: all .18s; }
@@ -478,7 +529,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.7.0</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.8.1</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -515,7 +566,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div style="flex:1"></div>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack 0.7.0 · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack 0.8.1 · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -638,24 +689,34 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
   </div>
 </div><!-- /studyPage -->
 
-<!-- EXAM ANALYTICS (coming soon) ---------------------------------- -->
+<!-- EXAM ANALYTICS ------------------------------------------------ -->
 <div class="page" id="examPage">
-  <div class="exam-teaser">
-    <svg class="exam-teaser-canvas" viewBox="0 0 400 260" preserveAspectRatio="none">
-      <rect x="0" y="0" width="400" height="260" fill="#0e0e0f"/>
-      <rect x="30" y="150" width="30" height="80" fill="#5b8dee" opacity=".5"/>
-      <rect x="75" y="110" width="30" height="120" fill="#b06aed" opacity=".5"/>
-      <rect x="120" y="70" width="30" height="160" fill="#4ecba4" opacity=".4"/>
-      <rect x="165" y="130" width="30" height="100" fill="#f5c842" opacity=".45"/>
-      <rect x="210" y="40" width="30" height="190" fill="#e84a8a" opacity=".4"/>
-      <polyline points="45,140 90,95 135,55 180,115 225,25" fill="none" stroke="#f0ede8" stroke-width="3" opacity=".35"/>
-      <circle cx="330" cy="70" r="46" fill="#5b8dee" opacity=".3"/>
-      <circle cx="300" cy="190" r="30" fill="#b06aed" opacity=".28"/>
-    </svg>
-    <div class="exam-teaser-veil"></div>
-    <div class="exam-teaser-content">
-      <div class="exam-teaser-badge">COMING SOON</div>
-      <div class="exam-teaser-text">We're working on some new stuff!</div>
+  <div class="exam-wrap">
+    <div class="exam-head">
+      <div class="exam-title">Exam <em>Analytics</em></div>
+      <button class="add-q-btn ex-add-btn" onclick="openExamModal()">+ Add Test</button>
+    </div>
+    <div class="exam-mode-toggle" id="examModeToggle"></div>
+
+    <div class="exam-tabs-row" id="examTabsRow"></div>
+    <div id="examTestDetail"></div>
+
+    <div class="exam-section">
+      <div class="exam-section-title">Progress over time</div>
+      <div class="chart-wrap" style="height:190px;">
+        <div class="no-data-msg ex-no-data" id="examProgNoData"><strong>No tests yet</strong>Tap + Add Test to log your first one.</div>
+        <canvas id="examProgressChart" style="display:none"></canvas>
+      </div>
+    </div>
+    <div class="exam-charts-row">
+      <div class="exam-section">
+        <div class="exam-section-title">Subject strengths</div>
+        <div class="chart-wrap" style="height:220px;"><canvas id="examRadarChart"></canvas></div>
+      </div>
+      <div class="exam-section">
+        <div class="exam-section-title">Subject-wise breakdown</div>
+        <div class="chart-wrap" style="height:220px;"><canvas id="examPieChart"></canvas></div>
+      </div>
     </div>
   </div>
 </div><!-- /examPage -->
@@ -680,21 +741,24 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 0.7.0 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 0.8.1 · Beta · qttrack.vercel.app</div>
 
     <div class="about-h2">How to Use</div>
     <div class="how-step"><div class="how-num">1</div><div class="how-text"><strong>Add people</strong> — tap "+ Person" in the header. Each person gets their own bar on the chart and their own card below.</div></div>
     <div class="how-step"><div class="how-num">2</div><div class="how-text"><strong>Add subjects</strong> — on any person's card, tap the <strong>Subjects</strong> button. Add whatever subjects you study, pick a colour for each, and tap Save. Subjects are shared across all people in your session.</div></div>
-    <div class="how-step"><div class="how-num">3</div><div class="how-text"><strong>Log questions</strong> — enter how many you did per subject and tap Add. The chart and totals update immediately.</div></div>
+    <div class="how-step"><div class="how-num">3</div><div class="how-text"><strong>Log questions</strong> — enter how many you did per subject and tap Add, then tap <strong>✓ Log done</strong> at the bottom of the card once you're finished for the day to lock it in.</div></div>
     <div class="how-step"><div class="how-num">4</div><div class="how-text"><strong>Connect a friend</strong> — tap ⚡ in the header, copy your Session ID, and send it. Your friend pastes it in "Join a Session" and hits Join. Both boards sync live.</div></div>
-    <div class="how-step"><div class="how-num">5</div><div class="how-text"><strong>Track progress</strong> — use the chart views (Today / By Day / Week / Month / All-Time), the calendar, and the Leaderboard tab. Week and Month views let you browse previous periods and compare people side-by-side.</div></div>
-    <div class="how-step"><div class="how-num">6</div><div class="how-text"><strong>Study Tracker</strong> — open it from the ☰ menu. Tap a person's name to give them a ring timer, choose Stopwatch or Timer mode, and hit Start. Several people can track focus time at once on the same device. Your focus time is saved automatically to that person's Focus Calendar and weekly chart.</div></div>
+    <div class="how-step"><div class="how-num">5</div><div class="how-text"><strong>Track progress</strong> — use the chart views (Today / By Day / Week / Month / All-Time), the calendar, and the Leaderboard tab. Week view has ‹ › arrows to browse previous weeks; Month view has a dropdown to jump straight to any month.</div></div>
+    <div class="how-step"><div class="how-num">6</div><div class="how-text"><strong>Go anonymous</strong> — tap the 🕶 icon on your card to hide your numbers from every other device in the session. Only your own device keeps showing your real progress; everyone else just sees a locked "Anonymous" card. Tap 🕶 again on the same device to turn it back off.</div></div>
+    <div class="how-step"><div class="how-num">7</div><div class="how-text"><strong>Study Tracker</strong> — open it from the ☰ menu. Tap a person's name to give them a ring timer. Choose <strong>Stopwatch</strong> to count up freely, <strong>Timer</strong> to count down a fixed number of minutes, or <strong>Pomodoro</strong> for the classic work/break cycle — set your work length and QTrack automatically gives a break (with a long break every 4th round) and flashes it on screen. Several people can run their own timers on the same device at once. Focus time saves automatically to that person's Focus Calendar and weekly chart.</div></div>
+    <div class="how-step"><div class="how-num">8</div><div class="how-text"><strong>Exam Analytics</strong> — open it from the ☰ menu. Pick a mode at the top (JEE / NEET / Boards / Other) so competitive and board exam scores never get mixed into the same average. Tap <strong>+ Add Test</strong>, enter total marks, marks obtained, errors, negative marking per wrong answer, a per-subject breakdown (score, rank, percentile), and an optional note. Each saved test becomes its own tab with a summary at the top, and the three charts below track your progress over time, your subject-wise strengths, and your overall subject breakdown for the selected mode.</div></div>
 
     <div class="about-h2">About QTrack</div>
     <p class="about-p">QTrack is a simple study tracking platform designed to help users organise their work, monitor progress, and keep everything in one place. It supports all subjects and is made to work across devices so your data stays connected wherever you use it.</p>
-    <p class="about-p">The goal of QTrack is to provide a clean and straightforward experience without unnecessary complexity. You can track completed questions, manage subjects, log focus time with the Study Tracker, and maintain a clear record of your progress without relying on scattered notes or multiple apps pretending to "increase productivity" while mainly increasing screen time.</p>
+    <p class="about-p">The goal of QTrack is to provide a clean and straightforward experience without unnecessary complexity. You can track completed questions, manage subjects, log focus time with the Study Tracker, record and analyse exam performance in Exam Analytics, and maintain a clear record of your progress without relying on scattered notes or multiple apps pretending to "increase productivity" while mainly increasing screen time.</p>
     <p class="about-p">QTrack is independently developed with the help of modern AI tools to improve features, usability, and development speed while keeping the platform simple and user-focused.</p>
     <div class="about-note">⚠️ The app is in development phase and may cause bugs and errors. Apologies from the developer's end in advance.</div>
+    <div class="about-note-yellow">🚧 Dev note: we're aiming to leave Beta by version 0.10.0. Until then, expect fairly frequent updates and the occasional rough edge as new features (like Exam Analytics and Study Tracker) get polished based on feedback.</div>
 
     <div class="about-h2">FAQ</div>
     <div class="faq-item" onclick="toggleFaq(this)">
@@ -714,12 +778,16 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
       <div class="faq-a">(1) Tap ⚡ in the header. (2) Copy your Session ID. (3) Send it via WhatsApp or any messaging app. (4) Your friend opens QTrack, taps ⚡, pastes the ID and hits Join. They'll immediately see your board and can add themselves as a person.</div>
     </div>
     <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-q">What is the Study Tracker? <span class="faq-chevron">▼</span></div>
-      <div class="faq-a">It's a focus-time tracker separate from question logging. Pick one or more people from the chip list at the top, and each gets their own ring-shaped timer. Choose Stopwatch to count up freely, or Timer to count down a set number of minutes — a fluid fill animation inside the ring rises or drains as time passes. Multiple people can run their own timers on the same device at once; the rings shrink and stay centred as more people join in. When a timer finishes you'll see a completion animation, and all focus time is added to that person's Focus Calendar and 7-day chart automatically.</div>
+      <div class="faq-q">What does Anonymous mode actually hide, and from whom? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">Turning on 🕶 Anonymous for a person hides their question counts, subject breakdown, and chart/leaderboard numbers from every other device connected to the session — those devices just see a locked card confirming "Anonymous mode is on," with no numbers. The device that switched it on keeps seeing that person's full real data, since anonymity is remembered per-device, not per-login (QTrack has no accounts). Only the device that turned it on can turn it back off.</div>
     </div>
     <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-q">What is Exam Analytics? <span class="faq-chevron">▼</span></div>
-      <div class="faq-a">It's a new section we're actively building — exam-level performance breakdowns and analytics. It's not live yet, so the menu item currently shows a "Coming soon" preview.</div>
+      <div class="faq-q">What is the Study Tracker, and what's Pomodoro mode? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">It's a focus-time tracker separate from question logging. Pick one or more people from the chip list at the top, and each gets their own ring-shaped timer with a fluid fill/drain animation. Stopwatch counts up freely; Timer counts down a set number of minutes; Pomodoro alternates fixed work sessions with automatic breaks (a short break after each session, a longer break every 4th one), flashing a full-screen banner whenever a session flips from work to break or back. Several people can run independent timers on the same device at once — the rings shrink and re-centre as more people join. Only actual work/focus time is saved to that person's Focus Calendar and 7-day chart; breaks aren't counted.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What is Exam Analytics and why does it have JEE / NEET / Boards modes? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">Exam Analytics is where you log full test results — total marks, marks obtained, errors, negative marking, and a per-subject breakdown with score, rank and percentile, plus a personal note per test. Each test appears as its own tab with a quick summary on top. The mode toggle (JEE / NEET / Boards / Other) keeps competitive-exam scores separate from board-exam scores, since JEE-style papers are typically much lower-scoring than board papers — mixing the two would skew your averages and trends. All three modes currently show the same layout; more mode-specific personalisation for competitive vs. board students is planned. Each mode gets its own progress-over-time line chart, a radar chart of subject strengths, and a pie chart of overall subject-wise marks.</div>
     </div>
   </div>
 </div>
@@ -727,6 +795,26 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <!-- CHANGELOG --------------------------------------------------- -->
 <div class="page" id="changelogPage">
   <div class="changelog-wrap">
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.8.1</span></div>
+      <ul class="cl-items">
+        <li>Exam Analytics re-themed to green &amp; black, matching its own identity separate from Study Tracker's purple</li>
+      </ul>
+    </div>
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.8.0</span></div>
+      <ul class="cl-items">
+        <li>New: Exam Analytics — log full test results (marks, errors, negative marking, per-subject score/rank/percentile, notes), browse them as tabs, and view progress-over-time, subject-strength, and subject-breakdown charts</li>
+        <li>New: JEE / NEET / Boards / Other mode toggle in Exam Analytics to keep competitive and board exam scores from skewing each other's averages</li>
+        <li>New: Anonymous mode — hide a person's question data from every other device while keeping it fully visible on the device that turned it on</li>
+        <li>New: Pomodoro mode in Study Tracker — automatic work/break cycling with a long break every 4th round and a full-screen flash when phases change</li>
+        <li>Fixed: All-Time dropdown arrow replaced with a properly scalable icon</li>
+        <li>Fixed: Study Tracker's fluid fill/drain animation, which wasn't rendering</li>
+        <li>Updated About, How to Use, and FAQ sections for all of the above</li>
+      </ul>
+    </div>
 
     <div class="cl-version">
       <div><span class="cl-ver-num">0.7.0</span></div>
@@ -825,7 +913,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 0.7.0</span>
+  <span>QTrack 0.8.1</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -881,6 +969,34 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal('subjModal')">Cancel</button>
       <button class="btn-confirm" onclick="saveSubjects()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit Exam Test -->
+<div class="modal-overlay" id="examTestModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-drag"></div>
+    <h2 id="examModalTitle">Add Test</h2>
+    <div class="field-label">Test name</div>
+    <input type="text" id="examTestName" placeholder="e.g. JEE Mock Test 4" maxlength="60">
+    <div class="field-label">Date</div>
+    <input type="date" id="examTestDate">
+    <div class="exam-modal-grid">
+      <div><div class="field-label">Total marks</div><input type="number" id="examTotalMarks" placeholder="300"></div>
+      <div><div class="field-label">Marks obtained</div><input type="number" id="examObtMarks" placeholder="210"></div>
+      <div><div class="field-label">Total errors</div><input type="number" id="examTotalErrors" placeholder="8"></div>
+      <div><div class="field-label">Neg. marking / wrong</div><input type="number" step="0.25" id="examNegMark" placeholder="1"></div>
+    </div>
+    <div class="field-label" style="margin-top:.2rem">Subject-wise breakdown</div>
+    <div class="exam-subj-hdr"><span>Subject</span><span>Score</span><span>Max</span><span>Rank</span><span>%ile</span><span></span></div>
+    <div id="examSubjRows"></div>
+    <button class="add-subj-btn" style="margin:.3rem 0 .5rem" onclick="addExamSubjRow()">+ Add subject row</button>
+    <div class="field-label">Personal note</div>
+    <textarea id="examNote" rows="3" placeholder="What went wrong, what to revise..."></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('examTestModal')">Cancel</button>
+      <button class="btn-confirm" onclick="saveExamTest()">Save</button>
     </div>
   </div>
 </div>
@@ -950,11 +1066,12 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.7.0';
+const VERSION = '0.8.1';
 
 /* ── State ── */
 let sessionId = '';
-let state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, meta: { ts: 0 } };
+let deviceId = '';
+let state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {} }, meta: { ts: 0 } };
 /* subjects: [{id, name, color}] */
 
 let lastKnownTs = 0;
@@ -1027,6 +1144,8 @@ function applyRemote(remote) {
   state.locks = remote.locks || {};
   state.study = remote.study || { logs: {} };
   if (!state.study.logs) state.study.logs = {};
+  state.exams = remote.exams || { tests: {} };
+  if (!state.exams.tests) state.exams.tests = {};
   // Subjects: stored as array
   if (Array.isArray(remote.subjects) && remote.subjects.length > 0) {
     state.subjects = remote.subjects;
@@ -1036,6 +1155,7 @@ function applyRemote(remote) {
   renderAll();
   renderStudyChips();
   renderStudyStats();
+  if (document.getElementById('examPage')?.classList.contains('active')) renderExamPage();
 }
 
 /* ── LocalStorage cache ── */
@@ -1051,6 +1171,9 @@ function loadLocal() {
 
 /* ── Session ── */
 function initSession() {
+  let did = localStorage.getItem('qttrack_device_id');
+  if (!did) { did = randId() + randId(); localStorage.setItem('qttrack_device_id', did); }
+  deviceId = did;
   let sid = localStorage.getItem('qttrack_sid_v5');
   if (!sid) { sid = randId() + randId(); localStorage.setItem('qttrack_sid_v5', sid); }
   sessionId = sid;
@@ -1093,7 +1216,7 @@ async function joinSessionId(sid) {
   localStorage.setItem('qttrack_sid_v5', sid);
   document.getElementById('sessionDisplay').textContent = fmtSid(sid);
   document.getElementById('sessionIdDisplay').value = fmtSid(sid);
-  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, meta: { ts: 0 } };
+  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {} }, meta: { ts: 0 } };
   lastKnownTs = 0;
   recordSessionHistory(sid);
   closeModal('sessionModal');
@@ -1118,7 +1241,7 @@ async function joinSession() {
   localStorage.setItem('qttrack_sid_v5', clean);
   document.getElementById('sessionDisplay').textContent = fmtSid(clean);
   document.getElementById('sessionIdDisplay').value = fmtSid(clean);
-  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, meta: { ts: 0 } };
+  state = { users: {}, history: {}, subjects: [], locks: {}, study: { logs: {} }, exams: { tests: {} }, meta: { ts: 0 } };
   lastKnownTs = 0;
   closeModal('sessionModal');
   recordSessionHistory(clean);
@@ -1377,6 +1500,32 @@ function getMonthStart() { const n = logicalNow(); return new Date(n.getFullYear
 ════════════════════════════════════════════════════════════ */
 function userList() { return Object.values(state.users); }
 
+/* ── Anonymous mode ──
+   A person can hide their question data from every OTHER device sharing this
+   session. Only the device that switched it on ("the owner") keeps seeing
+   the real numbers; everyone else just sees that anonymous mode is on. */
+function isAnonHidden(uid) {
+  const u = state.users[uid];
+  return !!(u && u.anonymous && u.anonOwner !== deviceId);
+}
+function isAnonMine(uid) {
+  const u = state.users[uid];
+  return !!(u && u.anonymous && u.anonOwner === deviceId);
+}
+function visibleUserList() { return userList().filter(u => !isAnonHidden(u.id)); }
+
+function toggleAnonymous(uid) {
+  const u = state.users[uid];
+  if (!u) return;
+  if (u.anonymous && u.anonOwner !== deviceId) {
+    showToast("Only the device that turned this on can turn it off");
+    return;
+  }
+  const next = !u.anonymous;
+  doWrite(() => fbPut('/users/' + uid, { ...u, anonymous: next, anonOwner: next ? deviceId : null }))
+    .then(ok => { if (ok) showToast(next ? 'Anonymous mode on — hidden on other devices' : 'Anonymous mode off'); });
+}
+
 function getUserSubj(uid, scope) {
   const res = {}; state.subjects.forEach(s => res[s.id] = 0);
   let dates = [];
@@ -1427,7 +1576,7 @@ function renderAll() {
 }
 
 function renderSummary() {
-  const users = userList();
+  const users = visibleUserList();
   const todayTot = users.reduce((s, u) => s + getUserTotal(u.id, 'today'), 0);
   const allTot = users.reduce((s, u) => s + getUserTotal(u.id, 'alltime'), 0);
   document.getElementById('statToday').textContent = todayTot;
@@ -1553,7 +1702,7 @@ function pickMonth(val) { monthSel = val; renderMainChart(); }
 function renderMainChart() {
   const canvas = document.getElementById('mainChart');
   const msg = document.getElementById('noDataMsg');
-  const users = userList();
+  const users = visibleUserList();
   if (!users.length || !state.subjects.length) {
     canvas.style.display = 'none'; msg.style.display = 'block';
     msg.innerHTML = !users.length ? '<strong>No people yet</strong>Tap "+ Person" to start.' : '<strong>No subjects yet</strong>Open any card and tap Subjects.';
@@ -1600,7 +1749,7 @@ function renderMainChart() {
 
 /* Legend showing people (used by the Week/Month trend views) */
 function renderPeopleLegend() {
-  document.getElementById('mainLegend').innerHTML = userList().map((u, i) =>
+  document.getElementById('mainLegend').innerHTML = visibleUserList().map((u, i) =>
     `<div class="legend-item"><div class="legend-dot" style="background:${userColor(i)}"></div>${escHtml(u.name)}</div>`).join('');
 }
 
@@ -1733,7 +1882,7 @@ function selectCalDay(ds) {
 function renderCalDetail(ds) {
   const detail = document.getElementById('calDetail');
   const dh = state.history[ds] || {};
-  const users = userList().filter(u => {
+  const users = visibleUserList().filter(u => {
     const ud = dh[u.id] || {};
     return state.subjects.reduce((s, sub) => s + (ud[sub.id] || 0), 0) > 0;
   });
@@ -1763,10 +1912,30 @@ function renderCards() {
     grid.innerHTML = '<div class="empty-state" id="emptyGrid">No people added yet.<br>Tap <strong>+ Person</strong> in the header to begin.</div>';
     return;
   }
-  const ranked = [...users].map(u => ({ id: u.id, score: getUserTotal(u.id, 'today') })).sort((a, b) => b.score - a.score);
+  const ranked = [...visibleUserList()].map(u => ({ id: u.id, score: getUserTotal(u.id, 'today') })).sort((a, b) => b.score - a.score);
   // Full rebuild every time — subjects may have changed
   grid.innerHTML = '';
   users.forEach(user => {
+    const hidden = isAnonHidden(user.id);
+    const mine = isAnonMine(user.id);
+    if (hidden) {
+      const card = document.createElement('div');
+      card.className = 'user-card anon-locked-card';
+      card.dataset.uid = user.id;
+      card.innerHTML = `
+        <div class="card-head">
+          <div class="card-name-row">
+            <div class="card-name">${escHtml(user.name)}</div>
+            <span class="anon-badge">🕶 Anonymous</span>
+          </div>
+          <div class="card-actions">
+            <button class="card-btn del-btn" onclick="deleteUser('${user.id}')">✕</button>
+          </div>
+        </div>
+        <div class="anon-locked-msg">🔒 This person has anonymous mode on. Their progress is only visible on their own device.</div>`;
+      grid.appendChild(card);
+      return;
+    }
     const logDate = (logDatePick[user.id] && logDatePick[user.id] <= todayStr()) ? logDatePick[user.id] : todayStr();
     const locked = isLocked(user.id, logDate);
     const subs = getUserSubj(user.id, 'today');
@@ -1775,7 +1944,7 @@ function renderCards() {
     const ri = ranked.findIndex(r => r.id === user.id);
     const topScore = ranked[0]?.score || 0;
     let badge = '';
-    if (ranked.length > 1) {
+    if (ranked.length > 1 && ri >= 0) {
       badge = ri === 0
         ? `<span class="perf-badge up">▲ +${topScore - (ranked[1]?.score || 0)}</span>`
         : `<span class="perf-badge down">▼ −${topScore - (ranked[ri]?.score || 0)}</span>`;
@@ -1811,12 +1980,14 @@ function renderCards() {
       <div class="card-head">
         <div class="card-name-row">
           <div class="card-name">${escHtml(user.name)}</div>
+          ${mine ? '<span class="anon-badge mine">🕶 Anonymous (only you)</span>' : ''}
           ${badge}
         </div>
         <div class="card-actions">
           <span class="card-today">today: ${total}</span>
           <button class="card-btn subj-btn" onclick="openSubjModal()">Subjects</button>
           ${state.subjects.length && !locked ? `<button class="card-btn edit-btn" id="editbtn_${user.id}" onclick="toggleEdit('${user.id}')">Edit</button>` : ''}
+          <button class="card-btn anon-btn ${mine ? 'active' : ''}" onclick="toggleAnonymous('${user.id}')" title="Anonymous mode">🕶</button>
           <button class="card-btn del-btn" onclick="deleteUser('${user.id}')">✕</button>
         </div>
       </div>
@@ -1881,7 +2052,7 @@ function renderLeaderboard() {
       style="${s.color && s.id === lbSubj ? `background:${s.color}20;border-color:${s.color};color:${s.color}` : ''}"
       onclick="setLbSubj('${s.id}',this)">${escHtml(s.name)}</button>`).join('');
   const table = document.getElementById('lbTable');
-  const users = userList();
+  const users = visibleUserList();
   if (!users.length) { table.innerHTML = '<div class="lb-empty">No people added yet.</div>'; return; }
   const ranked = [...users].map(u => ({
     ...u,
@@ -1955,6 +2126,7 @@ function showPage(pageId, navId) {
   closeSidebar();
   if (pageId === 'leaderboardPage') renderLeaderboard();
   if (pageId === 'studyPage') renderStudyPage();
+  if (pageId === 'examPage') renderExamPage();
 }
 
 function toggleFaq(el) { el.classList.toggle('open'); }
@@ -2036,6 +2208,223 @@ function dismissDevWarning() {
 }
 
 /* ════════════════════════════════════════════════════════════
+   EXAM ANALYTICS
+════════════════════════════════════════════════════════════ */
+let examMode = 'jee';           // 'jee' | 'neet' | 'boards' | 'other'
+let examSelTestId = null;
+let examDraftSubjects = [];
+let examEditingId = null;
+const EXAM_MODES = [
+  { id: 'jee', label: 'JEE' },
+  { id: 'neet', label: 'NEET' },
+  { id: 'boards', label: 'Boards' },
+  { id: 'other', label: 'Other' }
+];
+
+function examTestsForMode() {
+  return Object.values(state.exams.tests).filter(t => (t.mode || 'jee') === examMode).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+}
+
+function renderExamPage() {
+  renderExamModeToggle();
+  const tests = examTestsForMode();
+  if (!examSelTestId || !tests.find(t => t.id === examSelTestId)) examSelTestId = tests.length ? tests[tests.length - 1].id : null;
+  renderExamTabs(tests);
+  renderExamDetail(tests);
+  renderExamCharts(tests);
+}
+
+function renderExamModeToggle() {
+  const host = document.getElementById('examModeToggle');
+  if (!host) return;
+  host.innerHTML = EXAM_MODES.map(m =>
+    `<button class="exam-mode-btn ${m.id === examMode ? 'active' : ''}" onclick="setExamMode('${m.id}')">${m.label}</button>`).join('');
+}
+function setExamMode(m) { examMode = m; examSelTestId = null; renderExamPage(); }
+
+function renderExamTabs(tests) {
+  const host = document.getElementById('examTabsRow');
+  if (!host) return;
+  if (!tests.length) { host.innerHTML = ''; return; }
+  host.innerHTML = tests.map(t =>
+    `<button class="exam-tab-btn ${t.id === examSelTestId ? 'active' : ''}" onclick="selectExamTab('${t.id}')">${escHtml(t.name)}</button>`).join('');
+}
+function selectExamTab(id) { examSelTestId = id; renderExamPage(); }
+
+function renderExamDetail(tests) {
+  const host = document.getElementById('examTestDetail');
+  if (!host) return;
+  if (!tests.length) { host.innerHTML = '<div class="exam-empty">No tests logged in this mode yet. Tap <strong>+ Add Test</strong> to log your first one.</div>'; return; }
+  const t = state.exams.tests[examSelTestId];
+  if (!t) { host.innerHTML = ''; return; }
+  const pct2 = t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0;
+  const rows = (t.subjects || []).filter(s => s.name).map(s => `
+    <tr>
+      <td>${escHtml(s.name)}</td>
+      <td>${s.score ?? '—'}${s.max ? ' / ' + s.max : ''}</td>
+      <td>${s.rank || '—'}</td>
+      <td>${s.percentile ? s.percentile + '%ile' : '—'}</td>
+    </tr>`).join('');
+  host.innerHTML = `
+    <div class="exam-summary-strip">
+      <div class="exam-summary-card"><div class="exam-summary-label">Marks</div><div class="exam-summary-value">${t.obtainedMarks ?? 0}/${t.totalMarks ?? 0}</div></div>
+      <div class="exam-summary-card"><div class="exam-summary-label">Percentage</div><div class="exam-summary-value">${pct2}%</div></div>
+      <div class="exam-summary-card"><div class="exam-summary-label">Errors</div><div class="exam-summary-value">${t.totalErrors ?? 0}</div></div>
+      <div class="exam-summary-card"><div class="exam-summary-label">Neg. / wrong</div><div class="exam-summary-value">−${t.negMarking ?? 0}</div></div>
+    </div>
+    <div class="exam-detail-card">
+      <div class="exam-detail-head">
+        <div><div class="exam-detail-name">${escHtml(t.name)}</div><div class="exam-detail-date">${t.date ? dateLabel(t.date) : ''}</div></div>
+        <div class="exam-tab-actions">
+          <button class="exam-icon-btn" onclick="openExamModal('${t.id}')">Edit</button>
+          <button class="exam-icon-btn" onclick="deleteExamTest('${t.id}')">Delete</button>
+        </div>
+      </div>
+      ${rows ? `<table class="exam-subj-table"><tr><th>Subject</th><th>Score</th><th>Rank</th><th>Percentile</th></tr>${rows}</table>` : ''}
+      ${t.note ? `<div class="exam-note-box">📝 ${escHtml(t.note)}</div>` : ''}
+    </div>`;
+}
+
+function openExamModal(editId = null) {
+  examEditingId = editId;
+  const t = editId ? state.exams.tests[editId] : null;
+  document.getElementById('examModalTitle').textContent = editId ? 'Edit Test' : 'Add Test';
+  document.getElementById('examTestName').value = t ? t.name : '';
+  document.getElementById('examTestDate').value = t ? t.date : todayStr();
+  document.getElementById('examTestDate').max = todayStr();
+  document.getElementById('examTotalMarks').value = t ? t.totalMarks ?? '' : '';
+  document.getElementById('examObtMarks').value = t ? t.obtainedMarks ?? '' : '';
+  document.getElementById('examTotalErrors').value = t ? t.totalErrors ?? '' : '';
+  document.getElementById('examNegMark').value = t ? t.negMarking ?? '' : '';
+  document.getElementById('examNote').value = t ? t.note || '' : '';
+  examDraftSubjects = t ? JSON.parse(JSON.stringify(t.subjects || [])) : state.subjects.map(s => ({ name: s.name, score: '', max: '', rank: '', percentile: '' }));
+  if (!examDraftSubjects.length) examDraftSubjects = [{ name: '', score: '', max: '', rank: '', percentile: '' }];
+  renderExamSubjRows();
+  openModal('examTestModal');
+}
+
+function renderExamSubjRows() {
+  const host = document.getElementById('examSubjRows');
+  if (!host) return;
+  host.innerHTML = examDraftSubjects.map((r, i) => `
+    <div class="exam-subj-row">
+      <input type="text" placeholder="Subject" value="${escHtml(r.name || '')}" oninput="examDraftSubjects[${i}].name=this.value">
+      <input type="number" placeholder="Score" value="${r.score ?? ''}" oninput="examDraftSubjects[${i}].score=this.value">
+      <input type="number" placeholder="Max" value="${r.max ?? ''}" oninput="examDraftSubjects[${i}].max=this.value">
+      <input type="number" placeholder="Rank" value="${r.rank ?? ''}" oninput="examDraftSubjects[${i}].rank=this.value">
+      <input type="number" step="0.01" placeholder="%ile" value="${r.percentile ?? ''}" oninput="examDraftSubjects[${i}].percentile=this.value">
+      <button class="exam-subj-row-del" onclick="removeExamSubjRow(${i})">✕</button>
+    </div>`).join('');
+}
+function addExamSubjRow() { examDraftSubjects.push({ name: '', score: '', max: '', rank: '', percentile: '' }); renderExamSubjRows(); }
+function removeExamSubjRow(i) { examDraftSubjects.splice(i, 1); renderExamSubjRows(); }
+
+function saveExamTest() {
+  const name = document.getElementById('examTestName').value.trim();
+  if (!name) { showToast('Enter a test name'); return; }
+  const id = examEditingId || ('ex' + Date.now());
+  const test = {
+    id, mode: examMode, name,
+    date: document.getElementById('examTestDate').value || todayStr(),
+    totalMarks: Number(document.getElementById('examTotalMarks').value) || 0,
+    obtainedMarks: Number(document.getElementById('examObtMarks').value) || 0,
+    totalErrors: Number(document.getElementById('examTotalErrors').value) || 0,
+    negMarking: Number(document.getElementById('examNegMark').value) || 0,
+    note: document.getElementById('examNote').value.trim(),
+    subjects: examDraftSubjects.filter(s => s.name && s.name.trim()).map(s => ({
+      name: s.name.trim(), score: Number(s.score) || 0, max: Number(s.max) || 0,
+      rank: s.rank ? Number(s.rank) : null, percentile: s.percentile ? Number(s.percentile) : null
+    }))
+  };
+  closeModal('examTestModal');
+  doWrite(() => fbPut('/exams/tests/' + id, test)).then(ok => { if (ok) { examSelTestId = id; showToast('Test saved'); } });
+}
+
+function deleteExamTest(id) {
+  if (!confirm('Delete this test entry?')) return;
+  doWrite(() => fbDelete('/exams/tests/' + id)).then(ok => { if (ok) { examSelTestId = null; showToast('Deleted'); } });
+}
+
+let examProgressChart = null, examRadarChart = null, examPieChart = null;
+function renderExamCharts(tests) {
+  const progCanvas = document.getElementById('examProgressChart');
+  const progMsg = document.getElementById('examProgNoData');
+  if (examProgressChart) { examProgressChart.destroy(); examProgressChart = null; }
+  if (examRadarChart) { examRadarChart.destroy(); examRadarChart = null; }
+  if (examPieChart) { examPieChart.destroy(); examPieChart = null; }
+  if (!tests.length) { progCanvas.style.display = 'none'; progMsg.style.display = 'block'; return; }
+  progCanvas.style.display = 'block'; progMsg.style.display = 'none';
+
+  // Exam Analytics page is always dark green/black, regardless of the app's light/dark toggle
+  const tc = '#7fae8f';
+  const gc = 'rgba(34,197,94,0.1)';
+
+  // Progress over time: % scored per test, in date order
+  examProgressChart = new Chart(progCanvas, {
+    type: 'line',
+    data: {
+      labels: tests.map(t => t.name),
+      datasets: [{
+        label: '% scored',
+        data: tests.map(t => t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0),
+        borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.18)',
+        borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#22c55e', tension: .3, fill: true
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } },
+        y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, callback: v => v + '%' }, beginAtZero: true, max: 100 }
+      }
+    }
+  });
+
+  // Subject strengths (radar): avg percentile (or score%) per subject across all tests in this mode
+  const subjAgg = {}; // name -> { sumPct, n }
+  tests.forEach(t => (t.subjects || []).forEach(s => {
+    const val = s.percentile != null ? s.percentile : (s.max ? (s.score / s.max) * 100 : null);
+    if (val == null) return;
+    if (!subjAgg[s.name]) subjAgg[s.name] = { sum: 0, n: 0 };
+    subjAgg[s.name].sum += val; subjAgg[s.name].n++;
+  }));
+  const subjNames = Object.keys(subjAgg);
+  examRadarChart = new Chart(document.getElementById('examRadarChart'), {
+    type: 'radar',
+    data: {
+      labels: subjNames.length ? subjNames : ['No data'],
+      datasets: [{
+        label: 'Strength', data: subjNames.length ? subjNames.map(n => Math.round(subjAgg[n].sum / subjAgg[n].n)) : [0],
+        backgroundColor: 'rgba(34,197,94,.25)', borderColor: '#22c55e', pointBackgroundColor: '#22c55e'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { r: { min: 0, max: 100, grid: { color: gc }, angleLines: { color: gc }, pointLabels: { color: tc, font: { size: 9 } }, ticks: { display: false } } }
+    }
+  });
+
+  // Overall subject-wise breakdown (pie): total marks scored per subject, across all tests in this mode
+  const subjTotals = {};
+  tests.forEach(t => (t.subjects || []).forEach(s => { subjTotals[s.name] = (subjTotals[s.name] || 0) + (Number(s.score) || 0); }));
+  const pieNames = Object.keys(subjTotals);
+  const palette = ['#22c55e', '#4ade80', '#86efac', '#15803d', '#a3e635', '#059669', '#65a30d'];
+  examPieChart = new Chart(document.getElementById('examPieChart'), {
+    type: 'pie',
+    data: {
+      labels: pieNames.length ? pieNames : ['No data'],
+      datasets: [{ data: pieNames.length ? pieNames.map(n => subjTotals[n]) : [1], backgroundColor: pieNames.length ? pieNames.map((_, i) => palette[i % palette.length]) : ['#123322'], borderColor: '#04120b', borderWidth: 2 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } }
+    }
+  });
+}
+
+/* ════════════════════════════════════════════════════════════
    STUDY TRACKER
 ════════════════════════════════════════════════════════════ */
 let studyActive = {};           // uid -> { mode, running, elapsed, remaining, durationSec, flushedSec, intervalId }
@@ -2064,7 +2453,10 @@ function toggleStudyUser(uid) {
   if (studyActive[uid]) {
     removeStudyUser(uid);
   } else {
-    studyActive[uid] = { mode: 'stopwatch', running: false, elapsed: 0, remaining: 0, durationSec: 25 * 60, flushedSec: 0, intervalId: null };
+    studyActive[uid] = {
+      mode: 'stopwatch', running: false, elapsed: 0, remaining: 0, durationSec: 25 * 60, flushedSec: 0, intervalId: null,
+      pomoPhase: 'work', pomoWorkMin: 25, pomoBreakMin: 5, pomoLongBreakMin: 15, pomoCyclesBeforeLong: 4, pomoCount: 0
+    };
     renderStudyChips();
     renderStudyRings();
   }
@@ -2103,14 +2495,17 @@ function buildRingHTML(uid) {
   const t = studyActive[uid];
   const name = state.users[uid]?.name || '?';
   return `
-  <div class="study-ring-card" data-uid="${uid}">
+  <div class="study-ring-card ${t.mode === 'pomodoro' && t.pomoPhase !== 'work' ? 'is-break' : ''}" data-uid="${uid}">
     <div class="sr-name">${escHtml(name)}</div>
     <div class="sr-mode-toggle">
       <button class="sr-mode-btn ${t.mode === 'stopwatch' ? 'active' : ''}" onclick="setStudyMode('${uid}','stopwatch')">Stopwatch</button>
       <button class="sr-mode-btn ${t.mode === 'timer' ? 'active' : ''}" onclick="setStudyMode('${uid}','timer')">Timer</button>
+      <button class="sr-mode-btn ${t.mode === 'pomodoro' ? 'active' : ''}" onclick="setStudyMode('${uid}','pomodoro')">Pomodoro</button>
     </div>
-    <div class="sr-duration-row" id="srDurRow_${uid}" style="${t.mode === 'timer' && !t.running ? '' : 'display:none'}">
-      <input type="number" min="1" max="300" id="srDurInp_${uid}" value="${Math.round(t.durationSec/60)}" onchange="setStudyDuration('${uid}',this.value)"> min
+    <div class="sr-duration-row" id="srDurRow_${uid}" style="${(t.mode === 'timer' || t.mode === 'pomodoro') && !t.running ? '' : 'display:none'}">
+      ${t.mode === 'pomodoro'
+        ? `<input type="number" min="5" max="120" id="srDurInp_${uid}" value="${t.pomoWorkMin}" onchange="setStudyDuration('${uid}',this.value)"> min work · ${t.pomoBreakMin} min break`
+        : `<input type="number" min="1" max="300" id="srDurInp_${uid}" value="${Math.round(t.durationSec/60)}" onchange="setStudyDuration('${uid}',this.value)"> min`}
     </div>
     <div class="sr-ring-wrap">
       <svg class="sr-ring-svg" viewBox="0 0 200 200">
@@ -2149,7 +2544,9 @@ function setStudyMode(uid, mode) {
   const t = studyActive[uid];
   if (!t || t.running) return; // must pause first
   t.mode = mode;
-  t.elapsed = 0; t.remaining = t.durationSec;
+  t.elapsed = 0; t.flushedSec = 0;
+  if (mode === 'pomodoro') { t.pomoPhase = 'work'; t.pomoCount = 0; t.remaining = t.pomoWorkMin * 60; }
+  else t.remaining = t.durationSec;
   renderStudyRings();
 }
 
@@ -2157,8 +2554,8 @@ function setStudyDuration(uid, mins) {
   const t = studyActive[uid];
   if (!t) return;
   const m = Math.max(1, Math.min(300, parseInt(mins) || 25));
-  t.durationSec = m * 60;
-  t.remaining = m * 60;
+  if (t.mode === 'pomodoro') { t.pomoWorkMin = m; t.remaining = m * 60; }
+  else { t.durationSec = m * 60; t.remaining = m * 60; }
   updateRingVisual(uid);
 }
 
@@ -2168,13 +2565,24 @@ function toggleStudyRun(uid) {
   if (t.running) {
     t.running = false;
     clearInterval(t.intervalId); t.intervalId = null;
-    flushStudyTime(uid);
+    if (t.mode !== 'pomodoro' || t.pomoPhase === 'work') flushStudyTime(uid);
   } else {
     if (t.mode === 'timer' && t.remaining <= 0) t.remaining = t.durationSec;
+    if (t.mode === 'pomodoro' && t.remaining <= 0) {
+      const phaseDur = t.pomoPhase === 'work' ? t.pomoWorkMin * 60 : (t.pomoPhase === 'longbreak' ? t.pomoLongBreakMin * 60 : t.pomoBreakMin * 60);
+      t.remaining = phaseDur;
+    }
     t.running = true;
     t.intervalId = setInterval(() => studyTick(uid), 1000);
   }
   renderStudyRings();
+}
+
+function skipPomoPhase(uid) {
+  const t = studyActive[uid];
+  if (!t || t.mode !== 'pomodoro') return;
+  t.remaining = 0;
+  completePomoPhase(uid);
 }
 
 function studyTick(uid) {
@@ -2184,8 +2592,52 @@ function studyTick(uid) {
   if (t.mode === 'timer') {
     t.remaining -= 1;
     if (t.remaining <= 0) { t.remaining = 0; completeStudyTimer(uid); return; }
+  } else if (t.mode === 'pomodoro') {
+    t.remaining -= 1;
+    if (t.remaining <= 0) { t.remaining = 0; completePomoPhase(uid); return; }
   }
   updateRingVisual(uid);
+}
+
+function completePomoPhase(uid) {
+  const t = studyActive[uid];
+  if (!t) return;
+  if (t.intervalId) clearInterval(t.intervalId);
+  t.intervalId = null; t.running = false;
+  const name = state.users[uid]?.name || 'Someone';
+  if (t.pomoPhase === 'work') {
+    flushStudyTime(uid);
+    t.pomoCount++;
+    const isLong = t.pomoCount % t.pomoCyclesBeforeLong === 0;
+    t.pomoPhase = isLong ? 'longbreak' : 'break';
+    const mins = isLong ? t.pomoLongBreakMin : t.pomoBreakMin;
+    t.remaining = mins * 60; t.elapsed = 0; t.flushedSec = 0;
+    flashPomo(`${name} — ${isLong ? 'Long break' : 'Break'} time! (${mins} min)`, 'break');
+  } else {
+    t.pomoPhase = 'work';
+    t.remaining = t.pomoWorkMin * 60; t.elapsed = 0; t.flushedSec = 0;
+    flashPomo(`${name} — back to work!`, 'work');
+  }
+  t.running = true;
+  t.intervalId = setInterval(() => studyTick(uid), 1000);
+  renderStudyRings();
+}
+
+let pomoFlashTimeout = null;
+function flashPomo(text, kind) {
+  let el = document.getElementById('pomoFlashOverlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'pomoFlashOverlay';
+    el.className = 'pomo-flash';
+    document.body.appendChild(el);
+  }
+  el.textContent = (kind === 'break' ? '☕ ' : '🍅 ') + text;
+  el.classList.remove('work-flash', 'break-flash');
+  el.classList.add(kind === 'break' ? 'break-flash' : 'work-flash');
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(pomoFlashTimeout);
+  pomoFlashTimeout = setTimeout(() => el.classList.remove('show'), 2600);
 }
 
 function completeStudyTimer(uid) {
@@ -2206,9 +2658,11 @@ function resetStudyTimer(uid) {
   const t = studyActive[uid];
   if (!t) return;
   if (t.intervalId) clearInterval(t.intervalId);
-  flushStudyTime(uid);
+  if (t.mode !== 'pomodoro' || t.pomoPhase === 'work') flushStudyTime(uid);
   t.running = false; t.intervalId = null;
-  t.elapsed = 0; t.remaining = t.durationSec;
+  t.elapsed = 0; t.flushedSec = 0;
+  if (t.mode === 'pomodoro') { t.pomoPhase = 'work'; t.pomoCount = 0; t.remaining = t.pomoWorkMin * 60; }
+  else t.remaining = t.durationSec;
   renderStudyRings();
 }
 
