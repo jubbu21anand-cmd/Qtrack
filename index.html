@@ -260,6 +260,9 @@ header {
 .cal-nav-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 5px; width: 28px; height: 28px; cursor: pointer; font-size: .85rem; display: flex; align-items: center; justify-content: center; transition: background .18s; }
 .cal-nav-btn:hover { background: var(--border); }
 .cal-month-label { font-size: .75rem; font-weight: 700; min-width: 105px; text-align: center; }
+.all-time-drop-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 3px; display: flex; align-items: center; justify-content: center; }
+.all-time-drop-btn svg { width: 15px; height: 15px; stroke-width: 3; }
+.all-time-drop-btn:hover { color: var(--text); }
 .chart-nav-row { display: flex; align-items: center; justify-content: center; gap: .6rem; margin-bottom: .6rem; }
 .month-picker { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 8px; font-family: 'Syne', sans-serif; font-size: .72rem; font-weight: 700; cursor: pointer; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
@@ -530,7 +533,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
   <div class="summary-strip">
     <div class="stat-card"><div class="stat-label">Today</div><div class="stat-value" id="statToday">0</div></div>
     <div class="stat-card" style="position:relative">
-      <div class="stat-label" style="display:flex;align-items:center;justify-content:space-between">All-Time <button id="allTimeDropBtn" onclick="toggleAllTimeDrop()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.05rem;line-height:1;padding:0 2px">▾</button></div>
+      <div class="stat-label" style="display:flex;align-items:center;justify-content:space-between">All-Time <button id="allTimeDropBtn" onclick="toggleAllTimeDrop()" class="all-time-drop-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button></div>
       <div class="stat-value" id="statAllTime">0</div>
       <div id="allTimeDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.4rem;z-index:50;max-height:200px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,.18)"></div>
     </div>
@@ -2119,17 +2122,23 @@ function buildRingHTML(uid) {
         </defs>
         <circle class="sr-track" cx="100" cy="100" r="86"/>
         <g clip-path="url(#srClip_${uid})">
-          <path class="sr-fluid-wave" id="srWave_${uid}" fill="url(#srGrad_${uid})"
-            d="M-200,200 C-170,190 -150,190 -120,200 C-90,210 -70,210 -40,200 C-10,190 10,190 40,200 C70,210 90,210 120,200 C150,190 170,190 200,200 C230,210 250,210 280,200 C310,190 330,190 360,200 L360,400 L-200,400 Z"/>
+          <g class="sr-fluid-level" id="srWaveWrap_${uid}" style="transform:translateY(210px)">
+            <path class="sr-fluid-wave sr-fluid-wave-back" fill="url(#srGrad_${uid})" opacity=".55"
+              d="M-260,208 C-230,196 -210,196 -180,208 C-150,220 -130,220 -100,208 C-70,196 -50,196 -20,208 C10,220 30,220 60,208 C90,196 110,196 140,208 C170,220 190,220 220,208 C250,196 270,196 300,208 C330,220 350,220 380,208 L380,420 L-260,420 Z"/>
+            <path class="sr-fluid-wave sr-fluid-wave-front" fill="url(#srGrad_${uid})" opacity=".85"
+              d="M-260,200 C-230,190 -210,190 -180,200 C-150,210 -130,210 -100,200 C-70,190 -50,190 -20,200 C10,210 30,210 60,200 C90,190 110,190 140,200 C170,210 190,210 220,200 C250,190 270,190 300,200 C330,210 350,210 380,200 L380,420 L-260,420 Z"/>
+          </g>
         </g>
         <circle class="sr-progress" id="srProgress_${uid}" cx="100" cy="100" r="86"
           stroke-dasharray="${SR_CIRC}" stroke-dashoffset="${SR_CIRC}" stroke="url(#srGrad_${uid})"/>
       </svg>
       <div class="sr-time" id="srTime_${uid}">00:00:00</div>
+      <div class="sr-phase-label" id="srPhase_${uid}"></div>
       <div class="sr-complete-overlay" id="srComplete_${uid}">✓<div>Session complete!</div></div>
     </div>
     <div class="sr-controls">
       <button class="sr-btn sr-start ${t.running ? 'running' : ''}" id="srStartBtn_${uid}" onclick="toggleStudyRun('${uid}')">${t.running ? 'Pause' : 'Start'}</button>
+      <button class="sr-btn sr-skip" id="srSkipBtn_${uid}" onclick="skipPomoPhase('${uid}')" style="${t.mode === 'pomodoro' ? '' : 'display:none'}">Skip</button>
       <button class="sr-btn sr-reset" onclick="resetStudyTimer('${uid}')">Reset</button>
       <button class="sr-btn sr-remove" onclick="removeStudyUser('${uid}')">✕</button>
     </div>
@@ -2223,21 +2232,34 @@ function updateRingVisual(uid) {
   if (!t) return;
   const timeEl = document.getElementById('srTime_' + uid);
   const progEl = document.getElementById('srProgress_' + uid);
-  const waveEl = document.getElementById('srWave_' + uid);
+  const waveWrap = document.getElementById('srWaveWrap_' + uid);
+  const phaseEl = document.getElementById('srPhase_' + uid);
   if (!timeEl || !progEl) return;
   let pct, displaySec;
   if (t.mode === 'timer') {
     displaySec = t.remaining;
     pct = t.durationSec ? t.remaining / t.durationSec : 0; // drains
+  } else if (t.mode === 'pomodoro') {
+    displaySec = t.remaining;
+    const phaseDur = t.pomoPhase === 'work' ? t.pomoWorkMin * 60 : (t.pomoPhase === 'longbreak' ? t.pomoLongBreakMin * 60 : t.pomoBreakMin * 60);
+    pct = phaseDur ? t.remaining / phaseDur : 0; // drains
   } else {
     displaySec = t.elapsed;
     pct = (t.elapsed % 3600) / 3600; // fills up, laps every hour
   }
   timeEl.textContent = fmtHMS(displaySec);
   progEl.style.strokeDashoffset = String(SR_CIRC * (1 - pct));
-  if (waveEl) {
-    const fillY = 200 - (pct * 200); // 0 = full at top, 200 = empty at bottom
-    waveEl.style.transform = `translateY(${fillY}px)`;
+  if (waveWrap) {
+    // native wave baseline sits at y≈200-210 (hidden below the r=86 clip circle, visible range y 14–186).
+    // Move it up by up to ~215px so pct=1 fully covers the circle.
+    const dy = 210 - (pct * 215);
+    waveWrap.style.transform = `translateY(${dy}px)`;
+  }
+  if (phaseEl) {
+    if (t.mode === 'pomodoro') {
+      phaseEl.textContent = t.pomoPhase === 'work' ? `Work · #${t.pomoCount + 1}` : (t.pomoPhase === 'longbreak' ? 'Long break' : 'Break');
+      phaseEl.style.display = 'block';
+    } else phaseEl.style.display = 'none';
   }
 }
 
