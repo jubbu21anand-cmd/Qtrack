@@ -118,30 +118,53 @@
 .syl-group-pct { font-family: 'DM Mono', monospace; font-size: .7rem; color: var(--sy-muted); }
 .syl-chevron { transition: transform .2s; color: var(--sy-muted); font-size: .6rem; }
 .syl-chevron.open { transform: rotate(180deg); }
-.syl-group-body { border-top: 1px solid var(--sy-border); }
-.syl-chapter-row { padding: .55rem .8rem; border-bottom: 1px solid var(--sy-border); cursor: pointer; }
-.syl-chapter-row:last-child { border-bottom: none; }
-.syl-chapter-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.syl-chapter-name { font-size: .74rem; font-weight: 600; }
-.syl-chapter-meta { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.syl-cls-tag { font-family: 'DM Mono', monospace; font-size: .55rem; color: var(--sy-muted); background: var(--sy-surface); border-radius: 4px; padding: 1px 5px; }
+/* 0.9.1: chapters as compact vertical tiles in a wrapping grid, not full-width horizontal rows */
+.syl-group-body { border-top: 1px solid var(--sy-border); padding: .55rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: .45rem; align-items: start; }
+.syl-chapter-row { background: var(--sy-surface); border: 1px solid var(--sy-border); border-radius: 9px; padding: .5rem .55rem; cursor: pointer; display: flex; flex-direction: column; gap: .35rem; min-height: 62px; }
+.syl-chapter-top { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.syl-chapter-name { font-size: .68rem; font-weight: 600; line-height: 1.25; }
+.syl-chapter-meta { display: flex; align-items: center; gap: 6px; flex-shrink: 0; width: 100%; justify-content: space-between; }
+.syl-cls-tag { font-family: 'DM Mono', monospace; font-size: .52rem; color: var(--sy-muted); background: var(--sy-surface2); border-radius: 4px; padding: 1px 5px; }
 .syl-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sy-border); flex-shrink: 0; }
 .syl-status-dot.theory { background: #f5c842; }
 .syl-status-dot.pyq, .syl-status-dot.mastered { background: var(--sy-accent); }
-.syl-chapter-detail { padding: .6rem 0 .2rem; }
-.syl-status-btns { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .5rem; }
-.syl-status-btn { flex: 1; min-width: 66px; background: var(--sy-surface); border: 1px solid var(--sy-border); color: var(--sy-muted); border-radius: 6px; padding: 6px 4px; font-family: 'Syne', sans-serif; font-size: .6rem; font-weight: 700; cursor: pointer; text-align: center; }
+.syl-status-dot.backlog { background: #f87171; }
+.syl-chapter-detail { padding: .35rem 0 .1rem; border-top: 1px solid var(--sy-border); margin-top: .1rem; }
+.syl-status-btns { display: flex; gap: .25rem; flex-wrap: wrap; margin-bottom: .4rem; margin-top: .45rem; }
+.syl-status-btn { flex: 1; min-width: 56px; background: var(--sy-surface2); border: 1px solid var(--sy-border); color: var(--sy-muted); border-radius: 6px; padding: 5px 3px; font-family: 'Syne', sans-serif; font-size: .56rem; font-weight: 700; cursor: pointer; text-align: center; }
 .syl-status-btn.active { background: var(--sy-accent); color: #fff; border-color: transparent; }
-.syl-rev-row { display: flex; align-items: center; justify-content: space-between; background: var(--sy-surface); border-radius: 6px; padding: 5px 8px; }
-.syl-rev-label { font-size: .55rem; text-transform: uppercase; letter-spacing: .06em; color: var(--sy-muted); }
-.syl-rev-ctrl { display: flex; align-items: center; gap: 8px; }
-.syl-rev-btn { width: 20px; height: 20px; border-radius: 5px; background: var(--sy-border); border: none; color: var(--sy-text); cursor: pointer; font-weight: 700; font-size: .7rem; }
-.syl-rev-count { font-family: 'DM Mono', monospace; font-size: .72rem; min-width: 12px; text-align: center; }
+.syl-rev-row { display: flex; align-items: center; justify-content: space-between; background: var(--sy-surface2); border-radius: 6px; padding: 5px 7px; margin-bottom: .3rem; }
+.syl-rev-label { font-size: .5rem; text-transform: uppercase; letter-spacing: .05em; color: var(--sy-muted); }
+.syl-rev-ctrl { display: flex; align-items: center; gap: 6px; }
+.syl-rev-btn { width: 18px; height: 18px; border-radius: 5px; background: var(--sy-border); border: none; color: var(--sy-text); cursor: pointer; font-weight: 700; font-size: .65rem; }
+.syl-rev-count { font-family: 'DM Mono', monospace; font-size: .66rem; min-width: 10px; text-align: center; }
+.syl-extra-btns { display: flex; gap: .25rem; flex-wrap: wrap; }
+.syl-extra-btn { flex: 1; min-width: 56px; background: var(--sy-surface2); border: 1px solid var(--sy-border); color: var(--sy-muted); border-radius: 6px; padding: 5px 3px; font-family: 'Syne', sans-serif; font-size: .54rem; font-weight: 700; cursor: pointer; text-align: center; }
+.syl-extra-btn.backlog.active { background: rgba(248,113,113,.2); border-color: #f87171; color: #f87171; }
+.syl-extra-btn.practice { position: relative; }
+.syl-extra-btn.practice .syl-practice-count { font-family: 'DM Mono', monospace; margin-left: 3px; color: var(--sy-accent); }
 .syl-add-row { display: flex; gap: .4rem; margin-top: .5rem; }
 .syl-add-row input, .syl-add-row select { background: var(--sy-surface); border: 1px solid var(--sy-border); color: var(--sy-text); border-radius: 7px; padding: 6px 9px; font-family: 'Syne', sans-serif; font-size: .7rem; }
 .syl-btn-sm { background: var(--sy-accent); border: none; color: #fff; border-radius: 7px; padding: 6px 12px; font-family: 'Syne', sans-serif; font-size: .68rem; font-weight: 700; cursor: pointer; }
 .syl-btn-sm.ghost { background: var(--sy-surface2); border: 1px solid var(--sy-border); color: var(--sy-muted); }
 .syl-actions-row { display: flex; gap: .4rem; margin-top: .8rem; }
+
+/* 0.9.1: Progress view — every subject side by side, 2 per row, last one spanning full width if odd */
+.syl-progress-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-bottom: 1rem; }
+.syl-progress-panel:nth-last-child(1):nth-child(odd) { grid-column: 1 / -1; }
+.syl-progress-panel { background: var(--sy-surface2); border: 1px solid var(--sy-border); border-radius: 12px; padding: .8rem .85rem; }
+.syl-progress-panel-name { font-weight: 700; font-size: .82rem; margin-bottom: .3rem; }
+.syl-progress-panel-pct { font-family: 'DM Mono', monospace; font-size: 1.5rem; font-weight: 600; color: var(--sy-accent); line-height: 1; }
+.syl-progress-panel-bar { height: 5px; background: var(--sy-border); border-radius: 4px; margin: .5rem 0; overflow: hidden; }
+.syl-progress-panel-bar-fill { height: 100%; background: linear-gradient(90deg, var(--sy-accent), var(--sy-accent2)); border-radius: 4px; }
+.syl-progress-panel-stats { display: flex; gap: .9rem; font-size: .6rem; color: var(--sy-muted); }
+.syl-progress-panel-stats b { color: var(--sy-text); font-family: 'DM Mono', monospace; }
+@media (max-width: 480px) { .syl-progress-grid { grid-template-columns: 1fr; } .syl-progress-panel:nth-last-child(1):nth-child(odd) { grid-column: auto; } }
+
+/* 0.9.1: public formula explainer pinned to the bottom of the Syllabus Tracker */
+.syl-formula-box { background: var(--sy-surface2); border: 1px solid var(--sy-border); border-radius: 12px; padding: .9rem 1rem; margin-top: 1rem; font-size: .74rem; line-height: 1.75; color: var(--sy-muted); }
+.syl-formula-box h4 { color: var(--sy-text); font-size: .78rem; font-weight: 700; margin-bottom: .4rem; }
+.syl-formula-box code { background: var(--sy-surface); border: 1px solid var(--sy-border); border-radius: 5px; padding: 1px 6px; font-family: 'DM Mono', monospace; color: var(--sy-accent); }
 
 /* ═══════════════════════════════════════════════════
    STUDY TRACKER — purple / black theme
@@ -280,6 +303,43 @@
 .exam-analysis-hdr { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 6px; font-size: .5rem; font-weight: 700; text-transform: uppercase; color: var(--muted); margin: .4rem 0 2px; }
 #examDiffPreview { font-family: 'DM Mono', monospace; font-size: .62rem; font-weight: 700; margin-left: 4px; }
 .modal-hint { font-size: .7rem; color: var(--muted); line-height: 1.5; margin: -.3rem 0 .7rem; }
+
+/* ── Exam Analytics 0.9.1: overview strip + test-card grid ── */
+.exam-overview-card { display: flex; flex-direction: column; justify-content: flex-start; gap: 2px; }
+.exam-overview-sub { font-size: .58rem; color: var(--ex-muted); line-height: 1.3; margin-top: 2px; }
+.exam-overview-sub b { color: var(--ex-text); font-weight: 700; }
+.exam-tests-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .6rem; margin-bottom: 1rem; }
+.exam-test-card { background: var(--ex-surface); border: 1px solid var(--ex-border); border-radius: 12px; padding: .65rem .6rem .55rem; display: flex; flex-direction: column; gap: .35rem; }
+.exam-test-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; }
+.exam-test-card-name { font-size: .66rem; font-weight: 700; color: var(--ex-text); line-height: 1.25; flex: 1; }
+.exam-test-card-date { font-size: .52rem; color: var(--ex-muted); font-family: 'DM Mono', monospace; }
+.exam-jmja-badge { font-family: 'DM Mono', monospace; font-size: .5rem; font-weight: 700; border-radius: 5px; padding: 1px 5px; flex-shrink: 0; }
+.exam-jmja-badge.jm { background: rgba(91,141,238,.18); color: #5b8dee; }
+.exam-jmja-badge.ja { background: rgba(232,74,138,.18); color: #e84a8a; }
+.exam-score-circle { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: .1rem auto .2rem; font-family: 'DM Mono', monospace; font-weight: 700; font-size: .74rem; color: #0a1108; box-shadow: 0 0 0 1px rgba(255,255,255,.1) inset; text-align: center; line-height: 1.05; }
+.exam-test-bars { display: flex; flex-direction: column; gap: 3px; }
+.exam-test-bar-row { display: flex; align-items: center; gap: 5px; }
+.exam-test-bar-lbl { font-size: .5rem; width: 15px; flex-shrink: 0; color: var(--ex-muted); font-weight: 700; }
+.exam-test-bar-bg { flex: 1; height: 4px; background: var(--ex-surface2); border-radius: 3px; overflow: hidden; }
+.exam-test-bar-fill { height: 100%; border-radius: 3px; }
+.exam-test-stats { display: flex; flex-direction: column; gap: 1px; font-family: 'DM Mono', monospace; font-size: .56rem; color: var(--ex-muted); border-top: 1px solid var(--ex-border); padding-top: .32rem; margin-top: .05rem; }
+.exam-test-stats b { color: var(--ex-text); }
+.exam-test-card-actions { display: flex; gap: 4px; margin-top: .1rem; }
+.exam-test-card-actions .exam-icon-btn { flex: 1; text-align: center; }
+.exam-analysis-toggle-row { display: flex; justify-content: flex-end; margin: .2rem 0 .8rem; }
+.exam-analysis-toggle-btn { background: var(--ex-surface2); border: 1px solid var(--ex-border); color: var(--ex-muted); border-radius: 18px; padding: 6px 14px; font-family: 'Syne', sans-serif; font-size: .68rem; font-weight: 700; cursor: pointer; }
+.exam-analysis-toggle-btn.active { background: linear-gradient(135deg, var(--ex-green), var(--ex-green2)); color: #06170e; border-color: transparent; }
+.exam-trend-badge { font-family: 'DM Mono', monospace; font-size: .6rem; font-weight: 700; border-radius: 5px; padding: 1px 6px; margin-left: 5px; }
+.exam-trend-badge.up { background: rgba(34,197,94,.18); color: #4ade80; }
+.exam-trend-badge.down { background: rgba(232,74,74,.18); color: #f87171; }
+.exam-trend-badge.flat { background: rgba(136,136,133,.18); color: var(--ex-muted); }
+.exam-review-box { margin-top: .5rem; }
+.exam-review-box textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 9px; font-family: 'Syne', sans-serif; font-size: .7rem; resize: vertical; min-height: 50px; outline: none; }
+.exam-review-box textarea:focus { border-color: var(--muted); }
+.exam-review-label { font-size: .6rem; color: var(--muted); margin: .3rem 0 2px; }
+.exam-topic-ref { text-decoration: none; font-size: .68rem; margin-left: 4px; opacity: .75; }
+.exam-topic-ref:hover { opacity: 1; }
+.exam-analysis-unit-row.with-ref { grid-template-columns: 1.4fr .2fr 1fr 1fr; }
 
 /* ── Session history ── */
 .sess-hist { display: flex; flex-direction: column; gap: .3rem; max-height: 170px; overflow-y: auto; margin-bottom: .6rem; }
@@ -631,7 +691,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.0</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.1</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -669,7 +729,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div style="flex:1"></div>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack 0.9.0 · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack 0.9.1 · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -816,24 +876,40 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div class="exam-chip-row" id="examChipRow"></div>
     <div class="exam-mode-toggle" id="examModeToggle"></div>
 
-    <div class="exam-tabs-row" id="examTabsRow"></div>
-    <div id="examTestDetail"></div>
+    <div class="exam-summary-strip" id="examOverviewStrip"></div>
 
-    <div class="exam-section">
-      <div class="exam-section-title">Progress over time</div>
-      <div class="chart-wrap" style="height:190px;">
-        <div class="no-data-msg ex-no-data" id="examProgNoData"><strong>No tests yet</strong>Tap + Add Test to log your first one.</div>
-        <canvas id="examProgressChart" style="display:none"></canvas>
-      </div>
+    <div class="exam-section-title" style="margin:.3rem 0 .5rem">Tests</div>
+    <div class="exam-tests-grid" id="examTestsGrid"></div>
+
+    <div class="exam-analysis-toggle-row">
+      <button class="exam-analysis-toggle-btn" id="examAnalysisToggleBtn" onclick="toggleExamAnalysisView()">📊 Analysis</button>
     </div>
-    <div class="exam-charts-row">
+
+    <div id="examAnalyticsBlock" style="display:none">
       <div class="exam-section">
-        <div class="exam-section-title">Subject strengths</div>
-        <div class="chart-wrap" style="height:220px;"><canvas id="examRadarChart"></canvas></div>
+        <div class="exam-section-title">Progress over time <span id="examMarksTrendBadge"></span></div>
+        <div class="chart-wrap" style="height:190px;">
+          <div class="no-data-msg ex-no-data" id="examProgNoData"><strong>No tests yet</strong>Tap + Add Test to log your first one.</div>
+          <canvas id="examProgressChart" style="display:none"></canvas>
+        </div>
       </div>
       <div class="exam-section">
-        <div class="exam-section-title">Attempted vs Scored <span class="exam-subj-picker" id="examWebSubjPicker"></span></div>
-        <div class="chart-wrap" style="height:220px;"><canvas id="examWebChart"></canvas></div>
+        <div class="exam-section-title">Rank over time <span id="examRankTrendBadge"></span></div>
+        <div class="chart-wrap" style="height:190px;"><canvas id="examRankChart"></canvas></div>
+      </div>
+      <div class="exam-charts-row">
+        <div class="exam-section">
+          <div class="exam-section-title">Subject strengths</div>
+          <div class="chart-wrap" style="height:220px;"><canvas id="examRadarChart"></canvas></div>
+        </div>
+        <div class="exam-section">
+          <div class="exam-section-title">Attempted vs Scored <span class="exam-subj-picker" id="examWebSubjPicker"></span></div>
+          <div class="chart-wrap" style="height:220px;"><canvas id="examWebChart"></canvas></div>
+        </div>
+      </div>
+      <div class="exam-section">
+        <div class="exam-section-title">Subject-wise performance per test</div>
+        <div class="chart-wrap" style="height:210px;"><canvas id="examSubjBarChart"></canvas></div>
       </div>
     </div>
   </div>
@@ -859,7 +935,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 0.9.0 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 0.9.1 · Beta · qttrack.vercel.app</div>
 
     <div class="about-h2">How to Use</div>
     <div class="how-step"><div class="how-num">1</div><div class="how-text"><strong>Add people</strong> — tap "+ Person" in the header. Each person gets their own bar on the chart and their own card below.</div></div>
@@ -905,7 +981,11 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     </div>
     <div class="faq-item" onclick="toggleFaq(this)">
       <div class="faq-q">What is Exam Analytics and why does it have JEE / NEET / Boards modes? <span class="faq-chevron">▼</span></div>
-      <div class="faq-a">Exam Analytics is where you log full test results — total marks, marks obtained, errors, negative marking, and a per-subject breakdown with score, rank and percentile, plus a personal note per test. Each test appears as its own tab with a quick summary on top. The mode toggle (JEE / NEET / Boards / Other) keeps competitive-exam scores separate from board-exam scores, since JEE-style papers are typically much lower-scoring than board papers — mixing the two would skew your averages and trends. All three modes currently show the same layout; more mode-specific personalisation for competitive vs. board students is planned. Each mode gets its own progress-over-time line chart, a radar chart of subject strengths, and a pie chart of overall subject-wise marks.</div>
+      <div class="faq-a">Exam Analytics is where you log full test results — total marks, marks obtained, a per-subject breakdown with score and rank, plus a personal note per test. Percentile is calculated automatically from your rank and the total number of candidates, so you never have to work it out yourself. Each test appears as its own colour-graded card with a quick summary on top. The mode toggle (JEE / NEET / Boards / Other) keeps competitive-exam scores separate from board-exam scores, since JEE-style papers are typically much lower-scoring than board papers — mixing the two would skew your averages and trends. Each mode gets its own progress-over-time line chart, a rank trend chart, a radar chart of subject strengths, and a subject-wise bar chart, with JEE Main and JEE Advanced always plotted as separate coloured lines so they never blend into one misleading trend.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Is AI coming to QTrack? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">It's on the roadmap. The plan is an AI layer that can look at your Question Tracker, Study Tracker, Syllabus Tracker and Exam Analytics together and actually say something useful — where your weak chapters and your weak exam topics overlap, whether your practice volume matches what your syllabus progress needs, and what to prioritise next. Nothing is live yet and no data is being sent anywhere for this — it's a teaser, not a feature, and it'll be opt-in whenever it does ship.</div>
     </div>
   </div>
 </div>
@@ -913,6 +993,25 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <!-- CHANGELOG --------------------------------------------------- -->
 <div class="page" id="changelogPage">
   <div class="changelog-wrap">
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.9.1</span></div>
+      <ul class="cl-items">
+        <li>Exam Analytics: brand new overview strip — Average Performance, Top Score and Lowest Score (each with the test name and date) at the top of the page, all time, per mode</li>
+        <li>Exam Analytics: the old 4-box single-test summary is gone — every test is now its own compact colour-graded score card in a grid, showing a score circle (green→yellow→red), Physics/Chemistry/Maths bars, rank, percentile and total candidates, editable and openable for analysis at any time</li>
+        <li>Exam Analytics: percentile is now calculated automatically from rank and total candidates appeared using Percentile = ((N − R) / N) × 100 — no more manual entry</li>
+        <li>Exam Analytics: JM / JA badges auto-detected for JEE Main and JEE Advanced mock tests, and both are now always plotted as separate coloured series on every chart instead of being merged</li>
+        <li>Exam Analytics: new Rank trend chart (lower is better, shown inverted) and an increase/decrease indicator on both the Marks and Rank charts comparing against your last test</li>
+        <li>Exam Analytics: new subject-wise bar chart comparing Physics/Chemistry/Maths across every test</li>
+        <li>Exam Analytics: Paper Analysis now includes a per-subject written review box and a "look it up" reference link on every topic row, including Physics topics</li>
+        <li>New: explicit "📊 Analysis" toggle on the Exam Analytics page to show/hide all analytics graphs on demand</li>
+        <li>Syllabus Tracker: chapters are now compact vertical tiles in a wrapping grid instead of full-width horizontal rows</li>
+        <li>Syllabus Tracker: new Backlog and Question Practice buttons on every chapter</li>
+        <li>Syllabus Tracker: new "Progress" view — every subject side by side, two per row, the last one spanning full width — plus a plain-language explanation of the progress formula pinned to the bottom of the page</li>
+        <li>About: new "Syllabus Tracker" sub-tab explaining exactly how chapter priorities and the progress % are calculated, in beginner-friendly terms</li>
+        <li>FAQ: added a teaser about upcoming AI integration</li>
+      </ul>
+    </div>
 
     <div class="cl-version">
       <div><span class="cl-ver-num">0.9.0</span></div>
@@ -1043,7 +1142,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 0.9.0</span>
+  <span>QTrack 0.9.1</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -1115,9 +1214,10 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div class="exam-modal-grid">
       <div><div class="field-label">Total marks</div><input type="number" id="examTotalMarks" placeholder="300"></div>
       <div><div class="field-label">Marks obtained</div><input type="number" id="examObtMarks" placeholder="210"></div>
-      <div><div class="field-label">Overall rank</div><input type="number" id="examOverallRank" placeholder="1240"></div>
-      <div><div class="field-label">Overall percentile</div><input type="number" step="0.01" id="examOverallPercentile" placeholder="98.5"></div>
+      <div><div class="field-label">Overall rank</div><input type="number" id="examOverallRank" oninput="updateExamPercentilePreview()" placeholder="1240"></div>
+      <div><div class="field-label">Total candidates appeared</div><input type="number" id="examTotalStudents" oninput="updateExamPercentilePreview()" placeholder="150000"></div>
     </div>
+    <div class="exam-percentile-preview" id="examPercentilePreview" style="font-size:.68rem;color:var(--muted);margin:-.35rem 0 .6rem">Percentile is calculated automatically from rank and total candidates.</div>
     <div class="field-label" style="margin-top:.2rem">Subject-wise breakdown</div>
     <div class="exam-subj-hdr"><span>Subject</span><span>Score</span><span>Max</span><span></span></div>
     <div id="examSubjRows"></div>
@@ -1143,11 +1243,11 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
       <button class="exam-diff-pick-btn mod" id="examDiffBtn_mod" onclick="setExamDraftDifficulty('mod')">Moderate</button>
       <button class="exam-diff-pick-btn tough" id="examDiffBtn_tough" onclick="setExamDraftDifficulty('tough')">Tough</button>
     </div>
-    <div class="field-label" style="margin-top:.6rem">Rough weightage by topic — how much of the paper did each broad topic take up, and how well did you do there? (0–100, estimate)</div>
+    <div class="field-label" style="margin-top:.6rem">Rough weightage by topic — how much of the paper did each broad topic take up, and how well did you do there? (0–100, estimate). Tap 🔗 next to a topic to look it up.</div>
     <div id="examAnalysisRows"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal('examAnalysisModal')">Back</button>
-      <button class="btn-confirm" onclick="closeModal('examAnalysisModal')">Done</button>
+      <button class="btn-confirm" onclick="closeExamAnalysisModal()">Done</button>
     </div>
   </div>
 </div>
@@ -1246,7 +1346,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.9.0';
+const VERSION = '0.9.1';
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER — reference data (JEE / NEET) + broad units
@@ -2585,12 +2685,45 @@ let examDraftAnalysis = {};     // { subjectName: { unitName: { attempted, score
 let examEditingId = null;
 let examPendingUid = null;      // uid awaiting password entry
 let examWebSubj = null;         // subject picked for the attempted-vs-scored web chart
+let examDraftReviews = {};      // { subjectName: 'free text review' }
+let examAnalysisStandalone = false; // true when Analysis modal opened directly from a test card, not via full edit
+let examShowAnalysis = false;   // whether the analytics charts block is expanded
 const EXAM_MODES = [
   { id: 'jee', label: 'JEE' },
   { id: 'neet', label: 'NEET' },
   { id: 'boards', label: 'Boards' },
   { id: 'other', label: 'Other' }
 ];
+const EXAM_SUBJ_COLOR = { physics: '#5b8dee', chemistry: '#22c55e', maths: '#f5c842', biology: '#b06aed' };
+
+/* Percentile = ((N - R) / N) × 100, where N = total candidates, R = rank */
+function examCalcPercentile(rank, totalStudents) {
+  const N = Number(totalStudents), R = Number(rank);
+  if (!N || N <= 0 || !R || R <= 0) return null;
+  const pct = ((N - R) / N) * 100;
+  return Math.round(Math.max(0, Math.min(100, pct)) * 100) / 100;
+}
+
+/* Colour for a score circle: normalised onto a 0–300 scale.
+   ≤100 red (redder toward 0) · 100–180 shades of yellow (lighter as it rises) · 180–300 greener as it rises */
+function examScoreColor(score, max) {
+  const norm = max ? (Number(score) / Number(max)) * 300 : Number(score) || 0;
+  const n = Math.max(0, Math.min(300, norm));
+  let h, l;
+  if (n <= 100) { h = 0; l = 28 + (n / 100) * 16; }
+  else if (n <= 180) { const t = (n - 100) / 80; h = 45 + t * 10; l = 42 + t * 18; }
+  else { const t = (n - 180) / 120; h = 68 + t * 52; l = 40 + t * 8; }
+  return `hsl(${Math.round(h)},72%,${Math.round(l)}%)`;
+}
+
+/* JM = JEE Main mock, JA = JEE Advanced mock — detected from the test name */
+function examJmJa(t) {
+  if ((t.mode || 'jee') !== 'jee') return null;
+  const n = (t.name || '').toLowerCase();
+  if (/adv/.test(n)) return 'JA';
+  if (/main/.test(n)) return 'JM';
+  return null;
+}
 
 function simpleHash(str) {
   let h = 0;
@@ -2621,18 +2754,106 @@ function renderExamPage() {
   if (!users.length) {
     document.getElementById('examChipRow').innerHTML = '<div class="exam-empty" style="padding:.4rem">Add a person on the Question Tracker page first.</div>';
     document.getElementById('examModeToggle').innerHTML = '';
-    document.getElementById('examTabsRow').innerHTML = '';
-    document.getElementById('examTestDetail').innerHTML = '';
+    document.getElementById('examOverviewStrip').innerHTML = '';
+    document.getElementById('examTestsGrid').innerHTML = '';
     return;
   }
   if (!examUid || !state.users[examUid]) examUid = users[0].id;
   renderExamChips();
   renderExamModeToggle();
   const tests = examTestsForMode();
-  if (!examSelTestId || !tests.find(t => t.id === examSelTestId)) examSelTestId = tests.length ? tests[tests.length - 1].id : null;
-  renderExamTabs(tests);
-  renderExamDetail(tests);
-  renderExamCharts(tests);
+  renderExamOverview(tests);
+  renderExamTestsGrid(tests);
+  const btn = document.getElementById('examAnalysisToggleBtn');
+  const block = document.getElementById('examAnalyticsBlock');
+  if (btn) btn.classList.toggle('active', examShowAnalysis);
+  if (block) block.style.display = examShowAnalysis ? 'block' : 'none';
+  if (examShowAnalysis) renderExamCharts(tests);
+}
+
+function toggleExamAnalysisView() {
+  examShowAnalysis = !examShowAnalysis;
+  renderExamPage();
+}
+
+/* Avg performance, top score and lowest score across every test in this mode */
+function renderExamOverview(tests) {
+  const host = document.getElementById('examOverviewStrip');
+  if (!host) return;
+  if (!tests.length) {
+    host.innerHTML = `
+      <div class="exam-summary-card ex-c1 exam-overview-card"><div class="exam-summary-label">Avg Performance</div><div class="exam-summary-value">—</div></div>
+      <div class="exam-summary-card ex-c2 exam-overview-card"><div class="exam-summary-label">Top Score</div><div class="exam-summary-value">—</div></div>
+      <div class="exam-summary-card ex-c3 exam-overview-card"><div class="exam-summary-label">Lowest Score</div><div class="exam-summary-value">—</div></div>`;
+    return;
+  }
+  let sumPct = 0, top = null, low = null;
+  tests.forEach(t => {
+    const pct = t.totalMarks ? (t.obtainedMarks / t.totalMarks) * 100 : 0;
+    sumPct += pct;
+    if (!top || pct > top.pct) top = { pct, t };
+    if (!low || pct < low.pct) low = { pct, t };
+  });
+  const avg = Math.round((sumPct / tests.length) * 10) / 10;
+  host.innerHTML = `
+    <div class="exam-summary-card ex-c1 exam-overview-card">
+      <div class="exam-summary-label">Avg Performance</div>
+      <div class="exam-summary-value">${avg}%</div>
+      <div class="exam-overview-sub">across ${tests.length} test${tests.length === 1 ? '' : 's'}</div>
+    </div>
+    <div class="exam-summary-card ex-c3 exam-overview-card">
+      <div class="exam-summary-label">Top Score</div>
+      <div class="exam-summary-value">${Math.round(top.pct * 10) / 10}%</div>
+      <div class="exam-overview-sub"><b>${escHtml(top.t.name)}</b><br>${top.t.date ? dateLabel(top.t.date) : ''}</div>
+    </div>
+    <div class="exam-summary-card ex-c4 exam-overview-card">
+      <div class="exam-summary-label">Lowest Score</div>
+      <div class="exam-summary-value">${Math.round(low.pct * 10) / 10}%</div>
+      <div class="exam-overview-sub"><b>${escHtml(low.t.name)}</b><br>${low.t.date ? dateLabel(low.t.date) : ''}</div>
+    </div>`;
+}
+
+/* Grid of compact, colour-graded test cards — replaces the old tabs + single-test detail view */
+function renderExamTestsGrid(tests) {
+  const host = document.getElementById('examTestsGrid');
+  if (!host) return;
+  if (!tests.length) { host.innerHTML = '<div class="exam-empty">No tests logged in this mode yet. Tap <strong>+ Add Test</strong> to log your first one.</div>'; return; }
+  host.innerHTML = [...tests].reverse().map(t => {
+    const badge = examJmJa(t);
+    const pct = t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0;
+    const circleColor = examScoreColor(t.obtainedMarks, t.totalMarks || 1);
+    const bars = (t.subjects || []).map(s => ({ fam: examSubjFamily(s.name), ...s })).filter(s => s.fam);
+    const percentile = t.overallPercentile != null ? t.overallPercentile : examCalcPercentile(t.overallRank, t.totalStudents);
+    return `
+    <div class="exam-test-card">
+      <div class="exam-test-card-top">
+        <div>
+          <div class="exam-test-card-name">${escHtml(t.name)}</div>
+          <div class="exam-test-card-date">${t.date ? dateLabel(t.date) : ''}</div>
+        </div>
+        ${badge ? `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>` : ''}
+      </div>
+      <div class="exam-score-circle" style="background:${circleColor}">${t.obtainedMarks ?? 0}<br><span style="font-size:.85em">/${t.totalMarks ?? 0}</span></div>
+      <div class="exam-test-bars">
+        ${bars.length ? bars.map(s => `
+          <div class="exam-test-bar-row">
+            <span class="exam-test-bar-lbl" style="color:${EXAM_SUBJ_COLOR[s.fam]}">${s.fam[0].toUpperCase()}</span>
+            <div class="exam-test-bar-bg"><div class="exam-test-bar-fill" style="width:${s.max ? Math.min(100, (s.score / s.max) * 100) : 0}%;background:${EXAM_SUBJ_COLOR[s.fam]}"></div></div>
+          </div>`).join('') : '<div class="no-subj-msg" style="font-size:.58rem">No subject breakdown</div>'}
+      </div>
+      <div class="exam-test-stats">
+        <div>Rank: <b>${t.overallRank ?? '—'}</b></div>
+        <div>Of: <b>${t.totalStudents ?? '—'}</b> candidates</div>
+        <div>Percentile: <b>${percentile != null ? percentile + '%' : '—'}</b></div>
+      </div>
+      ${t.note ? `<div class="exam-note-box" style="font-size:.62rem;padding:.4rem .5rem">📝 ${escHtml(t.note)}</div>` : ''}
+      <div class="exam-test-card-actions">
+        <button class="exam-icon-btn" onclick="openExamModal('${t.id}')">✎ Edit</button>
+        <button class="exam-icon-btn" onclick="openExamAnalysisFor('${t.id}')">🔍 Analysis</button>
+        <button class="exam-icon-btn" onclick="deleteExamTest('${t.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderExamChips() {
@@ -2696,47 +2917,6 @@ function renderExamModeToggle() {
 }
 function setExamMode(m) { examMode = m; examSelTestId = null; examWebSubj = null; renderExamPage(); }
 
-function renderExamTabs(tests) {
-  const host = document.getElementById('examTabsRow');
-  if (!host) return;
-  if (!tests.length) { host.innerHTML = ''; return; }
-  host.innerHTML = tests.map(t => {
-    const d = t.difficulty ? `<span class="exam-diff-badge ${t.difficulty}" style="margin-left:5px">${t.difficulty}</span>` : '';
-    return `<button class="exam-tab-btn ${t.id === examSelTestId ? 'active' : ''}" onclick="selectExamTab('${t.id}')">${escHtml(t.name)}${d}</button>`;
-  }).join('');
-}
-function selectExamTab(id) { examSelTestId = id; renderExamPage(); }
-
-function renderExamDetail(tests) {
-  const host = document.getElementById('examTestDetail');
-  if (!host) return;
-  if (!tests.length) { host.innerHTML = '<div class="exam-empty">No tests logged in this mode yet. Tap <strong>+ Add Test</strong> to log your first one.</div>'; return; }
-  const t = state.exams.tests[examSelTestId];
-  if (!t) { host.innerHTML = ''; return; }
-  const pct2 = t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0;
-  const rows = (t.subjects || []).filter(s => s.name).map(s => `
-    <tr><td>${escHtml(s.name)}</td><td>${s.score ?? '—'}${s.max ? ' / ' + s.max : ''}</td></tr>`).join('');
-  host.innerHTML = `
-    <div class="exam-summary-strip">
-      <div class="exam-summary-card ex-c1"><div class="exam-summary-label">Marks</div><div class="exam-summary-value">${t.obtainedMarks ?? 0}/${t.totalMarks ?? 0}</div></div>
-      <div class="exam-summary-card ex-c2"><div class="exam-summary-label">Percentage</div><div class="exam-summary-value">${pct2}%</div></div>
-      <div class="exam-summary-card ex-c3"><div class="exam-summary-label">Overall Rank</div><div class="exam-summary-value">${t.overallRank ?? '—'}</div></div>
-      <div class="exam-summary-card ex-c4"><div class="exam-summary-label">Percentile</div><div class="exam-summary-value">${t.overallPercentile != null ? t.overallPercentile + '%' : '—'}</div></div>
-    </div>
-    <div class="exam-detail-card">
-      <div class="exam-detail-head">
-        <div><div class="exam-detail-name">${escHtml(t.name)} ${t.difficulty ? `<span class="exam-diff-badge ${t.difficulty}">${t.difficulty}</span>` : ''}</div><div class="exam-detail-date">${t.date ? dateLabel(t.date) : ''}</div></div>
-        <div class="exam-tab-actions">
-          <button class="exam-icon-btn" onclick="openExamModal('${t.id}')">Edit</button>
-          <button class="exam-icon-btn" onclick="deleteExamTest('${t.id}')">Delete</button>
-        </div>
-      </div>
-      ${rows ? `<table class="exam-subj-table"><tr><th>Subject</th><th>Score</th></tr>${rows}</table>` : ''}
-      ${examAnalysisSummaryHTML(t)}
-      ${t.note ? `<div class="exam-note-box">📝 ${escHtml(t.note)}</div>` : ''}
-    </div>`;
-}
-
 function examAnalysisSummaryHTML(t) {
   if (!t.analysis) return '';
   const rows = [];
@@ -2760,15 +2940,27 @@ function openExamModal(editId = null) {
   document.getElementById('examTotalMarks').value = t ? t.totalMarks ?? '' : '';
   document.getElementById('examObtMarks').value = t ? t.obtainedMarks ?? '' : '';
   document.getElementById('examOverallRank').value = t ? t.overallRank ?? '' : '';
-  document.getElementById('examOverallPercentile').value = t ? t.overallPercentile ?? '' : '';
+  document.getElementById('examTotalStudents').value = t ? t.totalStudents ?? '' : '';
   document.getElementById('examNote').value = t ? t.note || '' : '';
   examDraftSubjects = t ? JSON.parse(JSON.stringify(t.subjects || [])) : state.subjects.map(s => ({ name: s.name, score: '', max: '' }));
   if (!examDraftSubjects.length) examDraftSubjects = [{ name: '', score: '', max: '' }];
   examDraftDifficulty = t ? t.difficulty || null : null;
   examDraftAnalysis = t ? JSON.parse(JSON.stringify(t.analysis || {})) : {};
+  examDraftReviews = t ? JSON.parse(JSON.stringify(t.subjectReviews || {})) : {};
+  examAnalysisStandalone = false;
   renderExamSubjRows();
   updateExamDiffPreview();
+  updateExamPercentilePreview();
   openModal('examTestModal');
+}
+
+function updateExamPercentilePreview() {
+  const el = document.getElementById('examPercentilePreview');
+  if (!el) return;
+  const rank = document.getElementById('examOverallRank').value;
+  const total = document.getElementById('examTotalStudents').value;
+  const p = examCalcPercentile(rank, total);
+  el.textContent = p != null ? `Calculated percentile: ${p}%` : 'Percentile is calculated automatically from rank and total candidates.';
 }
 
 function updateExamDiffPreview() {
@@ -2794,16 +2986,20 @@ function saveExamTest() {
   const name = document.getElementById('examTestName').value.trim();
   if (!name) { showToast('Enter a test name'); return; }
   const id = examEditingId || ('ex' + Date.now());
+  const rank = document.getElementById('examOverallRank').value ? Number(document.getElementById('examOverallRank').value) : null;
+  const totalStudents = document.getElementById('examTotalStudents').value ? Number(document.getElementById('examTotalStudents').value) : null;
   const test = {
     id, mode: examMode, name, ownerUid: examUid,
     date: document.getElementById('examTestDate').value || todayStr(),
     totalMarks: Number(document.getElementById('examTotalMarks').value) || 0,
     obtainedMarks: Number(document.getElementById('examObtMarks').value) || 0,
-    overallRank: document.getElementById('examOverallRank').value ? Number(document.getElementById('examOverallRank').value) : null,
-    overallPercentile: document.getElementById('examOverallPercentile').value ? Number(document.getElementById('examOverallPercentile').value) : null,
+    overallRank: rank,
+    totalStudents: totalStudents,
+    overallPercentile: examCalcPercentile(rank, totalStudents),
     note: document.getElementById('examNote').value.trim(),
     difficulty: examDraftDifficulty,
     analysis: examDraftAnalysis,
+    subjectReviews: examDraftReviews,
     subjects: examDraftSubjects.filter(s => s.name && s.name.trim()).map(s => ({
       name: s.name.trim(), score: Number(s.score) || 0, max: Number(s.max) || 0
     }))
@@ -2817,12 +3013,40 @@ function deleteExamTest(id) {
   doWrite(() => fbDelete('/exams/tests/' + id)).then(ok => { if (ok) { examSelTestId = null; showToast('Deleted'); } });
 }
 
-/* ── Paper Analysis survey (opened from the Add/Edit Test modal) ── */
+/* ── Paper Analysis survey (opened from the Add/Edit Test modal, or directly from a test card) ── */
 function openExamAnalysisModal() {
   document.querySelectorAll('.exam-diff-pick-btn').forEach(b => b.classList.remove('selected'));
   if (examDraftDifficulty) document.getElementById('examDiffBtn_' + examDraftDifficulty)?.classList.add('selected');
   renderExamAnalysisRows();
   openModal('examAnalysisModal');
+}
+
+/* Open the Analysis survey straight from a test card, without going through the full edit form —
+   "analysis section can be accessed anytime at will" */
+function openExamAnalysisFor(id) {
+  const t = state.exams.tests[id];
+  if (!t) return;
+  examEditingId = id;
+  examDraftSubjects = (t.subjects && t.subjects.length) ? JSON.parse(JSON.stringify(t.subjects)) : state.subjects.map(s => ({ name: s.name, score: '', max: '' }));
+  examDraftDifficulty = t.difficulty || null;
+  examDraftAnalysis = JSON.parse(JSON.stringify(t.analysis || {}));
+  examDraftReviews = JSON.parse(JSON.stringify(t.subjectReviews || {}));
+  examAnalysisStandalone = true;
+  openExamAnalysisModal();
+}
+
+/* "Done" on the Analysis modal — if opened standalone (not via the full edit form), save the
+   analysis/difficulty/reviews straight back onto the existing test instead of discarding them */
+function closeExamAnalysisModal() {
+  if (examAnalysisStandalone && examEditingId) {
+    const t = state.exams.tests[examEditingId];
+    if (t) {
+      const updated = { ...t, difficulty: examDraftDifficulty, analysis: examDraftAnalysis, subjectReviews: examDraftReviews };
+      doWrite(() => fbPut('/exams/tests/' + examEditingId, updated)).then(ok => { if (ok) showToast('Analysis saved'); });
+    }
+    examAnalysisStandalone = false;
+  }
+  closeModal('examAnalysisModal');
 }
 function setExamDraftDifficulty(d) {
   examDraftDifficulty = d;
@@ -2841,16 +3065,23 @@ function renderExamAnalysisRows() {
     const units = fam ? BROAD_UNITS[fam] : null;
     if (!units) return;
     if (!examDraftAnalysis[s.name]) examDraftAnalysis[s.name] = {};
+    const refBase = fam === 'physics' ? 'physics' : fam === 'chemistry' ? 'chemistry' : fam === 'maths' ? 'maths' : 'biology';
     html += `<div class="exam-analysis-subj"><div class="exam-analysis-subj-name">${escHtml(s.name)}</div>
-      <div class="exam-analysis-hdr"><span>Topic</span><span>Attempted %</span><span>Scored %</span></div>
+      <div class="exam-analysis-hdr with-ref"><span>Topic</span><span></span><span>Attempted %</span><span>Scored %</span></div>
       ${units.map(u => {
         const v = examDraftAnalysis[s.name][u] || { attempted: '', scored: '' };
-        return `<div class="exam-analysis-unit-row">
+        const refUrl = 'https://www.google.com/search?q=' + encodeURIComponent(u + ' ' + refBase + ' NCERT notes JEE NEET');
+        return `<div class="exam-analysis-unit-row with-ref">
           <span class="exam-analysis-unit-name">${escHtml(u)}</span>
+          <a class="exam-topic-ref" href="${refUrl}" target="_blank" rel="noopener" title="Look up ${escHtml(u)}">🔗</a>
           <input type="number" min="0" max="100" value="${v.attempted}" oninput="setExamAnalysisVal('${escHtml(s.name)}','${escHtml(u)}','attempted',this.value)">
           <input type="number" min="0" max="100" value="${v.scored}" oninput="setExamAnalysisVal('${escHtml(s.name)}','${escHtml(u)}','scored',this.value)">
         </div>`;
       }).join('')}
+      <div class="exam-review-box">
+        <div class="exam-review-label">Your ${escHtml(s.name)} review</div>
+        <textarea placeholder="What felt easy, what to revise, how you felt going in..." oninput="examDraftReviews['${escHtml(s.name)}']=this.value">${escHtml(examDraftReviews[s.name] || '')}</textarea>
+      </div>
     </div>`;
   });
   host.innerHTML = html || '<div class="exam-empty">Subject names don\'t match a known Physics/Chemistry/Maths/Biology family, so no topic breakdown is available.</div>';
@@ -2861,37 +3092,109 @@ function setExamAnalysisVal(subj, unit, field, val) {
   examDraftAnalysis[subj][unit][field] = val === '' ? '' : Number(val);
 }
 
-let examProgressChart = null, examRadarChart = null, examWebChart = null;
+function hexAlpha(hex, alpha) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* JEE Main and JEE Advanced are always plotted as separate coloured series — never merged into one line */
+function examBuildJmJaDatasets(tests, valueFn, colorOther) {
+  if (examMode !== 'jee') {
+    return [{
+      label: 'Score', data: tests.map(valueFn), borderColor: colorOther, backgroundColor: hexAlpha(colorOther, .18),
+      borderWidth: 2, pointRadius: 3, pointBackgroundColor: colorOther, tension: .3, fill: true, spanGaps: true
+    }];
+  }
+  const colors = { JM: '#5b8dee', JA: '#e84a8a', Other: colorOther };
+  const names = { JM: 'JEE Main', JA: 'JEE Advanced', Other: 'Other JEE' };
+  const groups = { JM: [], JA: [], Other: [] };
+  tests.forEach((t, i) => { groups[examJmJa(t) || 'Other'].push(i); });
+  return Object.keys(groups).filter(g => groups[g].length).map(g => ({
+    label: names[g],
+    data: tests.map((t, i) => groups[g].includes(i) ? valueFn(t) : null),
+    borderColor: colors[g], backgroundColor: hexAlpha(colors[g], .16),
+    borderWidth: 2, pointRadius: 3, pointBackgroundColor: colors[g], tension: .3, fill: false, spanGaps: true
+  }));
+}
+
+/* Increase/decrease indicator comparing the latest test to the one before it */
+function examTrendBadgeHTML(tests, valueFn, higherIsBetter) {
+  if (tests.length < 2) return '';
+  const last = valueFn(tests[tests.length - 1]), prev = valueFn(tests[tests.length - 2]);
+  if (last == null || prev == null) return '';
+  const diff = Math.round((last - prev) * 10) / 10;
+  if (diff === 0) return `<span class="exam-trend-badge flat">– no change</span>`;
+  const improved = higherIsBetter ? diff > 0 : diff < 0;
+  return `<span class="exam-trend-badge ${improved ? 'up' : 'down'}">${diff > 0 ? '▲' : '▼'} ${Math.abs(diff)} vs last</span>`;
+}
+
+let examProgressChart = null, examRankChart = null, examRadarChart = null, examWebChart = null, examSubjBarChart = null;
 function renderExamCharts(tests) {
   const progCanvas = document.getElementById('examProgressChart');
   const progMsg = document.getElementById('examProgNoData');
-  if (examProgressChart) { examProgressChart.destroy(); examProgressChart = null; }
-  if (examRadarChart) { examRadarChart.destroy(); examRadarChart = null; }
-  if (examWebChart) { examWebChart.destroy(); examWebChart = null; }
+  [examProgressChart, examRankChart, examRadarChart, examWebChart, examSubjBarChart].forEach(c => c && c.destroy());
+  examProgressChart = examRankChart = examRadarChart = examWebChart = examSubjBarChart = null;
+  document.getElementById('examMarksTrendBadge').innerHTML = '';
+  document.getElementById('examRankTrendBadge').innerHTML = '';
   if (!tests.length) { progCanvas.style.display = 'none'; progMsg.style.display = 'block'; document.getElementById('examWebSubjPicker').innerHTML = ''; return; }
   progCanvas.style.display = 'block'; progMsg.style.display = 'none';
 
   const tc = '#7fae8f';
   const gc = 'rgba(34,197,94,0.1)';
+  const pctFn = t => t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0;
+  const rankFn = t => t.overallRank != null ? t.overallRank : null;
 
-  // Progress over time
+  // Progress over time (marks %) — JM/JA always split into separate coloured series
+  document.getElementById('examMarksTrendBadge').innerHTML = examTrendBadgeHTML(tests, pctFn, true);
   examProgressChart = new Chart(progCanvas, {
     type: 'line',
-    data: {
-      labels: tests.map(t => t.name),
-      datasets: [{
-        label: '% scored',
-        data: tests.map(t => t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0),
-        borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.18)',
-        borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#22c55e', tension: .3, fill: true
-      }]
-    },
+    data: { labels: tests.map(t => t.name), datasets: examBuildJmJaDatasets(tests, pctFn, '#22c55e') },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: { legend: { display: examMode === 'jee', position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
       scales: {
         x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } },
         y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, callback: v => v + '%' }, beginAtZero: true, max: 100 }
+      }
+    }
+  });
+
+  // Rank over time — lower is better, so the axis is reversed; JM/JA split the same way
+  document.getElementById('examRankTrendBadge').innerHTML = examTrendBadgeHTML(tests, rankFn, false);
+  examRankChart = new Chart(document.getElementById('examRankChart'), {
+    type: 'line',
+    data: { labels: tests.map(t => t.name), datasets: examBuildJmJaDatasets(tests, rankFn, '#f5c842') },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: examMode === 'jee', position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } },
+        y: { reverse: true, grid: { color: gc }, ticks: { color: tc, font: { size: 9 } } }
+      }
+    }
+  });
+
+  // Subject-wise performance per test (grouped bars, % of each subject's max)
+  const famSet = new Set();
+  tests.forEach(t => (t.subjects || []).forEach(s => { const f = examSubjFamily(s.name); if (f) famSet.add(f); }));
+  const fams = [...famSet];
+  examSubjBarChart = new Chart(document.getElementById('examSubjBarChart'), {
+    type: 'bar',
+    data: {
+      labels: tests.map(t => t.name),
+      datasets: fams.map(f => ({
+        label: f.charAt(0).toUpperCase() + f.slice(1),
+        data: tests.map(t => { const s = (t.subjects || []).find(s => examSubjFamily(s.name) === f); return s ? (s.max ? Math.round((s.score / s.max) * 1000) / 10 : s.score) : null; }),
+        backgroundColor: EXAM_SUBJ_COLOR[f], borderRadius: 3, borderSkipped: false, barPercentage: .8, categoryPercentage: .7
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: !!fams.length, position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } },
+        y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 } }, beginAtZero: true }
       }
     }
   });
