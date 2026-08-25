@@ -1,49 +1,135 @@
-# 🚀 QTrack
+# QTrack
 
-**QTrack** is a simple and modern task-tracking web application designed to help you organize, manage, and monitor your tasks efficiently.
+QTrack is a collaborative study and productivity tracking application designed to help students monitor question practice, syllabus completion, study sessions, and examination performance from a single interface.
 
-🔗 **Live Demo:** https://qtrack-alpha.vercel.app/
+The application combines daily progress tracking, analytics, syllabus management, study timing, shared sessions, and exam analysis.
 
----
-
-## ✨ Features
-
-* 📝 Create and manage tasks
-* ✅ Track task completion
-* 📊 Monitor your progress
-* 🎯 Keep your workflow organized
-* 📱 Responsive and user-friendly interface
-* ⚡ Lightweight and fast
-* 🎨 Clean and modern UI
+**Live Demo:** https://qtrack-alpha.vercel.app/
 
 ---
 
-## 🖼️ Preview
+## Features
 
-> Add a screenshot of your application here.
+### Question Tracker
 
-```text
-📋 QTrack
-────────────────────────────
-☐ Complete project
-☑ Review tasks
-☐ Plan next feature
-────────────────────────────
-       Track. Organize. Done.
-```
+Track daily question practice for multiple users and subjects.
+
+* Add and manage multiple users
+* Create and manage subjects
+* Log questions solved for each subject
+* Add entries for previous dates
+* Finalise a day's log to prevent further changes
+* View individual and combined progress
+
+### Progress Analytics
+
+Analyse question-solving activity over time.
+
+* Daily, weekly, and monthly charts
+* Individual progress comparison
+* Trend analysis
+* Historical activity tracking
+* Navigation through previous weeks and months
+
+### Calendar and History
+
+Review previous study activity and question logs.
+
+* Calendar view of recorded activity
+* Historical question logs
+* Study consistency tracking
+* Activity-based calendar display
+
+### Shared Study Sessions
+
+Collaborate with other users through shared sessions.
+
+* Create a study session
+* Generate and share a Session ID
+* Join existing sessions
+* Maintain session history
+* Automatically restore the previously used session
+
+### Leaderboard
+
+Compare progress between users within a shared session.
+
+* Compare question counts
+* View individual performance
+* Track overall contribution
+
+### Syllabus Tracker
+
+Track syllabus progress at the chapter level.
+
+* Organise chapters by subject
+* Group chapters by priority or unit
+* Track multiple completion stages
+* Mark chapters as:
+
+  * Theory completed
+  * PYQs completed
+  * Mastered
+  * Backlog
+* Search and filter chapters
+* View overall and subject-wise completion statistics
+
+### Study Tracker
+
+Track focused study sessions using built-in timing tools.
+
+* Stopwatch mode
+* Countdown timer
+* Visual timer interface
+* Study session tracking
+
+### Exam Analytics
+
+Record and analyse performance across multiple examinations.
+
+* Add and manage tests
+* Record test name and date
+* Record total and obtained marks
+* Record rank and total number of candidates
+* Automatic percentile calculation
+* Subject-wise score breakdown
+* Personal notes for each test
+* Paper difficulty analysis
+* Topic-wise performance analysis
+* Support for JEE Main and JEE Advanced test classification
+* Optional password protection for individual exam data
+
+### Customisation
+
+* Dark mode
+* Light mode
+* Custom user colours
+* Responsive desktop and mobile layouts
+
+### Data and Sessions
+
+QTrack supports persistent study sessions and shared progress tracking.
+
+* Session information is remembered
+* Data persists across sessions
+* Shared session functionality
+* Offline-friendly behaviour
 
 ---
 
-## 🛠️ Built With
+## Technology
 
-* **HTML5**
-* **CSS3**
-* **JavaScript**
-* **Vercel** — Deployment
+QTrack is currently built using:
+
+* HTML5
+* CSS3
+* Vanilla JavaScript
+
+The application is currently structured as a single-file web application, with the primary interface, styling, and application logic contained in `index.html`.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Clone the repository
 
@@ -51,71 +137,91 @@
 git clone https://github.com/jubbu21anand-cmd/Qtrack.git
 ```
 
-### Open the project
+### Open the project directory
 
 ```bash
 cd Qtrack
 ```
 
-Then open `index.html` in your browser.
+Open `index.html` in a modern web browser.
 
-For the best development experience, you can use **VS Code + Live Server**.
+For development, VS Code with a local development server such as Live Server can be used.
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 Qtrack/
 │
-├── index.html
-├── qtrack-0.6.1.patch
-└── README.md
+├── index.html      # Main application
+└── README.md       # Project documentation
 ```
 
 ---
 
-## 🌐 Live Demo
+## Live Demo
 
-Try QTrack online:
+The application is deployed at:
 
-👉 https://qtrack-alpha.vercel.app/
-
----
-
-## 🔮 Future Improvements
-
-* [ ] User authentication
-* [ ] Database integration
-* [ ] Cloud task synchronization
-* [ ] Task categories and tags
-* [ ] Due dates and reminders
-* [ ] Search and filtering
-* [ ] Dark mode
-* [ ] Productivity analytics
-* [ ] Improved mobile experience
+https://qtrack-alpha.vercel.app/
 
 ---
 
-## 🤝 Contributing
+## Development
 
-Contributions are welcome!
+QTrack is under active development. Recent development has expanded the project from a question-tracking application into a broader study management platform.
 
-1. Fork this repository.
-2. Create a new branch:
+Recent additions include:
+
+* Study Tracker
+* Syllabus Tracker
+* Exam Analytics
+* Historical session tracking
+* Backdated logging
+* Trend analysis
+* Session history
+* Improved chart visualisation
+* Mobile layout improvements
+* Light and dark themes
+* Shared study sessions
+
+---
+
+## Planned Improvements
+
+Potential future improvements include:
+
+* [ ] User authentication and account management
+* [ ] More detailed analytics
+* [ ] Data export and backup options
+* [ ] Notifications and reminders
+* [ ] Improved cloud synchronisation
+* [ ] Additional exam analysis tools
+* [ ] Further mobile interface improvements
+* [ ] Modular project structure
+
+---
+
+## Contributing
+
+Contributions, feature suggestions, and bug reports are welcome.
+
+1. Fork the repository.
+2. Create a new branch.
 
 ```bash
 git checkout -b feature/my-feature
 ```
 
-3. Make your changes.
-4. Commit your changes:
+3. Make the required changes.
+4. Commit the changes.
 
 ```bash
 git commit -m "Add my feature"
 ```
 
-5. Push your branch:
+5. Push the branch.
 
 ```bash
 git push origin feature/my-feature
@@ -125,15 +231,13 @@ git push origin feature/my-feature
 
 ---
 
-## ⭐ Support
+## Bug Reports
 
-If you like this project, consider giving it a **⭐ star** on GitHub.
-
-It helps motivate further development!
+Bugs and issues can be reported through the application's built-in feedback options or through the GitHub repository.
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 **Arnav Anand**
 
@@ -141,8 +245,8 @@ GitHub: https://github.com/jubbu21anand-cmd
 
 ---
 
-## 📄 License
+## License
 
 This project currently does not include a license.
 
-If you plan to distribute QTrack as an open-source project, consider adding an **MIT License**.
+A suitable open-source license may be added in a future release.
