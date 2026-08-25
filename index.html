@@ -571,6 +571,9 @@ header {
 .about-h1 em { color: #5b8dee; font-style: normal; }
 .about-version { font-family: 'DM Mono', monospace; font-size: .62rem; color: var(--muted); margin-bottom: 1.1rem; }
 .about-h2 { font-size: .6rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: .75rem; padding-bottom: .35rem; border-bottom: 1px solid var(--border); margin-top: 1.5rem; }
+.about-subtabs { display: flex; gap: .4rem; margin-bottom: 1rem; }
+.about-subtab-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); border-radius: 18px; padding: 6px 14px; font-family: 'Syne', sans-serif; font-size: .68rem; font-weight: 700; cursor: pointer; }
+.about-subtab-btn.active { background: var(--text); color: var(--bg); border-color: transparent; }
 .about-p { font-size: .82rem; line-height: 1.8; color: var(--text); margin-bottom: .65rem; }
 .about-note { font-size: .72rem; line-height: 1.65; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .75rem .9rem; margin-top: .85rem; }
 .about-note-yellow { font-size: .72rem; line-height: 1.65; color: #a07800; background: rgba(245,200,66,.14); border: 1px solid rgba(245,200,66,.4); border-radius: 8px; padding: .75rem .9rem; margin-top: .6rem; }
@@ -882,7 +885,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div class="exam-tests-grid" id="examTestsGrid"></div>
 
     <div class="exam-analysis-toggle-row">
-      <button class="exam-analysis-toggle-btn" id="examAnalysisToggleBtn" onclick="toggleExamAnalysisView()">📊 Analysis</button>
+      <button class="exam-analysis-toggle-btn" id="examAnalysisToggleBtn" onclick="toggleExamAnalysisView()">Analysis</button>
     </div>
 
     <div id="examAnalyticsBlock" style="display:none">
@@ -937,6 +940,12 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div class="about-h1">Q<em>T</em>rack</div>
     <div class="about-version">Version 0.9.1 · Beta · qttrack.vercel.app</div>
 
+    <div class="about-subtabs">
+      <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
+      <button class="about-subtab-btn" id="aboutSubtab_syllabus" onclick="setAboutSubtab('syllabus')">Syllabus Tracker</button>
+    </div>
+
+    <div id="aboutGeneralTab">
     <div class="about-h2">How to Use</div>
     <div class="how-step"><div class="how-num">1</div><div class="how-text"><strong>Add people</strong> — tap "+ Person" in the header. Each person gets their own bar on the chart and their own card below.</div></div>
     <div class="how-step"><div class="how-num">2</div><div class="how-text"><strong>Add subjects</strong> — on any person's card, tap the <strong>Subjects</strong> button. Add whatever subjects you study, pick a colour for each, and tap Save. Subjects are shared across all people in your session.</div></div>
@@ -945,7 +954,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div class="how-step"><div class="how-num">5</div><div class="how-text"><strong>Track progress</strong> — use the chart views (Today / By Day / Week / Month / All-Time), the calendar, and the Leaderboard tab. Week view has ‹ › arrows to browse previous weeks; Month view has a dropdown to jump straight to any month.</div></div>
     <div class="how-step"><div class="how-num">6</div><div class="how-text"><strong>Go anonymous</strong> — tap the 🕶 icon on your card to hide your numbers from every other device in the session. Only your own device keeps showing your real progress; everyone else just sees a locked "Anonymous" card. Tap 🕶 again on the same device to turn it back off.</div></div>
     <div class="how-step"><div class="how-num">7</div><div class="how-text"><strong>Study Tracker</strong> — open it from the ☰ menu. Tap a person's name to give them a ring timer. Choose <strong>Stopwatch</strong> to count up freely, <strong>Timer</strong> to count down a fixed number of minutes, or <strong>Pomodoro</strong> for the classic work/break cycle — set your work length and QTrack automatically gives a break (with a long break every 4th round) and flashes it on screen. Several people can run their own timers on the same device at once. Focus time saves automatically to that person's Focus Calendar and weekly chart.</div></div>
-    <div class="how-step"><div class="how-num">8</div><div class="how-text"><strong>Exam Analytics</strong> — open it from the ☰ menu. Pick a mode at the top (JEE / NEET / Boards / Other) so competitive and board exam scores never get mixed into the same average. Tap <strong>+ Add Test</strong>, enter total marks, marks obtained, errors, negative marking per wrong answer, a per-subject breakdown (score, rank, percentile), and an optional note. Each saved test becomes its own tab with a summary at the top, and the three charts below track your progress over time, your subject-wise strengths, and your overall subject breakdown for the selected mode.</div></div>
+    <div class="how-step"><div class="how-num">8</div><div class="how-text"><strong>Exam Analytics</strong> — open it from the ☰ menu. Pick a mode at the top (JEE / NEET / Boards / Other) so competitive and board exam scores never get mixed into the same average. Tap <strong>+ Add Test</strong>, enter total marks, marks obtained, rank, total candidates appeared, and a per-subject breakdown — percentile is calculated for you. Every test becomes its own colour-graded card (green = strong, yellow = average, red = weak) with JM/JA badges for JEE Main/Advanced mocks, editable and openable for analysis any time. Tap Analysis to reveal the progress, rank, radar and subject-wise charts.</div></div>
 
     <div class="about-h2">About QTrack</div>
     <p class="about-p">QTrack is a simple study tracking platform designed to help users organise their work, monitor progress, and keep everything in one place. It supports all subjects and is made to work across devices so your data stays connected wherever you use it.</p>
@@ -985,8 +994,23 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     </div>
     <div class="faq-item" onclick="toggleFaq(this)">
       <div class="faq-q">Is AI coming to QTrack? <span class="faq-chevron">▼</span></div>
-      <div class="faq-a">AI is indeed planned for QTrack. We are working on it, and it should make its way into a future update</div>
+      <div class="faq-a">It's on the roadmap. The plan is an AI layer that can look at your Question Tracker, Study Tracker, Syllabus Tracker and Exam Analytics together and actually say something useful — where your weak chapters and your weak exam topics overlap, whether your practice volume matches what your syllabus progress needs, and what to prioritise next. Nothing is live yet and no data is being sent anywhere for this — it's a teaser, not a feature, and it'll be opt-in whenever it does ship.</div>
     </div>
+    </div><!-- /aboutGeneralTab -->
+
+    <div id="aboutSyllabusTab" style="display:none">
+      <div class="about-h2">Syllabus Tracker, explained simply</div>
+      <p class="about-p">The Syllabus Tracker doesn't just count how many chapters you've ticked off — it weighs them, the same way an exam paper doesn't give every chapter the same number of marks.</p>
+
+      <div class="how-step"><div class="how-num">①</div><div class="how-text"><strong>Every chapter has a priority.</strong> Chapters are tagged A, B, C or D based on how often they actually show up in past papers and how many marks they tend to carry. An "A" chapter is one that shows up almost every year and carries serious weight — think Current Electricity or Coordination Compounds for JEE. A "D" chapter is one that rarely shows up at all.</div></div>
+      <div class="how-step"><div class="how-num">②</div><div class="how-text"><strong>Priority becomes a weight.</strong> Behind the scenes: A = 3.0×, B = 2.0×, C = 1.5×, D = 1.0× (Adv-only topics sit at 2.5×). So one A-priority chapter is worth as much as three D-priority chapters put together.</div></div>
+      <div class="how-step"><div class="how-num">③</div><div class="how-text"><strong>Your status on a chapter decides how much of that weight you've earned.</strong> Pending = 0% earned, Theory done = 50% earned, PYQs done or Mastered = 100% earned. So half-finishing an A chapter earns you more than fully mastering a D chapter.</div></div>
+      <div class="how-step"><div class="how-num">④</div><div class="how-text"><strong>The percentage you see is:</strong> add up the weight you've actually earned across every chapter, divide by the total weight possible across every chapter, multiply by 100. That's it — no hidden penalties, no guesswork.</div></div>
+      <div class="how-step"><div class="how-num">⑤</div><div class="how-text"><strong>Why it's built this way.</strong> A syllabus tracker that treats every chapter equally can lie to you — you could "finish" 80% of your chapters by clearing the easy, low-weight ones and still be badly unprepared. Weighting by priority keeps the percentage honest about how exam-ready you actually are, not just how much you've clicked through.</div></div>
+      <div class="how-step"><div class="how-num">⑥</div><div class="how-text"><strong>Backlog and Practice</strong> are separate from the percentage on purpose. Marking a chapter as Backlog just flags it red for you to revisit — it doesn't change your score. The Practice counter simply tallies how many times you've sat down and done questions from that chapter, as a personal log, again without affecting the percentage.</div></div>
+
+      <div class="about-note-yellow">In one line: <b>Progress % = (weight earned) ÷ (weight possible)</b>, where "weight" comes from how important a chapter actually is to your exam.</div>
+    </div><!-- /aboutSyllabusTab -->
   </div>
 </div>
 
@@ -1004,7 +1028,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
         <li>Exam Analytics: new Rank trend chart (lower is better, shown inverted) and an increase/decrease indicator on both the Marks and Rank charts comparing against your last test</li>
         <li>Exam Analytics: new subject-wise bar chart comparing Physics/Chemistry/Maths across every test</li>
         <li>Exam Analytics: Paper Analysis now includes a per-subject written review box and a "look it up" reference link on every topic row, including Physics topics</li>
-        <li>New: explicit "📊 Analysis" toggle on the Exam Analytics page to show/hide all analytics graphs on demand</li>
+        <li>New: explicit "Analysis" toggle on the Exam Analytics page to show/hide all analytics graphs on demand</li>
         <li>Syllabus Tracker: chapters are now compact vertical tiles in a wrapping grid instead of full-width horizontal rows</li>
         <li>Syllabus Tracker: new Backlog and Question Practice buttons on every chapter</li>
         <li>Syllabus Tracker: new "Progress" view — every subject side by side, two per row, the last one spanning full width — plus a plain-language explanation of the progress formula pinned to the bottom of the page</li>
@@ -1243,7 +1267,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
       <button class="exam-diff-pick-btn mod" id="examDiffBtn_mod" onclick="setExamDraftDifficulty('mod')">Moderate</button>
       <button class="exam-diff-pick-btn tough" id="examDiffBtn_tough" onclick="setExamDraftDifficulty('tough')">Tough</button>
     </div>
-    <div class="field-label" style="margin-top:.6rem">Rough weightage by topic — how much of the paper did each broad topic take up, and how well did you do there? (0–100, estimate). Tap 🔗 next to a topic to look it up.</div>
+    <div class="field-label" style="margin-top:.6rem">Rough weightage by topic — how much of the paper did each broad topic take up, and how well did you do there? (0–100, estimate). Tap the link next to a topic to look it up.</div>
     <div id="examAnalysisRows"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal('examAnalysisModal')">Back</button>
@@ -1362,29 +1386,19 @@ function mkCh(name, tier, unit, cls) { return { name, tier, unit, cls }; }
 const SYLLABUS_DATA = {
   jee: {
     physics: { name: 'Physics', chapters: [
-      mkCh('Semiconductor Electronics','A','Modern Physics','12th'),
-      mkCh('Nuclear Physics','A','Modern Physics','12th'),
-      mkCh('Atomic Physics','A','Modern Phyiscs','12th'),
-      mkCh('Radioactivity','A','Modern Phyiscs','12th'),
-      mkCh('Dual Nature of matter','A','Modern Phyiscs','12th'),
+      mkCh('Modern Physics & Semiconductor Electronics','A','Modern Physics','12th'),
       mkCh('Current Electricity','A','Electrostatics and current dynamics','12th'),
-      mkCh('Electrostatics I','A','Electrostatics and current dynamics','12th'),
-      mkCh('Electrostatics II','A','Electrostatics and current dynamics','12th'),
-      mkCh('Capacitcance','A','Electrostatics and current dynamics','12th'), 
+      mkCh('Electrostatics & Capacitance','A','Electrostatics and current dynamics','12th'),
       mkCh('Magnetic Effects of Current & Magnetism','A','Magnetism','12th'),
-      mkCh('Magnetism and its propeties','C','Magnetism','12th'),
-      mkCh('Electromagnetic Induction','B','EM Waves and Alternating Current','12th'),
-      mkCh('AC','B','EM Waves and Alternating Current','12th'),
-      mkCh('Ray Optics','A','Optics','12th'),
-      mkCh('Wave Optics','A','Optics','12th'),
+      mkCh('Electromagnetic Induction & AC','A','EM Waves and Alternating Current','12th'),
+      mkCh('Ray + Wave Optics','A','Optics','12th'),
       mkCh('Rotational Motion','A','Mechanics','11th'),
       mkCh('Work, Energy & Power','A','Mechanics','11th'),
       mkCh("Newton's Laws & Friction",'B','Mechanics','11th'),
       mkCh('Kinematics','B','Mechanics','11th'),
       mkCh('Simple Harmonic Motion','B','Oscillations & Waves','11th'),
       mkCh('Waves & Sound','B','Oscillations & Waves','11th'),
-      mkCh('Thermodynamics','B','Thermal Physics','11th'),
-      mkCh('Kinetic Theory OF gases','B','Thermal Physics','11th'),
+      mkCh('Thermodynamics & Kinetic Theory','B','Thermal Physics','11th'),
       mkCh('Gravitation','B','Mechanics','11th'),
       mkCh('Fluids','B','Mechanics','11th'),
       mkCh('Centre of Mass, Momentum & Collisions','C','Mechanics','11th'),
@@ -1398,14 +1412,12 @@ const SYLLABUS_DATA = {
     chemistry: { name: 'Chemistry', chapters: [
       mkCh('Chemical Bonding & Molecular Structure','A','Inorganic Chemistry','11th'),
       mkCh('Coordination Compounds','A','Inorganic Chemistry','12th'),
-      mkCh('Isomerism','A','Organic Chemistry','11th'),
-      mkCh('General Organic Chemistry (GOC)','A','Organic Chemistry','11th'),
+      mkCh('General Organic Chemistry (GOC) + Isomerism','A','Organic Chemistry','11th'),
       mkCh('Aldehydes, Ketones & Carboxylic Acids','A','Organic Chemistry','12th'),
       mkCh('Amines','A','Organic Chemistry','12th'),
       mkCh('Electrochemistry','A','Physical Chemistry','12th'),
       mkCh('Chemical Kinetics','A','Physical Chemistry','12th'),
-      mkCh('Thermochemistry','A','Physical Chemistry','11th'),
-      mkCh('Thermodynamics','A','Physical Chemistry','11th'),
+      mkCh('Thermodynamics & Thermochemistry','A','Physical Chemistry','11th'),
       mkCh('Mole Concept & Stoichiometry','B','Physical Chemistry','11th'),
       mkCh('Atomic Structure','B','Physical Chemistry','11th'),
       mkCh('Chemical & Ionic Equilibrium','B','Physical Chemistry','11th'),
@@ -1427,35 +1439,29 @@ const SYLLABUS_DATA = {
       mkCh('Environmental Chemistry','D','Physical Chemistry','11th')
     ]},
     maths: { name: 'Mathematics', chapters: [
-      mkCh('Limits','A','Calculus','12th'),
-      mkCh('Continuity & Differentiability','A','Calculus','12th'),
+      mkCh('Limits, Continuity & Differentiability','A','Calculus','12th'),
       mkCh('Application of Derivatives','A','Calculus','12th'),
       mkCh('Indefinite Integration','A','Calculus','12th'),
       mkCh('Definite Integration & Area','A','Calculus','12th'),
-      mkCh('Matrices','A','Algebra','12th'),
-      mkCh('Determinants','A','Algebra','12th'),
-      mkCh('Straight Line','A','Coordinate Geometry','11th'),
-      mkCh('Circle','A','Coordinate Geometry: Conic section','11th'),
-      mkCh('Parabola','A','Coordinate Geometry: Conic section','11th'),
-      mkCh('Ellipse','A','Coordinate Geometry: Conic section','11th'),
-      mkCh('Hyperbola','A','Coordinate Geometry: Conic section','11th'),
+      mkCh('Matrices & Determinants','A','Algebra','12th'),
+      mkCh('Coordinate Geometry: Straight Line & Circle','A','Coordinate Geometry','11th'),
+      mkCh('Conic Sections','A','Coordinate Geometry','11th'),
       mkCh('Probability','A','Algebra','12th'),
-      mkCh('Complex Numbers','B','Algebra','11th'),
-      mkCh('Quadratic Equations','B','Algebra','11th'),
+      mkCh('Complex Numbers & Quadratic Equations','B','Algebra','11th'),
       mkCh('Sequence & Series','B','Algebra','11th'),
       mkCh('Differential Equations','B','Calculus','12th'),
       mkCh('Vector Algebra','B','Vector & 3D Geometry','12th'),
       mkCh('3D Geometry','B','Vector & 3D Geometry','12th'),
-      mkCh('Inverse Trigonometry','B','Trigonometry','11th'),
-      mkCh('Trigonometry-II(Trigonometric Identities)','B','Trigonometry','11th'),
-      mkCh('Trigonometry-I(Trigonometric functions)','B','Trigonometry','11th'),
-      mkCh('Height and Distances','D','Trigonometry','11th'),
+      mkCh('Trigonometry & Inverse Trigonometry','B','Trigonometry','11th'),
       mkCh('Binomial Theorem','B','Algebra','11th'),
       mkCh('Functions','C','Sets, Relations & Functions','11th'),
       mkCh('Sets & Relations','C','Sets, Relations & Functions','11th'),
       mkCh('Permutations & Combinations','C','Algebra','11th'),
-      mkCh('Basic Algebra & Inequalities','D','Algebra','11th'),
-      mkCh('Basic Algebra(Log and modulus operations) & Inequalities','D','Algebra','11th')
+      mkCh('Mathematical Reasoning','C','Sets, Relations & Functions','12th'),
+      mkCh('Statistics','C','Algebra','11th'),
+      mkCh('Linear Programming','C','Algebra','12th'),
+      mkCh('Mathematical Induction','D','Algebra','11th'),
+      mkCh('Basic Algebra & Inequalities','D','Algebra','11th')
     ]}
   },
   neet: {
@@ -1482,16 +1488,13 @@ const SYLLABUS_DATA = {
     chemistry: { name: 'Chemistry', chapters: [
       mkCh('Chemical Bonding','A','Inorganic Chemistry','11th'),
       mkCh('General Organic Chemistry + Isomerism','A','Organic Chemistry','11th'),
-       mkCh('General Organic Chemistry + Isomerism','A','Organic Chemistry','11th'),
       mkCh('Coordination Compounds','A','Inorganic Chemistry','12th'),
       mkCh('Thermodynamics','A','Physical Chemistry','11th'),
-      mkCh('Thermochemistry','A','Physical Chemistry','11th'),
       mkCh('Chemical Equilibrium','A','Physical Chemistry','11th'),
       mkCh('Ionic Equilibrium','A','Physical Chemistry','11th'),
       mkCh('Electrochemistry','A','Physical Chemistry','12th'),
       mkCh('Chemical Kinetics','A','Physical Chemistry','12th'),
-      mkCh('Redox and Equivalence concept','B','Physical Chemistry','11th'),
-      mkCh('Mole Concept and stoichiometry','B','Physical Chemistry','11th'),
+      mkCh('Mole Concept & Redox','B','Physical Chemistry','11th'),
       mkCh('Atomic Structure','B','Physical Chemistry','11th'),
       mkCh('Periodic Classification','B','Inorganic Chemistry','11th'),
       mkCh('p-Block','B','Inorganic Chemistry','Both'),
@@ -2617,6 +2620,12 @@ function showPage(pageId, navId) {
 }
 
 function toggleFaq(el) { el.classList.toggle('open'); }
+function setAboutSubtab(tab) {
+  document.getElementById('aboutGeneralTab').style.display = tab === 'general' ? 'block' : 'none';
+  document.getElementById('aboutSyllabusTab').style.display = tab === 'syllabus' ? 'block' : 'none';
+  document.getElementById('aboutSubtab_general').classList.toggle('active', tab === 'general');
+  document.getElementById('aboutSubtab_syllabus').classList.toggle('active', tab === 'syllabus');
+}
 
 async function submitFeedback() {
   if (!window._starRating) { showToast('Please select a rating'); return; }
@@ -2869,9 +2878,9 @@ function renderExamTestsGrid(tests) {
       </div>
       ${t.note ? `<div class="exam-note-box" style="font-size:.62rem;padding:.4rem .5rem">📝 ${escHtml(t.note)}</div>` : ''}
       <div class="exam-test-card-actions">
-        <button class="exam-icon-btn" onclick="openExamModal('${t.id}')">✎ Edit</button>
-        <button class="exam-icon-btn" onclick="openExamAnalysisFor('${t.id}')">🔍 Analysis</button>
-        <button class="exam-icon-btn" onclick="deleteExamTest('${t.id}')">🗑</button>
+        <button class="exam-icon-btn" onclick="openExamModal('${t.id}')">Edit</button>
+        <button class="exam-icon-btn" onclick="openExamAnalysisFor('${t.id}')">Analysis</button>
+        <button class="exam-icon-btn" onclick="deleteExamTest('${t.id}')">Delete</button>
       </div>
     </div>`;
   }).join('');
@@ -3094,7 +3103,7 @@ function renderExamAnalysisRows() {
         const refUrl = 'https://www.google.com/search?q=' + encodeURIComponent(u + ' ' + refBase + ' NCERT notes JEE NEET');
         return `<div class="exam-analysis-unit-row with-ref">
           <span class="exam-analysis-unit-name">${escHtml(u)}</span>
-          <a class="exam-topic-ref" href="${refUrl}" target="_blank" rel="noopener" title="Look up ${escHtml(u)}">🔗</a>
+          <a class="exam-topic-ref" href="${refUrl}" target="_blank" rel="noopener" title="Look up ${escHtml(u)}">Look up</a>
           <input type="number" min="0" max="100" value="${v.attempted}" oninput="setExamAnalysisVal('${escHtml(s.name)}','${escHtml(u)}','attempted',this.value)">
           <input type="number" min="0" max="100" value="${v.scored}" oninput="setExamAnalysisVal('${escHtml(s.name)}','${escHtml(u)}','scored',this.value)">
         </div>`;
@@ -3339,6 +3348,14 @@ function sylChapterRevs(uid, mode, subjKey, chKey) {
   const node = state.syllabus.progress[uid]?.[mode]?.[subjKey]?.[chKey];
   return (node && node.rev) || 0;
 }
+function sylChapterBacklog(uid, mode, subjKey, chKey) {
+  const node = state.syllabus.progress[uid]?.[mode]?.[subjKey]?.[chKey];
+  return !!(node && node.backlog);
+}
+function sylChapterPractice(uid, mode, subjKey, chKey) {
+  const node = state.syllabus.progress[uid]?.[mode]?.[subjKey]?.[chKey];
+  return (node && node.practice) || 0;
+}
 
 function sylClassMatch(cls) { return sylClassFilter === 'both' || !cls || cls === 'Both' || cls === sylClassFilter; }
 
@@ -3389,7 +3406,7 @@ function renderSylBody() {
       <div class="syl-filter-block">
         <div class="syl-filter-label">View Mode</div>
         <div class="syl-filter-btns">
-          ${['priority','unit'].map(v => `<button class="syl-filter-btn ${sylViewMode===v?'active':''}" onclick="setSylViewMode('${v}')">${v==='priority'?'Priority':'Unit'}</button>`).join('')}
+          ${['priority','unit','progress'].map(v => `<button class="syl-filter-btn ${sylViewMode===v?'active':''}" onclick="setSylViewMode('${v}')">${v==='priority'?'Priority':v==='unit'?'Unit':'Progress'}</button>`).join('')}
         </div>
       </div>
       <input class="syl-search-inp" type="text" placeholder="Search chapters..." value="${escHtml(sylSearch)}" oninput="setSylSearch(this.value)">
@@ -3403,6 +3420,27 @@ function renderSylBody() {
     html += sylMode === 'other'
       ? `<div class="syl-empty">No custom subjects yet.</div>${sylAddSubjectFormHTML()}`
       : `<div class="syl-empty">No syllabus data.</div>`;
+    html += sylFormulaBoxHTML();
+    host.innerHTML = html;
+    return;
+  }
+
+  if (sylViewMode === 'progress') {
+    // "Progress" view — every subject side by side, two per row, last one spanning full width if odd
+    html += `<div class="syl-progress-grid">${subjects.map(s => {
+      const st = sylComputeStats(sylUid, sylMode, s.key, s.chapters);
+      return `<div class="syl-progress-panel">
+        <div class="syl-progress-panel-name">${escHtml(s.name)}</div>
+        <div class="syl-progress-panel-pct">${st.pct}%</div>
+        <div class="syl-progress-panel-bar"><div class="syl-progress-panel-bar-fill" style="width:${st.pct}%"></div></div>
+        <div class="syl-progress-panel-stats">
+          <div>Mastered: <b>${st.mastered}</b></div>
+          <div>Doing: <b>${st.doing}</b></div>
+          <div>To Do: <b>${st.todo}</b></div>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+    html += sylFormulaBoxHTML();
     host.innerHTML = html;
     return;
   }
@@ -3419,7 +3457,21 @@ function renderSylBody() {
   if (subj) html += renderSylSubjectGroups(subj);
   if (sylMode === 'other') html += sylAddSubjectFormHTML() + (subj ? sylAddChapterFormHTML(subj) : '');
 
+  html += sylFormulaBoxHTML();
   host.innerHTML = html;
+}
+
+/* Plain-language, always-visible explanation of how the progress % is worked out */
+function sylFormulaBoxHTML() {
+  return `
+    <div class="syl-formula-box">
+      <h4>How is the progress % worked out?</h4>
+      Every chapter is given a priority — <code>A</code>, <code>B</code>, <code>C</code> or <code>D</code> — based on how often it tends to show up and how heavily it's weighted in past papers. Higher-priority chapters count for more, the same way a 4-mark question matters more to your score than a 1-mark one.
+      <br><br>
+      Each status is worth a fraction of that chapter's weight: <code>Pending</code> = 0%, <code>Theory done</code> = 50%, <code>PYQs done</code> or <code>Mastered</code> = 100%. Your subject % is simply <em>(weight actually earned) ÷ (total weight possible)</em> — so finishing five easy D-priority chapters moves the needle far less than finishing one A-priority chapter.
+      <br><br>
+      In short: <b>Progress % = earned weight ÷ total possible weight, summed across every chapter you're tracking.</b> It rewards you for clearing the chapters that matter most first, not just for ticking off the most boxes.
+    </div>`;
 }
 
 function sylComputeStatsMixed(chaptersWithSubj) {
@@ -3477,11 +3529,13 @@ function renderSylChapterRow(subj, ch) {
   const chKey = sylKey(ch.name);
   const status = sylChapterStatus(sylUid, sylMode, subj.key, chKey);
   const revs = sylChapterRevs(sylUid, sylMode, subj.key, chKey);
+  const backlog = sylChapterBacklog(sylUid, sylMode, subj.key, chKey);
+  const practice = sylChapterPractice(sylUid, sylMode, subj.key, chKey);
   const open = sylOpenChapter === subj.key + '::' + chKey;
   return `
     <div class="syl-chapter-row">
       <div class="syl-chapter-top" onclick="toggleSylChapter('${subj.key}','${chKey}')">
-        <div class="syl-chapter-name"><span class="syl-status-dot ${status}"></span> ${escHtml(ch.name)}</div>
+        <div class="syl-chapter-name"><span class="syl-status-dot ${backlog ? 'backlog' : status}"></span> ${escHtml(ch.name)}</div>
         <div class="syl-chapter-meta">${ch.cls ? `<span class="syl-cls-tag">${ch.cls}</span>` : ''}<span class="syl-chevron ${open?'open':''}">▾</span></div>
       </div>
       ${open ? `
@@ -3496,6 +3550,10 @@ function renderSylChapterRow(subj, ch) {
             <span class="syl-rev-count">${revs}</span>
             <button class="syl-rev-btn" onclick="bumpSylRev('${subj.key}','${chKey}',1)">+</button>
           </div>
+        </div>
+        <div class="syl-extra-btns">
+          <button class="syl-extra-btn backlog ${backlog ? 'active' : ''}" onclick="toggleSylBacklog('${subj.key}','${chKey}')">${backlog ? 'In Backlog' : 'Backlog'}</button>
+          <button class="syl-extra-btn practice" onclick="bumpSylPractice('${subj.key}','${chKey}',1)">Practice<span class="syl-practice-count">${practice}</span></button>
         </div>
         ${subj.custom ? `<button class="syl-btn-sm ghost" style="margin-top:.5rem" onclick="deleteSylChapter('${subj.key}','${ch.id}')">Delete chapter</button>` : ''}
       </div>` : ''}
@@ -3512,14 +3570,27 @@ function sylProgressPath(subjKey, chKey) { return `/syllabus/progress/${sylUid}/
 
 function setSylStatus(subjKey, chKey, status) {
   const cur = state.syllabus.progress[sylUid]?.[sylMode]?.[subjKey]?.[chKey] || {};
-  doWrite(() => fbPut(sylProgressPath(subjKey, chKey), { status, rev: cur.rev || 0 }))
+  doWrite(() => fbPut(sylProgressPath(subjKey, chKey), { status, rev: cur.rev || 0, backlog: !!cur.backlog, practice: cur.practice || 0 }))
     .then(ok => { if (ok) renderSylBody(); });
 }
 
 function bumpSylRev(subjKey, chKey, delta) {
   const cur = state.syllabus.progress[sylUid]?.[sylMode]?.[subjKey]?.[chKey] || { status: 'pending', rev: 0 };
   const rev = Math.max(0, (cur.rev || 0) + delta);
-  doWrite(() => fbPut(sylProgressPath(subjKey, chKey), { status: cur.status || 'pending', rev }))
+  doWrite(() => fbPut(sylProgressPath(subjKey, chKey), { status: cur.status || 'pending', rev, backlog: !!cur.backlog, practice: cur.practice || 0 }))
+    .then(ok => { if (ok) renderSylBody(); });
+}
+
+function toggleSylBacklog(subjKey, chKey) {
+  const cur = state.syllabus.progress[sylUid]?.[sylMode]?.[subjKey]?.[chKey] || { status: 'pending', rev: 0, practice: 0 };
+  doWrite(() => fbPut(sylProgressPath(subjKey, chKey), { status: cur.status || 'pending', rev: cur.rev || 0, backlog: !cur.backlog, practice: cur.practice || 0 }))
+    .then(ok => { if (ok) renderSylBody(); });
+}
+
+function bumpSylPractice(subjKey, chKey, delta) {
+  const cur = state.syllabus.progress[sylUid]?.[sylMode]?.[subjKey]?.[chKey] || { status: 'pending', rev: 0, backlog: false };
+  const practice = Math.max(0, (cur.practice || 0) + delta);
+  doWrite(() => fbPut(sylProgressPath(subjKey, chKey), { status: cur.status || 'pending', rev: cur.rev || 0, backlog: !!cur.backlog, practice }))
     .then(ok => { if (ok) renderSylBody(); });
 }
 
