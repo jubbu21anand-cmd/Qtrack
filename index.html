@@ -115,13 +115,14 @@
 /* 0.9.2: priority/unit groups as compact vertical rectangles in a grid (4 groups → up to 4 boxes,
    not one box per row spanning the full width), each holding its chapters as thin horizontal bars */
 .syl-groups-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; align-items: start; margin-bottom: .5rem; }
-.syl-group { background: var(--sy-surface2); border: 1px solid var(--sy-border); border-radius: 10px; overflow: hidden; }
+@media (min-width: 680px) { .syl-groups-grid { grid-template-columns: repeat(4, 1fr); } }
+.syl-group { background: var(--sy-surface2); border: 1px solid var(--sy-border); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
 .syl-group-head { display: flex; align-items: center; justify-content: space-between; padding: .5rem .6rem; cursor: pointer; gap: 4px; }
 .syl-group-name { font-size: .66rem; font-weight: 700; display: flex; align-items: center; gap: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .syl-group-pct { font-family: 'DM Mono', monospace; font-size: .64rem; color: var(--sy-muted); flex-shrink: 0; }
 .syl-chevron { transition: transform .2s; color: var(--sy-muted); font-size: .6rem; flex-shrink: 0; }
 .syl-chevron.open { transform: rotate(180deg); }
-.syl-group-body { border-top: 1px solid var(--sy-border); padding: .35rem; display: flex; flex-direction: column; gap: 3px; }
+.syl-group-body { border-top: 1px solid var(--sy-border); padding: .35rem; display: flex; flex-direction: column; gap: 3px; max-height: 420px; overflow-y: auto; }
 .syl-chapter-row { background: var(--sy-surface); border: 1px solid var(--sy-border); border-radius: 7px; padding: .38rem .5rem; cursor: pointer; }
 .syl-chapter-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .syl-chapter-name { font-size: .6rem; font-weight: 600; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; display: flex; align-items: center; gap: 5px; }
@@ -321,22 +322,34 @@
 .exam-tests-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .7rem; margin-bottom: 1rem; }
 .exam-test-card { background: var(--ex-surface); border: 1px solid var(--ex-border); border-radius: 14px; padding: .9rem .9rem .75rem; display: flex; flex-direction: column; gap: .55rem; }
 .exam-test-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+.exam-test-card-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+.exam-jmja-badge { font-family: 'DM Mono', monospace; font-size: .5rem; font-weight: 700; border-radius: 5px; padding: 1px 5px; flex-shrink: 0; }
+.exam-jmja-badge.jm { background: rgba(91,141,238,.18); color: #5b8dee; }
+.exam-jmja-badge.ja { background: rgba(232,74,138,.18); color: #e84a8a; }
+/* Score cluster: the main circle on the left with three smaller subject circles
+   overlapping its right edge, like satellites attached to it rather than a separate row */
+.exam-score-cluster { position: relative; display: flex; align-items: center; min-height: 92px; padding-left: 4px; }
+.exam-score-circle { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-weight: 700; color: #0a1108; box-shadow: 0 0 0 1px rgba(255,255,255,.1) inset; text-align: center; line-height: 1.05; flex-shrink: 0; }
+.exam-score-circle.main { width: 84px; height: 84px; font-size: .88rem; position: relative; z-index: 1; }
+.exam-subj-circle-wrap { position: absolute; left: 62px; display: flex; flex-direction: column; align-items: center; gap: 1px; z-index: 2; }
+.exam-subj-circle-wrap.pos0 { top: -2px; }
+.exam-subj-circle-wrap.pos1 { top: 28px; left: 78px; }
+.exam-subj-circle-wrap.pos2 { top: 58px; }
+.exam-subj-circle { width: 34px; height: 34px; font-size: .54rem; border: 2px solid var(--ex-surface); }
+.exam-subj-circle-name { font-size: .44rem; font-weight: 700; color: var(--ex-muted); letter-spacing: .03em; }
+.exam-inline-analysis { border-top: 1px solid var(--ex-border); padding-top: .55rem; margin-top: .1rem; }
+.exam-inline-analysis-title { font-size: .62rem; font-weight: 700; color: var(--ex-text); margin-bottom: .4rem; }
+.exam-inline-analysis-subj { margin-bottom: .5rem; }
+.exam-inline-analysis-subj-name { font-size: .64rem; font-weight: 700; color: var(--ex-muted); margin-bottom: .25rem; }
+.exam-inline-analysis-table { width: 100%; border-collapse: collapse; font-size: .58rem; }
+.exam-inline-analysis-table th { text-align: left; color: var(--ex-muted); font-weight: 700; text-transform: uppercase; font-size: .48rem; padding: 2px 4px; border-bottom: 1px solid var(--ex-border); }
+.exam-inline-analysis-table td { padding: 2px 4px; border-bottom: 1px solid var(--ex-border); color: var(--ex-text); }
+.exam-inline-review { font-size: .6rem; color: var(--ex-muted); background: var(--ex-surface2); border-radius: 6px; padding: .4rem .5rem; margin-top: .3rem; line-height: 1.4; }
 .exam-test-card-name { font-size: .78rem; font-weight: 700; color: var(--ex-text); line-height: 1.3; flex: 1; }
 .exam-test-card-date { font-size: .58rem; color: var(--ex-muted); font-family: 'DM Mono', monospace; }
 .exam-jmja-badge { font-family: 'DM Mono', monospace; font-size: .5rem; font-weight: 700; border-radius: 5px; padding: 1px 5px; flex-shrink: 0; }
 .exam-jmja-badge.jm { background: rgba(91,141,238,.18); color: #5b8dee; }
 .exam-jmja-badge.ja { background: rgba(232,74,138,.18); color: #e84a8a; }
-.exam-score-row { display: flex; align-items: center; gap: .55rem; }
-.exam-score-circle { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-weight: 700; color: #0a1108; box-shadow: 0 0 0 1px rgba(255,255,255,.1) inset; text-align: center; line-height: 1.05; flex-shrink: 0; }
-.exam-score-circle.main { width: 72px; height: 72px; font-size: .8rem; }
-.exam-subj-circles { display: flex; gap: .45rem; flex: 1; justify-content: flex-end; flex-wrap: wrap; }
-.exam-subj-circle-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.exam-subj-circle { width: 42px; height: 42px; font-size: .62rem; }
-.exam-subj-circle-name { font-size: .48rem; font-weight: 700; color: var(--ex-muted); letter-spacing: .04em; }
-.exam-subj-diff { font-size: .44rem; font-weight: 700; text-transform: uppercase; border-radius: 4px; padding: 0 3px; }
-.exam-subj-diff.easy { color: #4ade80; }
-.exam-subj-diff.mod { color: #f5c842; }
-.exam-subj-diff.tough { color: #f87171; }
 .exam-test-stats { display: flex; flex-direction: column; gap: 2px; font-family: 'DM Mono', monospace; font-size: .62rem; color: var(--ex-muted); border-top: 1px solid var(--ex-border); padding-top: .4rem; }
 .exam-test-stats b { color: var(--ex-text); }
 .exam-test-card-actions { display: flex; gap: 4px; margin-top: .1rem; }
@@ -712,7 +725,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.1</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.2</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -750,7 +763,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
     <div style="flex:1"></div>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack 0.9.1 · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack 0.9.2 · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -963,7 +976,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 0.9.1 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 0.9.2 · Beta · qttrack.vercel.app</div>
 
     <div class="about-subtabs">
       <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
@@ -1044,25 +1057,6 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
   <div class="changelog-wrap">
 
     <div class="cl-version">
-      <div><span class="cl-ver-num">0.9.1</span></div>
-      <ul class="cl-items">
-        <li>Exam Analytics: brand new overview strip — Average Performance, Top Score and Lowest Score (each with the test name and date) at the top of the page, all time, per mode</li>
-        <li>Exam Analytics: the old 4-box single-test summary is gone — every test is now its own compact colour-graded score card in a grid, showing a score circle (green→yellow→red), Physics/Chemistry/Maths bars, rank, percentile and total candidates, editable and openable for analysis at any time</li>
-        <li>Exam Analytics: percentile is now calculated automatically from rank and total candidates appeared using Percentile = ((N − R) / N) × 100 — no more manual entry</li>
-        <li>Exam Analytics: JM / JA badges auto-detected for JEE Main and JEE Advanced mock tests, and both are now always plotted as separate coloured series on every chart instead of being merged</li>
-        <li>Exam Analytics: new Rank trend chart (lower is better, shown inverted) and an increase/decrease indicator on both the Marks and Rank charts comparing against your last test</li>
-        <li>Exam Analytics: new subject-wise bar chart comparing Physics/Chemistry/Maths across every test</li>
-        <li>Exam Analytics: Paper Analysis now includes a per-subject written review box and a "look it up" reference link on every topic row, including Physics topics</li>
-        <li>New: explicit "Analysis" toggle on the Exam Analytics page to show/hide all analytics graphs on demand</li>
-        <li>Syllabus Tracker: chapters are now compact vertical tiles in a wrapping grid instead of full-width horizontal rows</li>
-        <li>Syllabus Tracker: new Backlog and Question Practice buttons on every chapter</li>
-        <li>Syllabus Tracker: new "Progress" view — every subject side by side, two per row, the last one spanning full width — plus a plain-language explanation of the progress formula pinned to the bottom of the page</li>
-        <li>About: new "Syllabus Tracker" sub-tab explaining exactly how chapter priorities and the progress % are calculated, in beginner-friendly terms</li>
-        <li>FAQ: added a teaser about upcoming AI integration</li>
-      </ul>
-    </div>
-
-    <div class="cl-version">
       <div><span class="cl-ver-num">0.9.0</span></div>
       <ul class="cl-items">
         <li>New: Syllabus Tracker — track JEE (PCM) and NEET (PCB) chapter-wise progress with priority-weighted scoring, plus a fully custom "Other" mode for any subject; switch between Priority and Unit (broad-topic) views, filter by class, and toggle between everyone using the device</li>
@@ -1073,6 +1067,34 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
         <li>New: Attempted-vs-Scored web chart per subject in Exam Analytics, alongside a weak/strong topic radar built from paper analysis survey data</li>
         <li>Fixed: Update Log now nests patch versions (like 0.8.1) under their parent version instead of listing them as separate entries</li>
       </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.1</span>
+        <ul class="cl-items">
+          <li>Exam Analytics: brand new overview strip — Average Performance, Top Score and Lowest Score (each with the test name and date), all time, per mode</li>
+          <li>Exam Analytics: every test is now its own compact colour-graded score card in a grid, showing a score circle (green→yellow→red), Physics/Chemistry/Maths circles, rank, percentile and total candidates</li>
+          <li>Exam Analytics: percentile is now calculated automatically from rank and total candidates appeared using Percentile = ((N − R) / N) × 100 — no more manual entry</li>
+          <li>Exam Analytics: JM / JA choice for JEE Main / JEE Advanced mock tests, plotted as separate coloured series on every chart</li>
+          <li>Exam Analytics: new Rank trend chart (lower is better, shown inverted) and an increase/decrease indicator on both the Marks and Rank charts vs. your last test</li>
+          <li>Exam Analytics: new subject-wise bar chart comparing Physics/Chemistry/Maths across every test</li>
+          <li>Exam Analytics: Paper Analysis now includes a per-subject written review box</li>
+          <li>Syllabus Tracker: chapters are now compact vertical tiles in a wrapping grid instead of full-width horizontal rows</li>
+          <li>Syllabus Tracker: new Backlog and Question Practice buttons on every chapter</li>
+          <li>Syllabus Tracker: new "Progress" view — every subject side by side, plus a plain-language explanation of the progress formula pinned to the bottom of the page</li>
+          <li>About: new "Syllabus Tracker" sub-tab explaining exactly how chapter priorities and the progress % are calculated</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.2</span>
+        <ul class="cl-items">
+          <li>Exam Analytics: Paper Analysis is no longer a separate button/modal — every test card now always shows its topic breakdown and subject reviews inline</li>
+          <li>Exam Analytics: test cards now show one overall difficulty badge (not one per subject, which wasn't intended)</li>
+          <li>Exam Analytics: the Physics/Chemistry/Maths score circles are now smaller and overlap the edge of the main score circle instead of floating separately</li>
+          <li>Exam Analytics: subject-wise performance bars now sit flush against each other instead of leaving a gap</li>
+          <li>Exam Analytics: finished the Compare feature — pick another person (password-gated if they've locked their data) to see who's leading, average performance, a tests-over-time graph, and a two-line performance comparison</li>
+          <li>Syllabus Tracker: each priority tier (and each unit category) is now its own tall vertical column in a grid, instead of a single full-width block</li>
+          <li>Update Log: patch versions now nest under their parent version consistently</li>
+        </ul>
+      </div>
     </div>
 
     <div class="cl-version">
@@ -1191,7 +1213,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 0.9.1</span>
+  <span>QTrack 0.9.2</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -1403,7 +1425,7 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.9.1';
+const VERSION = '0.9.2';
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER — reference data (JEE / NEET) + broad units
@@ -2856,6 +2878,113 @@ function toggleExamCompare() {
   renderExamPage();
 }
 
+let examPendingIsCompare = false;
+function examCompareChips() {
+  const host = document.getElementById('examCompareChipRow');
+  if (!host) return;
+  const others = userList().filter(u => u.id !== examUid);
+  if (!others.length) { host.innerHTML = '<div class="exam-empty" style="padding:.4rem">No one else to compare with.</div>'; return; }
+  host.innerHTML = others.map(u => {
+    const locked = !!state.exams.locks[u.id];
+    return `<button class="exam-chip ${u.id === examCompareUid ? 'active' : ''} ${locked ? 'locked-chip' : ''}" onclick="selectExamCompareUser('${u.id}')">${escHtml(u.name)}</button>`;
+  }).join('');
+}
+
+function selectExamCompareUser(uid) {
+  if (uid === examCompareUid) { examCompareUid = null; renderExamCompare(); return; }
+  const locked = state.exams.locks[uid];
+  if (locked && !examUnlockedHas(uid)) {
+    examComparePendingUid = uid;
+    examPendingIsCompare = true;
+    document.getElementById('examPassEnterHint').textContent = `${state.users[uid]?.name || 'This person'} has locked their Exam Analytics. Enter their password to compare.`;
+    document.getElementById('examPassEnterInput').value = '';
+    openModal('examPassEnterModal');
+    return;
+  }
+  examCompareUid = uid;
+  renderExamCompare();
+}
+
+/* Avg performance / who's leading + a tests-attempted-over-time graph + a two-line
+   performance comparison, for the currently selected exam mode. */
+let examCompareCountChart = null, examComparePerfChart = null;
+function renderExamCompare() {
+  examCompareChips();
+  const host = document.getElementById('examCompareResult');
+  if (!host) return;
+  if (examCompareCountChart) { examCompareCountChart.destroy(); examCompareCountChart = null; }
+  if (examComparePerfChart) { examComparePerfChart.destroy(); examComparePerfChart = null; }
+  if (!examCompareUid) { host.innerHTML = '<div class="exam-empty">Pick someone above to compare with.</div>'; return; }
+  const myTests = examTestsForMode();
+  const theirTests = Object.values(state.exams.tests)
+    .filter(t => (t.mode || 'jee') === examMode && t.ownerUid === examCompareUid)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  const myName = state.users[examUid]?.name || 'You';
+  const theirName = state.users[examCompareUid]?.name || 'They';
+  if (!myTests.length || !theirTests.length) {
+    host.innerHTML = `<div class="exam-empty">${!myTests.length ? escHtml(myName) + ' has' : escHtml(theirName) + ' has'} no tests logged in this mode yet — nothing to compare.</div>`;
+    return;
+  }
+  const avg = arr => Math.round((arr.reduce((s, t) => s + (t.totalMarks ? (t.obtainedMarks / t.totalMarks) * 100 : 0), 0) / arr.length) * 10) / 10;
+  const myAvg = avg(myTests), theirAvg = avg(theirTests);
+  const leadText = myAvg === theirAvg ? "It's a tie!" : `🏆 ${escHtml(myAvg > theirAvg ? myName : theirName)} is leading`;
+  host.innerHTML = `
+    <div class="exam-compare-lead">
+      <div class="exam-compare-lead-name">${leadText}</div>
+      <div class="exam-compare-avgs">
+        <div class="exam-compare-avg-item"><div class="exam-compare-avg-name">${escHtml(myName)}</div><div class="exam-compare-avg-val">${myAvg}%</div><div class="exam-overview-tab-sub">${myTests.length} test${myTests.length===1?'':'s'}</div></div>
+        <div class="exam-compare-avg-item"><div class="exam-compare-avg-name">${escHtml(theirName)}</div><div class="exam-compare-avg-val">${theirAvg}%</div><div class="exam-overview-tab-sub">${theirTests.length} test${theirTests.length===1?'':'s'}</div></div>
+      </div>
+    </div>
+    <div class="exam-section-title" style="margin:.7rem 0 .4rem">Tests attempted over time</div>
+    <div class="chart-wrap" style="height:170px"><canvas id="examCompareCountChart"></canvas></div>
+    <div class="exam-section-title" style="margin:.7rem 0 .4rem">Performance comparison</div>
+    <div class="chart-wrap" style="height:190px"><canvas id="examComparePerfChart"></canvas></div>`;
+  drawExamCompareCharts(myTests, theirTests, myName, theirName);
+}
+
+function drawExamCompareCharts(myTests, theirTests, myName, theirName) {
+  const tc = '#7fae8f', gc = 'rgba(34,197,94,0.1)';
+  const allDates = [...new Set([...myTests.map(t => t.date), ...theirTests.map(t => t.date)])].filter(Boolean).sort();
+  let myCum = 0, theirCum = 0;
+  const myCounts = allDates.map(d => { myCum += myTests.filter(t => t.date === d).length; return myCum; });
+  const theirCounts = allDates.map(d => { theirCum += theirTests.filter(t => t.date === d).length; return theirCum; });
+  examCompareCountChart = new Chart(document.getElementById('examCompareCountChart'), {
+    type: 'line',
+    data: {
+      labels: allDates.map(d => dateLabel(d)),
+      datasets: [
+        { label: myName, data: myCounts, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.15)', stepped: true, borderWidth: 2, pointRadius: 2, fill: true },
+        { label: theirName, data: theirCounts, borderColor: '#5b8dee', backgroundColor: 'rgba(91,141,238,.15)', stepped: true, borderWidth: 2, pointRadius: 2, fill: true }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
+      scales: { x: { grid: { display: false }, ticks: { color: tc, font: { size: 8 }, maxRotation: 30 } }, y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 } }, beginAtZero: true } }
+    }
+  });
+  const maxLen = Math.max(myTests.length, theirTests.length);
+  const labels = Array.from({ length: maxLen }, (_, i) => 'Test ' + (i + 1));
+  const myPerf = myTests.map(t => t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0);
+  const theirPerf = theirTests.map(t => t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0);
+  examComparePerfChart = new Chart(document.getElementById('examComparePerfChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: myName, data: myPerf, borderColor: '#22c55e', backgroundColor: '#22c55e', borderWidth: 2, pointRadius: 3, tension: .3, spanGaps: true },
+        { label: theirName, data: theirPerf, borderColor: '#5b8dee', backgroundColor: '#5b8dee', borderWidth: 2, pointRadius: 3, tension: .3, spanGaps: true }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
+      scales: { x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 } } }, y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, callback: v => v + '%' }, beginAtZero: true, max: 100 } }
+    }
+  });
+}
+
 /* Avg performance, top score and lowest score across every test in this mode — small rectangular tabs */
 function renderExamOverview(tests) {
   const host = document.getElementById('examOverviewStrip');
@@ -2905,7 +3034,6 @@ function renderExamTestsGrid(tests) {
     const bySubj = {};
     (t.subjects || []).forEach(s => { const f = examSubjFamily(s.name); if (f) bySubj[f] = s; });
     const percentile = t.overallPercentile != null ? t.overallPercentile : examCalcPercentile(t.overallRank, t.totalStudents);
-    const diffClass = t.difficulty || '';
     return `
     <div class="exam-test-card">
       <div class="exam-test-card-top">
@@ -2913,30 +3041,30 @@ function renderExamTestsGrid(tests) {
           <div class="exam-test-card-name">${escHtml(t.name)}</div>
           <div class="exam-test-card-date">${t.date ? dateLabel(t.date) : ''}</div>
         </div>
-        ${badge ? `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>` : ''}
-      </div>
-      <div class="exam-score-row">
-        <div class="exam-score-circle main" style="background:${circleColor}">${t.obtainedMarks ?? 0}<br><span style="font-size:.8em">/${t.totalMarks ?? 0}</span></div>
-        <div class="exam-subj-circles">
-          ${famOrder.map(([fam, lbl]) => {
-            const s = bySubj[fam];
-            const col = s ? examSubjScoreColor(fam, s.score, s.max || 100) : 'var(--ex-surface2)';
-            return `<div class="exam-subj-circle-wrap">
-              <div class="exam-subj-circle" style="background:${col}">${s ? (s.score ?? '—') : '—'}</div>
-              <div class="exam-subj-circle-name">${lbl}</div>
-              ${t.difficulty ? `<div class="exam-subj-diff ${diffClass}">${t.difficulty}</div>` : ''}
-            </div>`;
-          }).join('')}
+        <div class="exam-test-card-badges">
+          ${t.difficulty ? `<span class="exam-diff-badge ${t.difficulty}">${t.difficulty}</span>` : ''}
+          ${badge ? `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>` : ''}
         </div>
+      </div>
+      <div class="exam-score-cluster">
+        <div class="exam-score-circle main" style="background:${circleColor}">${t.obtainedMarks ?? 0}<br><span style="font-size:.8em">/${t.totalMarks ?? 0}</span></div>
+        ${famOrder.map(([fam, lbl], i) => {
+          const s = bySubj[fam];
+          const col = s ? examSubjScoreColor(fam, s.score, s.max || 100) : 'var(--ex-surface2)';
+          return `<div class="exam-subj-circle-wrap pos${i}">
+            <div class="exam-subj-circle" style="background:${col}">${s ? (s.score ?? '—') : '—'}</div>
+            <div class="exam-subj-circle-name">${lbl}</div>
+          </div>`;
+        }).join('')}
       </div>
       <div class="exam-test-stats">
         <div>Rank: <b>${t.overallRank ?? '—'}</b> of <b>${t.totalStudents ?? '—'}</b> candidates</div>
         <div>Percentile: <b>${percentile != null ? percentile + '%' : '—'}</b></div>
       </div>
       ${t.note ? `<div class="exam-note-box" style="font-size:.62rem;padding:.4rem .5rem">${escHtml(t.note)}</div>` : ''}
+      ${examAnalysisSummaryHTML(t)}
       <div class="exam-test-card-actions">
         <button class="exam-icon-btn" onclick="openExamModal('${t.id}')">Edit</button>
-        <button class="exam-icon-btn" onclick="openExamAnalysisFor('${t.id}')">Paper Analysis</button>
         <button class="exam-icon-btn" onclick="deleteExamTest('${t.id}')">Delete</button>
       </div>
     </div>`;
@@ -2958,6 +3086,7 @@ function selectExamUser(uid) {
   const locked = state.exams.locks[uid];
   if (locked && !examUnlockedHas(uid)) {
     examPendingUid = uid;
+    examPendingIsCompare = false;
     document.getElementById('examPassEnterHint').textContent = `${state.users[uid]?.name || 'This person'} has locked their Exam Analytics. Enter their password to view it.`;
     document.getElementById('examPassEnterInput').value = '';
     openModal('examPassEnterModal');
@@ -2969,12 +3098,18 @@ function selectExamUser(uid) {
 
 function submitExamPasswordEnter() {
   const pw = document.getElementById('examPassEnterInput').value;
-  const locked = state.exams.locks[examPendingUid];
+  const uid = examPendingIsCompare ? examComparePendingUid : examPendingUid;
+  const locked = state.exams.locks[uid];
   if (locked && simpleHash(pw) === locked.hash) {
-    examUnlockedAdd(examPendingUid);
+    examUnlockedAdd(uid);
     closeModal('examPassEnterModal');
-    examUid = examPendingUid; examSelTestId = null; examWebSubj = null;
-    renderExamPage();
+    if (examPendingIsCompare) {
+      examCompareUid = uid; examComparePendingUid = null; examPendingIsCompare = false;
+      renderExamCompare();
+    } else {
+      examUid = uid; examSelTestId = null; examWebSubj = null;
+      renderExamPage();
+    }
   } else {
     showToast('Incorrect password');
   }
@@ -3005,16 +3140,24 @@ function renderExamModeToggle() {
 function setExamMode(m) { examMode = m; examSelTestId = null; examWebSubj = null; renderExamPage(); }
 
 function examAnalysisSummaryHTML(t) {
-  if (!t.analysis) return '';
-  const rows = [];
-  Object.keys(t.analysis).forEach(subj => {
-    const units = t.analysis[subj];
-    const sorted = Object.keys(units).sort((a, b) => (units[b].attempted || 0) - (units[a].attempted || 0));
-    if (!sorted.length) return;
-    const most = sorted[0], least = sorted[sorted.length - 1];
-    rows.push(`<div style="margin-bottom:.3rem"><strong>${escHtml(subj)}:</strong> most emphasized — ${escHtml(most)} (${units[most].attempted || 0}%) · least — ${escHtml(least)} (${units[least].attempted || 0}%)</div>`);
+  const subjNames = new Set([...Object.keys(t.analysis || {}), ...Object.keys(t.subjectReviews || {})]);
+  if (!subjNames.size) return '<div class="exam-inline-analysis exam-empty" style="padding:.6rem">No paper analysis yet — tap Edit to add topic weightage and a review.</div>';
+  let html = '<div class="exam-inline-analysis"><div class="exam-inline-analysis-title">🔍 Paper Analysis</div>';
+  subjNames.forEach(subj => {
+    const units = (t.analysis && t.analysis[subj]) || {};
+    const unitKeys = Object.keys(units).filter(u => units[u].attempted !== '' && units[u].attempted != null);
+    html += `<div class="exam-inline-analysis-subj"><div class="exam-inline-analysis-subj-name">${escHtml(subj)}</div>`;
+    if (unitKeys.length) {
+      const sorted = [...unitKeys].sort((a, b) => (units[b].attempted || 0) - (units[a].attempted || 0));
+      html += `<table class="exam-inline-analysis-table"><tr><th>Topic</th><th>Attempted</th><th>Scored</th></tr>
+        ${sorted.map(u => `<tr><td>${escHtml(u)}</td><td>${units[u].attempted ?? '—'}%</td><td>${units[u].scored ?? '—'}%</td></tr>`).join('')}
+      </table>`;
+    }
+    const review = t.subjectReviews && t.subjectReviews[subj];
+    if (review) html += `<div class="exam-inline-review">${escHtml(review)}</div>`;
+    html += `</div>`;
   });
-  return rows.length ? `<div class="exam-note-box">🔍 <strong>Paper analysis</strong><br>${rows.join('')}</div>` : '';
+  return html + '</div>';
 }
 
 function openExamModal(editId = null) {
@@ -3280,7 +3423,7 @@ function renderExamCharts(tests) {
       datasets: fams.map(f => ({
         label: f.charAt(0).toUpperCase() + f.slice(1),
         data: tests.map(t => { const s = (t.subjects || []).find(s => examSubjFamily(s.name) === f); return s ? (s.max ? Math.round((s.score / s.max) * 1000) / 10 : s.score) : null; }),
-        backgroundColor: EXAM_SUBJ_COLOR[f], borderRadius: 3, borderSkipped: false, barPercentage: 1, categoryPercentage: .92
+        backgroundColor: EXAM_SUBJ_COLOR[f], borderRadius: 3, borderSkipped: false, barPercentage: 1, categoryPercentage: .98
       }))
     },
     options: {
@@ -3518,7 +3661,7 @@ function renderSylBody() {
   }).join('')}</div>`;
 
   const subj = subjects.find(s => s.key === sylSubjectKey);
-  if (subj) html += renderSylSubjectGroups(subj);
+  if (subj) html += `<div class="syl-groups-grid">${renderSylSubjectGroups(subj)}</div>`;
   if (sylMode === 'other') html += sylAddSubjectFormHTML() + (subj ? sylAddChapterFormHTML(subj) : '');
 
   html += sylFormulaBoxHTML();
