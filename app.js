@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.9.2';
+const VERSION = '0.9.3';
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER — reference data (JEE / NEET) + broad units
@@ -891,16 +891,19 @@ function renderWeekChart() {
     labels.push(dayNames[i] + ' ' + d.getDate());
   }
   const todayIdx = keys.indexOf(todayStr());
+  const visibleIds = visibleUserList().map(u => u.id);
   const datasets = state.subjects.map(s => ({
     label: s.name,
-    data: keys.map(dt => Object.values(state.history[dt] || {}).reduce((sum, u) => sum + (u[s.id] || 0), 0)),
+    data: keys.map(dt => visibleIds.reduce((sum, uid) => sum + ((state.history[dt] || {})[uid]?.[s.id] || 0), 0)),
     backgroundColor: s.color, borderRadius: 4, borderSkipped: false, order: 2
   }));
-  // Trend line over the bars — total questions per day
+  // Trend line over the bars — total questions per day (visible users only, same as the bars above,
+  // so a person in Anonymous mode can't have their day-by-day progress reconstructed from this chart
+  // on someone else's device even though it's not broken out per-person here)
   const trendColor = document.documentElement.dataset.theme === 'light' ? '#111112' : '#f0ede8';
   datasets.push({
     type: 'line', label: 'Trend',
-    data: keys.map(dt => Object.values(state.history[dt] || {}).reduce((sum, u) => sum + state.subjects.reduce((t, s) => t + (u[s.id] || 0), 0), 0)),
+    data: keys.map(dt => visibleIds.reduce((sum, uid) => sum + dayTotal(uid, dt), 0)),
     borderColor: trendColor, borderWidth: 2, borderDash: [5, 4], pointRadius: 0,
     tension: .35, fill: false, yAxisID: 'yLine', order: 1
   });
@@ -1441,6 +1444,33 @@ function renderExamPage() {
   if (!examUid || !state.users[examUid]) examUid = users[0].id;
   renderExamChips();
   renderExamModeToggle();
+
+  const lockScreen = document.getElementById('examLockedScreen');
+  const content = document.getElementById('examContent');
+  const lockedOut = !!(state.exams.locks[examUid] && !examUnlockedHas(examUid));
+  if (lockedOut) {
+    // A locked person's data must never render — including the very first time the page opens,
+    // before anyone has explicitly picked a person. Previously the default-user assignment above
+    // skipped the lock check entirely, so the first person's data flashed regardless of lock state.
+    if (examProgressChart) { examProgressChart.destroy(); examProgressChart = null; }
+    if (examRankChart) { examRankChart.destroy(); examRankChart = null; }
+    if (examRadarChart) { examRadarChart.destroy(); examRadarChart = null; }
+    if (examWebChart) { examWebChart.destroy(); examWebChart = null; }
+    if (examSubjBarChart) { examSubjBarChart.destroy(); examSubjBarChart = null; }
+    if (examCompareCountChart) { examCompareCountChart.destroy(); examCompareCountChart = null; }
+    if (examComparePerfChart) { examComparePerfChart.destroy(); examComparePerfChart = null; }
+    content.style.display = 'none';
+    lockScreen.style.display = 'block';
+    lockScreen.innerHTML = `
+      <div style="font-size:1.8rem;margin-bottom:.5rem">🔒</div>
+      <div style="font-weight:700;margin-bottom:.3rem">${escHtml(state.users[examUid]?.name || 'This person')}'s Exam Analytics is locked</div>
+      <div style="color:var(--ex-muted);font-size:.72rem;margin-bottom:.9rem">Enter their password to view it.</div>
+      <button class="exam-analysis-toggle-btn active" onclick="examPromptUnlockCurrent()">Unlock</button>`;
+    return;
+  }
+  lockScreen.style.display = 'none';
+  content.style.display = 'block';
+
   const tests = examTestsForMode();
   renderExamOverview(tests);
   renderExamTestsGrid(tests);
@@ -1450,6 +1480,14 @@ function renderExamPage() {
   if (cbtn) cbtn.classList.toggle('active', examCompareOpen);
   if (cblock) cblock.style.display = examCompareOpen ? 'block' : 'none';
   if (examCompareOpen) renderExamCompare();
+}
+
+function examPromptUnlockCurrent() {
+  examPendingUid = examUid;
+  examPendingIsCompare = false;
+  document.getElementById('examPassEnterHint').textContent = `${state.users[examUid]?.name || 'This person'} has locked their Exam Analytics. Enter their password to view it.`;
+  document.getElementById('examPassEnterInput').value = '';
+  openModal('examPassEnterModal');
 }
 
 function toggleExamCompare() {
@@ -1625,16 +1663,18 @@ function renderExamTestsGrid(tests) {
           ${badge ? `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>` : ''}
         </div>
       </div>
-      <div class="exam-score-cluster">
+      <div class="exam-score-row">
         <div class="exam-score-circle main" style="background:${circleColor}">${t.obtainedMarks ?? 0}<br><span style="font-size:.8em">/${t.totalMarks ?? 0}</span></div>
-        ${famOrder.map(([fam, lbl], i) => {
-          const s = bySubj[fam];
-          const col = s ? examSubjScoreColor(fam, s.score, s.max || 100) : 'var(--ex-surface2)';
-          return `<div class="exam-subj-circle-wrap pos${i}">
-            <div class="exam-subj-circle" style="background:${col}">${s ? (s.score ?? '—') : '—'}</div>
-            <div class="exam-subj-circle-name">${lbl}</div>
-          </div>`;
-        }).join('')}
+        <div class="exam-subj-circles">
+          ${famOrder.map(([fam, lbl]) => {
+            const s = bySubj[fam];
+            const col = s ? examSubjScoreColor(fam, s.score, s.max || 100) : 'var(--ex-surface2)';
+            return `<div class="exam-subj-circle-wrap">
+              <div class="exam-subj-circle" style="background:${col}">${s ? (s.score ?? '—') : '—'}</div>
+              <div class="exam-subj-circle-name">${lbl}</div>
+            </div>`;
+          }).join('')}
+        </div>
       </div>
       <div class="exam-test-stats">
         <div>Rank: <b>${t.overallRank ?? '—'}</b> of <b>${t.totalStudents ?? '—'}</b> candidates</div>
