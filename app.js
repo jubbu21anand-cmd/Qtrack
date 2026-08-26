@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.9.1';
+const VERSION = '0.9.2';
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER — reference data (JEE / NEET) + broad units
@@ -1349,7 +1349,6 @@ let examDraftJmJa = null;       // 'JM' | 'JA' | null — now user-chosen, not a
 let examDraftAnalysis = {};     // { subjectName: { unitName: { attempted, scored } } }
 let examEditingId = null;
 let examPendingUid = null;      // uid awaiting password entry
-let examPassEnterMode = 'primary'; // 'primary' | 'compare' — which flow the password modal is serving
 let examWebSubj = null;         // subject picked for the attempted-vs-scored web chart
 let examDraftReviews = {};      // { subjectName: 'free text review' }
 let examAnalysisStandalone = false; // true when Analysis modal opened directly from a test card, not via full edit
@@ -1458,109 +1457,109 @@ function toggleExamCompare() {
   renderExamPage();
 }
 
-/* Compare against another person — password-gated if they've locked their Exam Analytics */
-function examSelectCompareUser(uid) {
-  if (uid === examCompareUid) return;
+let examPendingIsCompare = false;
+function examCompareChips() {
+  const host = document.getElementById('examCompareChipRow');
+  if (!host) return;
+  const others = userList().filter(u => u.id !== examUid);
+  if (!others.length) { host.innerHTML = '<div class="exam-empty" style="padding:.4rem">No one else to compare with.</div>'; return; }
+  host.innerHTML = others.map(u => {
+    const locked = !!state.exams.locks[u.id];
+    return `<button class="exam-chip ${u.id === examCompareUid ? 'active' : ''} ${locked ? 'locked-chip' : ''}" onclick="selectExamCompareUser('${u.id}')">${escHtml(u.name)}</button>`;
+  }).join('');
+}
+
+function selectExamCompareUser(uid) {
+  if (uid === examCompareUid) { examCompareUid = null; renderExamCompare(); return; }
   const locked = state.exams.locks[uid];
   if (locked && !examUnlockedHas(uid)) {
-    examPendingUid = uid;
-    examPassEnterMode = 'compare';
-    document.getElementById('examPassEnterHint').textContent = `${state.users[uid]?.name || 'This person'} has locked their Exam Analytics. Enter their password to compare against them.`;
+    examComparePendingUid = uid;
+    examPendingIsCompare = true;
+    document.getElementById('examPassEnterHint').textContent = `${state.users[uid]?.name || 'This person'} has locked their Exam Analytics. Enter their password to compare.`;
     document.getElementById('examPassEnterInput').value = '';
     openModal('examPassEnterModal');
     return;
   }
   examCompareUid = uid;
-  renderExamPage();
+  renderExamCompare();
 }
 
-let examCompareTestsChart = null, examComparePerfChart = null;
+/* Avg performance / who's leading + a tests-attempted-over-time graph + a two-line
+   performance comparison, for the currently selected exam mode. */
+let examCompareCountChart = null, examComparePerfChart = null;
 function renderExamCompare() {
-  const chipHost = document.getElementById('examCompareChipRow');
-  const resultHost = document.getElementById('examCompareResult');
-  if (!chipHost || !resultHost) return;
-  const others = userList().filter(u => u.id !== examUid);
-  if (!others.length) { chipHost.innerHTML = '<div class="exam-empty">No one else to compare against yet.</div>'; resultHost.innerHTML = ''; return; }
-  if (!examCompareUid || examCompareUid === examUid || !others.find(u => u.id === examCompareUid)) examCompareUid = others[0].id;
-  chipHost.innerHTML = others.map(u => {
-    const locked = !!state.exams.locks[u.id];
-    return `<button class="exam-chip ${u.id === examCompareUid ? 'active' : ''} ${locked ? 'locked-chip' : ''}" onclick="examSelectCompareUser('${u.id}')">${escHtml(u.name)}</button>`;
-  }).join('');
-
-  const meTests = examTestsForMode();
-  const themTests = Object.values(state.exams.tests).filter(t => (t.mode || 'jee') === examMode && t.ownerUid === examCompareUid).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-  const pctFn = t => t.totalMarks ? (t.obtainedMarks / t.totalMarks) * 100 : 0;
-  const meName = state.users[examUid]?.name || 'You';
-  const themName = state.users[examCompareUid]?.name || 'Them';
-
-  if (!meTests.length && !themTests.length) {
-    resultHost.innerHTML = '<div class="exam-empty">Neither of you has logged a test in this mode yet.</div>';
-    if (examCompareTestsChart) { examCompareTestsChart.destroy(); examCompareTestsChart = null; }
-    if (examComparePerfChart) { examComparePerfChart.destroy(); examComparePerfChart = null; }
+  examCompareChips();
+  const host = document.getElementById('examCompareResult');
+  if (!host) return;
+  if (examCompareCountChart) { examCompareCountChart.destroy(); examCompareCountChart = null; }
+  if (examComparePerfChart) { examComparePerfChart.destroy(); examComparePerfChart = null; }
+  if (!examCompareUid) { host.innerHTML = '<div class="exam-empty">Pick someone above to compare with.</div>'; return; }
+  const myTests = examTestsForMode();
+  const theirTests = Object.values(state.exams.tests)
+    .filter(t => (t.mode || 'jee') === examMode && t.ownerUid === examCompareUid)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  const myName = state.users[examUid]?.name || 'You';
+  const theirName = state.users[examCompareUid]?.name || 'They';
+  if (!myTests.length || !theirTests.length) {
+    host.innerHTML = `<div class="exam-empty">${!myTests.length ? escHtml(myName) + ' has' : escHtml(theirName) + ' has'} no tests logged in this mode yet — nothing to compare.</div>`;
     return;
   }
-
-  const meAvg = meTests.length ? Math.round((meTests.reduce((s, t) => s + pctFn(t), 0) / meTests.length) * 10) / 10 : 0;
-  const themAvg = themTests.length ? Math.round((themTests.reduce((s, t) => s + pctFn(t), 0) / themTests.length) * 10) / 10 : 0;
-  let leadHTML;
-  if (meAvg === themAvg) leadHTML = `<div class="exam-compare-lead-name">It's a tie</div>`;
-  else { const leader = meAvg > themAvg ? meName : themName; leadHTML = `<div class="exam-compare-lead-name">${escHtml(leader)} is leading</div>`; }
-
-  resultHost.innerHTML = `
+  const avg = arr => Math.round((arr.reduce((s, t) => s + (t.totalMarks ? (t.obtainedMarks / t.totalMarks) * 100 : 0), 0) / arr.length) * 10) / 10;
+  const myAvg = avg(myTests), theirAvg = avg(theirTests);
+  const leadText = myAvg === theirAvg ? "It's a tie!" : `🏆 ${escHtml(myAvg > theirAvg ? myName : theirName)} is leading`;
+  host.innerHTML = `
     <div class="exam-compare-lead">
-      ${leadHTML}
+      <div class="exam-compare-lead-name">${leadText}</div>
       <div class="exam-compare-avgs">
-        <div class="exam-compare-avg-item"><div class="exam-compare-avg-name">${escHtml(meName)}</div><div class="exam-compare-avg-val">${meAvg}%</div></div>
-        <div class="exam-compare-avg-item"><div class="exam-compare-avg-name">${escHtml(themName)}</div><div class="exam-compare-avg-val">${themAvg}%</div></div>
+        <div class="exam-compare-avg-item"><div class="exam-compare-avg-name">${escHtml(myName)}</div><div class="exam-compare-avg-val">${myAvg}%</div><div class="exam-overview-tab-sub">${myTests.length} test${myTests.length===1?'':'s'}</div></div>
+        <div class="exam-compare-avg-item"><div class="exam-compare-avg-name">${escHtml(theirName)}</div><div class="exam-compare-avg-val">${theirAvg}%</div><div class="exam-overview-tab-sub">${theirTests.length} test${theirTests.length===1?'':'s'}</div></div>
       </div>
     </div>
-    <div class="exam-section-title">Tests attempted over time</div>
-    <div class="chart-wrap" style="height:180px;"><canvas id="examCompareTestsChart"></canvas></div>
-    <div class="exam-section-title" style="margin-top:.8rem">Performance comparison</div>
-    <div class="chart-wrap" style="height:190px;"><canvas id="examComparePerfChart"></canvas></div>`;
+    <div class="exam-section-title" style="margin:.7rem 0 .4rem">Tests attempted over time</div>
+    <div class="chart-wrap" style="height:170px"><canvas id="examCompareCountChart"></canvas></div>
+    <div class="exam-section-title" style="margin:.7rem 0 .4rem">Performance comparison</div>
+    <div class="chart-wrap" style="height:190px"><canvas id="examComparePerfChart"></canvas></div>`;
+  drawExamCompareCharts(myTests, theirTests, myName, theirName);
+}
 
-  // union of dates, sorted, drives both charts
-  const dateSet = new Set([...meTests.map(t => t.date), ...themTests.map(t => t.date)].filter(Boolean));
-  const dates = [...dateSet].sort();
-  const meByDate = {}; meTests.forEach(t => { meByDate[t.date] = t; });
-  const themByDate = {}; themTests.forEach(t => { themByDate[t.date] = t; });
-
-  let cumMe = 0, cumThem = 0;
-  const cumMeData = dates.map(d => { if (meByDate[d]) cumMe++; return cumMe; });
-  const cumThemData = dates.map(d => { if (themByDate[d]) cumThem++; return cumThem; });
-
-  if (examCompareTestsChart) examCompareTestsChart.destroy();
+function drawExamCompareCharts(myTests, theirTests, myName, theirName) {
   const tc = '#7fae8f', gc = 'rgba(34,197,94,0.1)';
-  examCompareTestsChart = new Chart(document.getElementById('examCompareTestsChart'), {
+  const allDates = [...new Set([...myTests.map(t => t.date), ...theirTests.map(t => t.date)])].filter(Boolean).sort();
+  let myCum = 0, theirCum = 0;
+  const myCounts = allDates.map(d => { myCum += myTests.filter(t => t.date === d).length; return myCum; });
+  const theirCounts = allDates.map(d => { theirCum += theirTests.filter(t => t.date === d).length; return theirCum; });
+  examCompareCountChart = new Chart(document.getElementById('examCompareCountChart'), {
     type: 'line',
     data: {
-      labels: dates.map(d => dateLabel(d)),
+      labels: allDates.map(d => dateLabel(d)),
       datasets: [
-        { label: meName, data: cumMeData, borderColor: '#22c55e', backgroundColor: hexAlpha('#22c55e', .14), borderWidth: 2, pointRadius: 2, tension: .25, fill: true },
-        { label: themName, data: cumThemData, borderColor: '#e84a8a', backgroundColor: hexAlpha('#e84a8a', .14), borderWidth: 2, pointRadius: 2, tension: .25, fill: true }
+        { label: myName, data: myCounts, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.15)', stepped: true, borderWidth: 2, pointRadius: 2, fill: true },
+        { label: theirName, data: theirCounts, borderColor: '#5b8dee', backgroundColor: 'rgba(91,141,238,.15)', stepped: true, borderWidth: 2, pointRadius: 2, fill: true }
       ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
-      scales: { x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } }, y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 } }, beginAtZero: true } }
+      scales: { x: { grid: { display: false }, ticks: { color: tc, font: { size: 8 }, maxRotation: 30 } }, y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 } }, beginAtZero: true } }
     }
   });
-
-  if (examComparePerfChart) examComparePerfChart.destroy();
+  const maxLen = Math.max(myTests.length, theirTests.length);
+  const labels = Array.from({ length: maxLen }, (_, i) => 'Test ' + (i + 1));
+  const myPerf = myTests.map(t => t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0);
+  const theirPerf = theirTests.map(t => t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0);
   examComparePerfChart = new Chart(document.getElementById('examComparePerfChart'), {
     type: 'line',
     data: {
-      labels: dates.map(d => dateLabel(d)),
+      labels,
       datasets: [
-        { label: meName, data: dates.map(d => meByDate[d] ? Math.round(pctFn(meByDate[d]) * 10) / 10 : null), borderColor: '#22c55e', backgroundColor: hexAlpha('#22c55e', .14), borderWidth: 2, pointRadius: 3, tension: .25, fill: false, spanGaps: true },
-        { label: themName, data: dates.map(d => themByDate[d] ? Math.round(pctFn(themByDate[d]) * 10) / 10 : null), borderColor: '#e84a8a', backgroundColor: hexAlpha('#e84a8a', .14), borderWidth: 2, pointRadius: 3, tension: .25, fill: false, spanGaps: true }
+        { label: myName, data: myPerf, borderColor: '#22c55e', backgroundColor: '#22c55e', borderWidth: 2, pointRadius: 3, tension: .3, spanGaps: true },
+        { label: theirName, data: theirPerf, borderColor: '#5b8dee', backgroundColor: '#5b8dee', borderWidth: 2, pointRadius: 3, tension: .3, spanGaps: true }
       ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
-      scales: { x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } }, y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, callback: v => v + '%' }, beginAtZero: true, max: 100 } }
+      scales: { x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 } } }, y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, callback: v => v + '%' }, beginAtZero: true, max: 100 } }
     }
   });
 }
@@ -1614,7 +1613,6 @@ function renderExamTestsGrid(tests) {
     const bySubj = {};
     (t.subjects || []).forEach(s => { const f = examSubjFamily(s.name); if (f) bySubj[f] = s; });
     const percentile = t.overallPercentile != null ? t.overallPercentile : examCalcPercentile(t.overallRank, t.totalStudents);
-    const diffClass = t.difficulty || '';
     return `
     <div class="exam-test-card">
       <div class="exam-test-card-top">
@@ -1622,30 +1620,30 @@ function renderExamTestsGrid(tests) {
           <div class="exam-test-card-name">${escHtml(t.name)}</div>
           <div class="exam-test-card-date">${t.date ? dateLabel(t.date) : ''}</div>
         </div>
-        ${badge ? `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>` : ''}
-      </div>
-      <div class="exam-score-row">
-        <div class="exam-score-circle main" style="background:${circleColor}">${t.obtainedMarks ?? 0}<br><span style="font-size:.8em">/${t.totalMarks ?? 0}</span></div>
-        <div class="exam-subj-circles">
-          ${famOrder.map(([fam, lbl]) => {
-            const s = bySubj[fam];
-            const col = s ? examSubjScoreColor(fam, s.score, s.max || 100) : 'var(--ex-surface2)';
-            return `<div class="exam-subj-circle-wrap">
-              <div class="exam-subj-circle" style="background:${col}">${s ? (s.score ?? '—') : '—'}</div>
-              <div class="exam-subj-circle-name">${lbl}</div>
-              ${t.difficulty ? `<div class="exam-subj-diff ${diffClass}">${t.difficulty}</div>` : ''}
-            </div>`;
-          }).join('')}
+        <div class="exam-test-card-badges">
+          ${t.difficulty ? `<span class="exam-diff-badge ${t.difficulty}">${t.difficulty}</span>` : ''}
+          ${badge ? `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>` : ''}
         </div>
+      </div>
+      <div class="exam-score-cluster">
+        <div class="exam-score-circle main" style="background:${circleColor}">${t.obtainedMarks ?? 0}<br><span style="font-size:.8em">/${t.totalMarks ?? 0}</span></div>
+        ${famOrder.map(([fam, lbl], i) => {
+          const s = bySubj[fam];
+          const col = s ? examSubjScoreColor(fam, s.score, s.max || 100) : 'var(--ex-surface2)';
+          return `<div class="exam-subj-circle-wrap pos${i}">
+            <div class="exam-subj-circle" style="background:${col}">${s ? (s.score ?? '—') : '—'}</div>
+            <div class="exam-subj-circle-name">${lbl}</div>
+          </div>`;
+        }).join('')}
       </div>
       <div class="exam-test-stats">
         <div>Rank: <b>${t.overallRank ?? '—'}</b> of <b>${t.totalStudents ?? '—'}</b> candidates</div>
         <div>Percentile: <b>${percentile != null ? percentile + '%' : '—'}</b></div>
       </div>
       ${t.note ? `<div class="exam-note-box" style="font-size:.62rem;padding:.4rem .5rem">${escHtml(t.note)}</div>` : ''}
+      ${examAnalysisSummaryHTML(t)}
       <div class="exam-test-card-actions">
         <button class="exam-icon-btn" onclick="openExamModal('${t.id}')">Edit</button>
-        <button class="exam-icon-btn" onclick="openExamAnalysisFor('${t.id}')">Paper Analysis</button>
         <button class="exam-icon-btn" onclick="deleteExamTest('${t.id}')">Delete</button>
       </div>
     </div>`;
@@ -1667,7 +1665,7 @@ function selectExamUser(uid) {
   const locked = state.exams.locks[uid];
   if (locked && !examUnlockedHas(uid)) {
     examPendingUid = uid;
-    examPassEnterMode = 'primary';
+    examPendingIsCompare = false;
     document.getElementById('examPassEnterHint').textContent = `${state.users[uid]?.name || 'This person'} has locked their Exam Analytics. Enter their password to view it.`;
     document.getElementById('examPassEnterInput').value = '';
     openModal('examPassEnterModal');
@@ -1679,16 +1677,18 @@ function selectExamUser(uid) {
 
 function submitExamPasswordEnter() {
   const pw = document.getElementById('examPassEnterInput').value;
-  const locked = state.exams.locks[examPendingUid];
+  const uid = examPendingIsCompare ? examComparePendingUid : examPendingUid;
+  const locked = state.exams.locks[uid];
   if (locked && simpleHash(pw) === locked.hash) {
-    examUnlockedAdd(examPendingUid);
+    examUnlockedAdd(uid);
     closeModal('examPassEnterModal');
-    if (examPassEnterMode === 'compare') {
-      examCompareUid = examPendingUid;
+    if (examPendingIsCompare) {
+      examCompareUid = uid; examComparePendingUid = null; examPendingIsCompare = false;
+      renderExamCompare();
     } else {
-      examUid = examPendingUid; examSelTestId = null; examWebSubj = null;
+      examUid = uid; examSelTestId = null; examWebSubj = null;
+      renderExamPage();
     }
-    renderExamPage();
   } else {
     showToast('Incorrect password');
   }
@@ -1719,16 +1719,24 @@ function renderExamModeToggle() {
 function setExamMode(m) { examMode = m; examSelTestId = null; examWebSubj = null; renderExamPage(); }
 
 function examAnalysisSummaryHTML(t) {
-  if (!t.analysis) return '';
-  const rows = [];
-  Object.keys(t.analysis).forEach(subj => {
-    const units = t.analysis[subj];
-    const sorted = Object.keys(units).sort((a, b) => (units[b].attempted || 0) - (units[a].attempted || 0));
-    if (!sorted.length) return;
-    const most = sorted[0], least = sorted[sorted.length - 1];
-    rows.push(`<div style="margin-bottom:.3rem"><strong>${escHtml(subj)}:</strong> most emphasized — ${escHtml(most)} (${units[most].attempted || 0}%) · least — ${escHtml(least)} (${units[least].attempted || 0}%)</div>`);
+  const subjNames = new Set([...Object.keys(t.analysis || {}), ...Object.keys(t.subjectReviews || {})]);
+  if (!subjNames.size) return '<div class="exam-inline-analysis exam-empty" style="padding:.6rem">No paper analysis yet — tap Edit to add topic weightage and a review.</div>';
+  let html = '<div class="exam-inline-analysis"><div class="exam-inline-analysis-title">🔍 Paper Analysis</div>';
+  subjNames.forEach(subj => {
+    const units = (t.analysis && t.analysis[subj]) || {};
+    const unitKeys = Object.keys(units).filter(u => units[u].attempted !== '' && units[u].attempted != null);
+    html += `<div class="exam-inline-analysis-subj"><div class="exam-inline-analysis-subj-name">${escHtml(subj)}</div>`;
+    if (unitKeys.length) {
+      const sorted = [...unitKeys].sort((a, b) => (units[b].attempted || 0) - (units[a].attempted || 0));
+      html += `<table class="exam-inline-analysis-table"><tr><th>Topic</th><th>Attempted</th><th>Scored</th></tr>
+        ${sorted.map(u => `<tr><td>${escHtml(u)}</td><td>${units[u].attempted ?? '—'}%</td><td>${units[u].scored ?? '—'}%</td></tr>`).join('')}
+      </table>`;
+    }
+    const review = t.subjectReviews && t.subjectReviews[subj];
+    if (review) html += `<div class="exam-inline-review">${escHtml(review)}</div>`;
+    html += `</div>`;
   });
-  return rows.length ? `<div class="exam-note-box">🔍 <strong>Paper analysis</strong><br>${rows.join('')}</div>` : '';
+  return html + '</div>';
 }
 
 function openExamModal(editId = null) {
@@ -1994,7 +2002,7 @@ function renderExamCharts(tests) {
       datasets: fams.map(f => ({
         label: f.charAt(0).toUpperCase() + f.slice(1),
         data: tests.map(t => { const s = (t.subjects || []).find(s => examSubjFamily(s.name) === f); return s ? (s.max ? Math.round((s.score / s.max) * 1000) / 10 : s.score) : null; }),
-        backgroundColor: EXAM_SUBJ_COLOR[f], borderRadius: 3, borderSkipped: false, barPercentage: 1, categoryPercentage: .92
+        backgroundColor: EXAM_SUBJ_COLOR[f], borderRadius: 3, borderSkipped: false, barPercentage: 1, categoryPercentage: .98
       }))
     },
     options: {
@@ -2232,7 +2240,7 @@ function renderSylBody() {
   }).join('')}</div>`;
 
   const subj = subjects.find(s => s.key === sylSubjectKey);
-  if (subj) html += renderSylSubjectGroups(subj);
+  if (subj) html += `<div class="syl-groups-grid">${renderSylSubjectGroups(subj)}</div>`;
   if (sylMode === 'other') html += sylAddSubjectFormHTML() + (subj ? sylAddChapterFormHTML(subj) : '');
 
   html += sylFormulaBoxHTML();
@@ -2283,7 +2291,7 @@ function renderSylSubjectGroups(subj) {
     groupOf = ch => ch.unit || 'Other';
     groupLabel = k => k;
   }
-  let html = '<div class="syl-groups-grid">';
+  let html = '';
   groupKeys.forEach(gk => {
     const chs = chapters.filter(ch => groupOf(ch) === gk && sylClassMatch(ch.cls));
     if (!chs.length) return;
@@ -2293,13 +2301,12 @@ function renderSylSubjectGroups(subj) {
       <div class="syl-group">
         <div class="syl-group-head" onclick="toggleSylGroup('${gk}')">
           <div class="syl-group-name">${escHtml(groupLabel(gk))}</div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="syl-group-pct">${st.pct}%</span><span class="syl-chevron ${open?'open':''}">▾</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span class="syl-group-pct">${st.pct}%</span><span class="syl-chevron ${open?'open':''}">▾</span></div>
         </div>
         ${open ? `<div class="syl-group-body">${chs.map(ch => renderSylChapterRow(subj, ch)).join('')}</div>` : ''}
       </div>`;
   });
-  html += '</div>';
-  return html === '<div class="syl-groups-grid"></div>' ? '<div class="syl-empty">No chapters match.</div>' : html;
+  return html || '<div class="syl-empty">No chapters match.</div>';
 }
 
 function toggleSylGroup(gk) { sylOpenGroups.has(gk) ? sylOpenGroups.delete(gk) : sylOpenGroups.add(gk); renderSylBody(); }
@@ -2314,7 +2321,7 @@ function renderSylChapterRow(subj, ch) {
   return `
     <div class="syl-chapter-row">
       <div class="syl-chapter-top" onclick="toggleSylChapter('${subj.key}','${chKey}')">
-        <div class="syl-chapter-name"><span class="syl-status-dot ${backlog ? 'backlog' : status}"></span><span class="syl-chapter-name-text">${escHtml(ch.name)}</span></div>
+        <div class="syl-chapter-name"><span class="syl-status-dot ${backlog ? 'backlog' : status}"></span> ${escHtml(ch.name)}</div>
         <div class="syl-chapter-meta">${ch.cls ? `<span class="syl-cls-tag">${ch.cls}</span>` : ''}<span class="syl-chevron ${open?'open':''}">▾</span></div>
       </div>
       ${open ? `
@@ -2836,4 +2843,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'Enter') addSubjDraft();
   });
 });
-
