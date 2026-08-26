@@ -651,7 +651,7 @@ header {
 .subj-list { display: flex; flex-direction: column; gap: .35rem; margin-bottom: .85rem; max-height: 260px; overflow-y: auto; }
 .subj-empty { font-size: .75rem; color: var(--muted); padding: .5rem 0; }
 .subj-item { display: flex; align-items: center; gap: .4rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: .38rem .55rem; }
-.subj-swatch { width: 18px; height: 18px; border-radius: 4px; cursor: pointer; flex-shrink: 0; border: 2px solid transparent; transition: border-color .15s; }
+.subj-swatch { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; flex-shrink: 0; border: 2px solid transparent; transition: border-color .15s; }
 .subj-swatch:hover { border-color: var(--muted); }
 .subj-name-inp { flex: 1; background: none; border: none; color: var(--text); font-family: 'Syne', sans-serif; font-size: .78rem; font-weight: 600; outline: none; min-width: 0; }
 .subj-del { background: none; border: none; color: var(--muted2); cursor: pointer; font-size: .72rem; padding: 1px 3px; border-radius: 3px; transition: color .18s; }
