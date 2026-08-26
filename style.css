@@ -319,17 +319,15 @@
 .exam-jmja-badge { font-family: 'DM Mono', monospace; font-size: .5rem; font-weight: 700; border-radius: 5px; padding: 1px 5px; flex-shrink: 0; }
 .exam-jmja-badge.jm { background: rgba(91,141,238,.18); color: #5b8dee; }
 .exam-jmja-badge.ja { background: rgba(232,74,138,.18); color: #e84a8a; }
-/* Score cluster: the main circle on the left with three smaller subject circles
-   overlapping its right edge, like satellites attached to it rather than a separate row */
-.exam-score-cluster { position: relative; display: flex; align-items: center; min-height: 92px; padding-left: 4px; }
+/* Score row: main circle + Phy/Chem/Maths circles, plain flex layout so nothing clips or overlaps
+   at any card width (the previous absolute-positioned "cluster" was fragile and glitched) */
+.exam-score-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
 .exam-score-circle { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-weight: 700; color: #0a1108; box-shadow: 0 0 0 1px rgba(255,255,255,.1) inset; text-align: center; line-height: 1.05; flex-shrink: 0; }
-.exam-score-circle.main { width: 84px; height: 84px; font-size: .88rem; position: relative; z-index: 1; }
-.exam-subj-circle-wrap { position: absolute; left: 62px; display: flex; flex-direction: column; align-items: center; gap: 1px; z-index: 2; }
-.exam-subj-circle-wrap.pos0 { top: -2px; }
-.exam-subj-circle-wrap.pos1 { top: 28px; left: 78px; }
-.exam-subj-circle-wrap.pos2 { top: 58px; }
-.exam-subj-circle { width: 34px; height: 34px; font-size: .54rem; border: 2px solid var(--ex-surface); }
-.exam-subj-circle-name { font-size: .44rem; font-weight: 700; color: var(--ex-muted); letter-spacing: .03em; }
+.exam-score-circle.main { width: 72px; height: 72px; font-size: .8rem; }
+.exam-subj-circles { display: flex; gap: .5rem; flex: 1; justify-content: flex-end; flex-wrap: wrap; }
+.exam-subj-circle-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
+.exam-subj-circle { width: 40px; height: 40px; font-size: .58rem; border: 2px solid var(--ex-surface); }
+.exam-subj-circle-name { font-size: .48rem; font-weight: 700; color: var(--ex-muted); letter-spacing: .03em; white-space: nowrap; }
 .exam-inline-analysis { border-top: 1px solid var(--ex-border); padding-top: .55rem; margin-top: .1rem; }
 .exam-inline-analysis-title { font-size: .62rem; font-weight: 700; color: var(--ex-text); margin-bottom: .4rem; }
 .exam-inline-analysis-subj { margin-bottom: .5rem; }
