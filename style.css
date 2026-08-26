@@ -326,7 +326,7 @@
 .exam-score-circle.main { width: 72px; height: 72px; font-size: .8rem; }
 .exam-subj-circles { display: flex; gap: .5rem; flex: 1; justify-content: flex-end; flex-wrap: wrap; }
 .exam-subj-circle-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
-.exam-subj-circle { width: 40px; height: 40px; font-size: .58rem; border: 2px solid var(--ex-surface); }
+.exam-subj-circle { width: 40px; height: 40px; font-size: .58rem; border: 2px solid var(--ex-surface); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-weight: 700; color: #0a1108; box-shadow: 0 0 0 1px rgba(255,255,255,.1) inset; line-height: 1; flex-shrink: 0; }
 .exam-subj-circle-name { font-size: .48rem; font-weight: 700; color: var(--ex-muted); letter-spacing: .03em; white-space: nowrap; }
 .exam-inline-analysis { border-top: 1px solid var(--ex-border); padding-top: .55rem; margin-top: .1rem; }
 .exam-inline-analysis-title { font-size: .62rem; font-weight: 700; color: var(--ex-text); margin-bottom: .4rem; }
