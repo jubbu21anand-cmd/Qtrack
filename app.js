@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.9.3';
+const VERSION = '0.9.4';
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER — reference data (JEE / NEET) + broad units
@@ -539,7 +539,7 @@ function addSubjDraft() {
   const name = inp.value.trim();
   if (!name) return;
   if (subjDraft.length >= 10) { showToast('Max 10 subjects'); return; }
-  subjDraft.push({ id: 's' + Date.now(), name, color: PRESET_COLORS[subjDraft.length % PRESET_COLORS.length] });
+  subjDraft.push({ id: 's' + Date.now() + Math.random().toString(36).slice(2, 7), name, color: PRESET_COLORS[subjDraft.length % PRESET_COLORS.length] });
   inp.value = '';
   renderSubjDraft();
 }
@@ -1374,35 +1374,83 @@ function examCalcPercentile(rank, totalStudents) {
   return Math.round(Math.max(0, Math.min(100, pct)) * 100) / 100;
 }
 
-/* Colour for the main score circle: normalised onto a 0–300 scale.
-   ≤100 red (redder toward 0) · 100–180 shades of yellow (lighter as it rises) · 180–300 greener as it rises */
-function examScoreColor(score, max) {
-  const norm = max ? (Number(score) / Number(max)) * 300 : Number(score) || 0;
-  const n = Math.max(0, Math.min(300, norm));
+/* ── Grading colour engine ──────────────────────────────────────────────
+   Every score is graded on a 3-band red→yellow→green scale. Within each band the
+   colour still shifts smoothly (red gets deeper as marks drop toward 0, yellow gets
+   lighter as marks rise, green gets more saturated as marks rise) — only the band
+   *edges* change per exam/subject/difficulty. redMax/yellowMax/greenMax are the
+   upper bound (inclusive-ish) of each band, all on the same "scale" as the value n. */
+function bandColor(n, redMax, yellowMax, greenMax) {
+  n = Math.max(0, Math.min(greenMax, Number(n) || 0));
   let h, l;
-  if (n <= 100) { h = 0; l = 28 + (n / 100) * 16; }
-  else if (n <= 180) { const t = (n - 100) / 80; h = 45 + t * 10; l = 42 + t * 18; }
-  else { const t = (n - 180) / 120; h = 68 + t * 52; l = 40 + t * 8; }
+  if (n <= redMax) {
+    const t = redMax > 0 ? n / redMax : 1;
+    h = 0; l = 28 + t * 16;
+  } else if (n <= yellowMax) {
+    const t = (n - redMax) / ((yellowMax - redMax) || 1);
+    h = 45 + t * 10; l = 42 + t * 18;
+  } else {
+    const t = (n - yellowMax) / ((greenMax - yellowMax) || 1);
+    h = 68 + t * 52; l = 40 + t * 8;
+  }
   return `hsl(${Math.round(h)},72%,${Math.round(l)}%)`;
 }
 
-/* Colour for a per-subject circle, normalised onto a 0–100 scale.
-   Physics & Chemistry: <40 red (redder toward 0) · 40–69 yellow · ≥70 green (greener as it rises)
-   Maths: ≤15 red (redder toward 0) · 15–30 yellow · >30 green (greener toward 100) */
-function examSubjScoreColor(fam, score, max) {
-  const norm = max ? (Number(score) / Number(max)) * 100 : Number(score) || 0;
-  const n = Math.max(0, Math.min(100, norm));
-  let h, l;
-  if (fam === 'maths') {
-    if (n <= 15) { h = 0; l = 28 + (n / 15) * 10; }
-    else if (n <= 30) { const t = (n - 15) / 15; h = 45 + t * 8; l = 40 + t * 15; }
-    else { const t = (n - 30) / 70; h = 68 + t * 52; l = 40 + t * 8; }
-  } else {
-    if (n < 40) { h = 0; l = 28 + (n / 40) * 14; }
-    else if (n < 70) { const t = (n - 40) / 30; h = 45 + t * 8; l = 40 + t * 18; }
-    else { const t = Math.min(1, (n - 70) / 30); h = 68 + t * 52; l = 40 + t * 8; }
+/* Main score-circle colour for a whole test, mode/difficulty aware.
+   JEE Main: bands depend on how tough the paper was (set in Paper Analysis).
+   JEE Advanced: one uniform scale, out of 186 — Advanced papers are basically always
+   moderate-to-tough, so there's no easy-paper variant.
+   Boards: graded on percentage, not raw marks. NEET: graded on the 720-mark scale. */
+function examScoreColor(t) {
+  const score = Number(t.obtainedMarks) || 0;
+  const max = Number(t.totalMarks) || 0;
+  const mode = t.mode || 'jee';
+  if (mode === 'jee' && (t.jmja || 'JM') === 'JA') {
+    const n = max ? (score / max) * 186 : score;
+    return bandColor(n, 49, 99, 186);
   }
-  return `hsl(${Math.round(h)},72%,${Math.round(l)}%)`;
+  if (mode === 'jee') {
+    const n = max ? (score / max) * 300 : score;
+    const diff = t.difficulty || 'mod';
+    if (diff === 'easy') return bandColor(n, 159, 199, 300);
+    if (diff === 'tough') return bandColor(n, 100, 180, 300);
+    return bandColor(n, 120, 180, 300); // moderate (also the default when difficulty isn't set)
+  }
+  if (mode === 'boards') {
+    const pct = max ? (score / max) * 100 : score;
+    return bandColor(pct, 69, 84, 100);
+  }
+  if (mode === 'neet') {
+    const n = max ? (score / max) * 720 : score;
+    return bandColor(n, 400, 549, 720);
+  }
+  // Other/custom modes: no fixed scale given, fall back to a plain percentage read
+  const pct = max ? (score / max) * 100 : score;
+  return bandColor(pct, 39, 69, 100);
+}
+
+/* Per-subject circle colour, mode/family aware. */
+function examSubjScoreColor(mode, jmja, fam, score, max) {
+  const s = Number(score) || 0;
+  const m = Number(max) || 0;
+  if (mode === 'jee' && jmja === 'JA') {
+    // JEE Advanced subjects are out of ~62 each
+    const n = m ? (s / m) * 62 : s;
+    if (fam === 'chemistry') return bandColor(n, 24, 39, 62);   // Below Average / Average / Good
+    return bandColor(n, 17, 31, 62);                            // Physics & Maths: below avg / good / excellent
+  }
+  if (mode === 'jee') {
+    // JEE Main subjects are out of 100 each, and this scale doesn't change with paper difficulty
+    const n = m ? (s / m) * 100 : s;
+    if (fam === 'maths') return bandColor(n, 19, 49, 100);
+    return bandColor(n, 39, 69, 100);                           // Physics & Chemistry share a scheme
+  }
+  // Boards, NEET and Other don't have a subject-specific scheme specified, so subjects are
+  // graded on the same percentage bands as their overall score.
+  const pct = m ? (s / m) * 100 : s;
+  if (mode === 'boards') return bandColor(pct, 69, 84, 100);
+  if (mode === 'neet') return bandColor(pct, 55, 76, 100); // ~400/550/720 expressed as %
+  return bandColor(pct, 39, 69, 100);
 }
 
 /* JM = JEE Main mock, JA = JEE Advanced mock — chosen by the user in the Add/Edit Test form, not auto-detected */
@@ -1413,9 +1461,13 @@ function simpleHash(str) {
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
   return String(h);
 }
-function examUnlockedList() { try { return JSON.parse(localStorage.getItem('qttrack_exam_unlocked') || '[]'); } catch (e) { return []; } }
+/* Unlocked exam-lock state now lives in sessionStorage, not localStorage: it should only be
+   remembered for as long as this browser tab/app instance stays open. Closing and reopening the
+   app (even on the same device) clears it, so a locked person's data always needs the password
+   entered fresh next time — a device that once knew the password shouldn't keep remembering it. */
+function examUnlockedList() { try { return JSON.parse(sessionStorage.getItem('qttrack_exam_unlocked') || '[]'); } catch (e) { return []; } }
 function examUnlockedHas(uid) { return examUnlockedList().includes(uid); }
-function examUnlockedAdd(uid) { const l = examUnlockedList(); if (!l.includes(uid)) { l.push(uid); localStorage.setItem('qttrack_exam_unlocked', JSON.stringify(l)); } }
+function examUnlockedAdd(uid) { const l = examUnlockedList(); if (!l.includes(uid)) { l.push(uid); sessionStorage.setItem('qttrack_exam_unlocked', JSON.stringify(l)); } }
 
 function examSubjFamily(name) {
   const n = (name || '').toLowerCase();
@@ -1647,7 +1699,7 @@ function renderExamTestsGrid(tests) {
   const famOrder = [['physics', 'PHY'], ['chemistry', 'CHEM'], ['maths', 'MATHS']];
   host.innerHTML = [...tests].reverse().map(t => {
     const badge = examJmJa(t);
-    const circleColor = examScoreColor(t.obtainedMarks, t.totalMarks || 1);
+    const circleColor = examScoreColor(t);
     const bySubj = {};
     (t.subjects || []).forEach(s => { const f = examSubjFamily(s.name); if (f) bySubj[f] = s; });
     const percentile = t.overallPercentile != null ? t.overallPercentile : examCalcPercentile(t.overallRank, t.totalStudents);
@@ -1668,7 +1720,7 @@ function renderExamTestsGrid(tests) {
         <div class="exam-subj-circles">
           ${famOrder.map(([fam, lbl]) => {
             const s = bySubj[fam];
-            const col = s ? examSubjScoreColor(fam, s.score, s.max || 100) : 'var(--ex-surface2)';
+            const col = s ? examSubjScoreColor(t.mode || 'jee', examJmJa(t), fam, s.score, s.max || 100) : 'var(--ex-surface2)';
             return `<div class="exam-subj-circle-wrap">
               <div class="exam-subj-circle" style="background:${col}">${s ? (s.score ?? '—') : '—'}</div>
               <div class="exam-subj-circle-name">${lbl}</div>
@@ -1769,7 +1821,7 @@ function examAnalysisSummaryHTML(t) {
     if (unitKeys.length) {
       const sorted = [...unitKeys].sort((a, b) => (units[b].attempted || 0) - (units[a].attempted || 0));
       html += `<table class="exam-inline-analysis-table"><tr><th>Topic</th><th>Attempted</th><th>Scored</th></tr>
-        ${sorted.map(u => `<tr><td>${escHtml(u)}</td><td>${units[u].attempted ?? '—'}%</td><td>${units[u].scored ?? '—'}%</td></tr>`).join('')}
+        ${sorted.map(u => `<tr><td>${escHtml(u)}</td><td>${units[u].attempted ?? '—'}</td><td>${units[u].scored ?? '—'}</td></tr>`).join('')}
       </table>`;
     }
     const review = t.subjectReviews && t.subjectReviews[subj];
@@ -1831,9 +1883,9 @@ function renderExamSubjRows() {
   if (!host) return;
   host.innerHTML = examDraftSubjects.map((r, i) => `
     <div class="exam-subj-row">
-      <input type="text" placeholder="Subject" value="${escHtml(r.name || '')}" oninput="examDraftSubjects[${i}].name=this.value">
-      <input type="number" placeholder="Score" value="${r.score ?? ''}" oninput="examDraftSubjects[${i}].score=this.value">
-      <input type="number" placeholder="Max" value="${r.max ?? ''}" oninput="examDraftSubjects[${i}].max=this.value">
+      <input type="text" autocomplete="off" placeholder="Subject" value="${escHtml(r.name || '')}" oninput="examDraftSubjects[${i}].name=this.value">
+      <input type="number" autocomplete="off" placeholder="Score" value="${r.score ?? ''}" oninput="examDraftSubjects[${i}].score=this.value">
+      <input type="number" autocomplete="off" placeholder="Max" value="${r.max ?? ''}" oninput="examDraftSubjects[${i}].max=this.value">
       <button class="exam-subj-row-del" onclick="removeExamSubjRow(${i})">✕</button>
     </div>`).join('');
 }
@@ -1843,6 +1895,16 @@ function removeExamSubjRow(i) { examDraftSubjects.splice(i, 1); renderExamSubjRo
 function saveExamTest() {
   const name = document.getElementById('examTestName').value.trim();
   if (!name) { showToast('Enter a test name'); return; }
+  // Flush any pending subject-row edits straight from the DOM before reading examDraftSubjects —
+  // on some mobile keyboards the first row's oninput can lag behind a fast typist, which was
+  // silently dropping the first subject (usually Physics) from the saved test.
+  document.querySelectorAll('#examSubjRows .exam-subj-row').forEach((row, i) => {
+    if (!examDraftSubjects[i]) return;
+    const inputs = row.querySelectorAll('input');
+    if (inputs[0]) examDraftSubjects[i].name = inputs[0].value;
+    if (inputs[1]) examDraftSubjects[i].score = inputs[1].value;
+    if (inputs[2]) examDraftSubjects[i].max = inputs[2].value;
+  });
   const id = examEditingId || ('ex' + Date.now());
   const rank = document.getElementById('examOverallRank').value ? Number(document.getElementById('examOverallRank').value) : null;
   const totalStudents = document.getElementById('examTotalStudents').value ? Number(document.getElementById('examTotalStudents').value) : null;
@@ -1925,13 +1987,13 @@ function renderExamAnalysisRows() {
     if (!units) return;
     if (!examDraftAnalysis[s.name]) examDraftAnalysis[s.name] = {};
     html += `<div class="exam-analysis-subj"><div class="exam-analysis-subj-name">${escHtml(s.name)}</div>
-      <div class="exam-analysis-hdr"><span>Topic</span><span>Attempted %</span><span>Scored %</span></div>
+      <div class="exam-analysis-hdr"><span>Topic</span><span>Attempted</span><span>Scored</span></div>
       ${units.map(u => {
         const v = examDraftAnalysis[s.name][u] || { attempted: '', scored: '' };
         return `<div class="exam-analysis-unit-row">
           <span class="exam-analysis-unit-name">${escHtml(u)}</span>
-          <input type="number" min="0" max="100" value="${v.attempted}" oninput="setExamAnalysisVal('${escHtml(s.name)}','${escHtml(u)}','attempted',this.value)">
-          <input type="number" min="0" max="100" value="${v.scored}" oninput="setExamAnalysisVal('${escHtml(s.name)}','${escHtml(u)}','scored',this.value)">
+          <input type="number" min="0" placeholder="marks" value="${v.attempted}" oninput="setExamAnalysisVal('${escHtml(s.name)}','${escHtml(u)}','attempted',this.value)">
+          <input type="number" min="0" placeholder="marks" value="${v.scored}" oninput="setExamAnalysisVal('${escHtml(s.name)}','${escHtml(u)}','scored',this.value)">
         </div>`;
       }).join('')}
       <div class="exam-review-box">
@@ -2068,14 +2130,14 @@ function renderExamCharts(tests) {
     data: {
       labels: unitNames.length ? unitNames : ['No analysis data yet'],
       datasets: [{
-        label: 'Avg. scored %', data: unitNames.length ? unitNames.map(n => Math.round(unitAgg[n].sum / unitAgg[n].n)) : [0],
+        label: 'Avg. scored marks', data: unitNames.length ? unitNames.map(n => Math.round(unitAgg[n].sum / unitAgg[n].n)) : [0],
         backgroundColor: 'rgba(34,197,94,.25)', borderColor: '#22c55e', pointBackgroundColor: '#22c55e'
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
-      scales: { r: { min: 0, max: 100, grid: { color: gc }, angleLines: { color: gc }, pointLabels: { color: tc, font: { size: 8 } }, ticks: { display: false } } }
+      scales: { r: { min: 0, grid: { color: gc }, angleLines: { color: gc }, pointLabels: { color: tc, font: { size: 8 } }, ticks: { display: false } } }
     }
   });
 
@@ -2105,14 +2167,14 @@ function renderExamCharts(tests) {
     data: {
       labels: wNames.length ? wNames : ['No analysis data yet'],
       datasets: [
-        { label: 'Attempted %', data: wNames.length ? wNames.map(n => Math.round(wUnitAgg[n].attSum / (wUnitAgg[n].attN || 1))) : [0], backgroundColor: 'rgba(91,141,238,.22)', borderColor: '#5b8dee', pointBackgroundColor: '#5b8dee' },
-        { label: 'Scored %', data: wNames.length ? wNames.map(n => Math.round(wUnitAgg[n].scoSum / (wUnitAgg[n].scoN || 1))) : [0], backgroundColor: 'rgba(34,197,94,.22)', borderColor: '#22c55e', pointBackgroundColor: '#22c55e' }
+        { label: 'Attempted', data: wNames.length ? wNames.map(n => Math.round(wUnitAgg[n].attSum / (wUnitAgg[n].attN || 1))) : [0], backgroundColor: 'rgba(91,141,238,.22)', borderColor: '#5b8dee', pointBackgroundColor: '#5b8dee' },
+        { label: 'Scored', data: wNames.length ? wNames.map(n => Math.round(wUnitAgg[n].scoSum / (wUnitAgg[n].scoN || 1))) : [0], backgroundColor: 'rgba(34,197,94,.22)', borderColor: '#22c55e', pointBackgroundColor: '#22c55e' }
       ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
-      scales: { r: { min: 0, max: 100, grid: { color: gc }, angleLines: { color: gc }, pointLabels: { color: tc, font: { size: 8 } }, ticks: { display: false } } }
+      scales: { r: { min: 0, grid: { color: gc }, angleLines: { color: gc }, pointLabels: { color: tc, font: { size: 8 } }, ticks: { display: false } } }
     }
   });
 }
