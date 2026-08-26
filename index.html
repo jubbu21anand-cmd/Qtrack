@@ -227,11 +227,11 @@
           <canvas id="examProgressChart" style="display:none"></canvas>
         </div>
       </div>
-      <div class="exam-section">
+      <div class="exam-section" id="examRankSection">
         <div class="exam-section-title">Rank over time <span id="examRankTrendBadge"></span></div>
         <div class="chart-wrap" style="height:190px;"><canvas id="examRankChart"></canvas></div>
       </div>
-      <div class="exam-charts-row">
+      <div class="exam-charts-row" id="examAnalysisChartsRow">
         <div class="exam-section">
           <div class="exam-section-title">Subject strengths</div>
           <div class="chart-wrap" style="height:220px;"><canvas id="examRadarChart"></canvas></div>
@@ -613,8 +613,8 @@
     <div class="exam-modal-grid">
       <div><div class="field-label">Total marks</div><input type="number" id="examTotalMarks" placeholder="300"></div>
       <div><div class="field-label">Marks obtained</div><input type="number" id="examObtMarks" placeholder="210"></div>
-      <div><div class="field-label">Overall rank</div><input type="number" id="examOverallRank" oninput="updateExamPercentilePreview()" placeholder="1240"></div>
-      <div><div class="field-label">Total candidates appeared</div><input type="number" id="examTotalStudents" oninput="updateExamPercentilePreview()" placeholder="150000"></div>
+      <div id="examRankField"><div class="field-label">Overall rank</div><input type="number" id="examOverallRank" oninput="updateExamPercentilePreview()" placeholder="1240"></div>
+      <div id="examStudentsField"><div class="field-label">Total candidates appeared</div><input type="number" id="examTotalStudents" oninput="updateExamPercentilePreview()" placeholder="150000"></div>
     </div>
     <div class="exam-percentile-preview" id="examPercentilePreview" style="font-size:.68rem;color:var(--muted);margin:-.35rem 0 .6rem">Percentile is calculated automatically from rank and total candidates.</div>
     <div class="field-label" style="margin-top:.2rem">Subject-wise breakdown</div>
@@ -623,7 +623,7 @@
     <button class="add-subj-btn" style="margin:.3rem 0 .5rem" onclick="addExamSubjRow()">+ Add subject row</button>
     <div class="field-label">Personal note</div>
     <textarea id="examNote" rows="3" placeholder="What went wrong, what to revise..."></textarea>
-    <button class="exam-analysis-open-btn" onclick="openExamAnalysisModal()">🔍 Analysis<span id="examDiffPreview"></span></button>
+    <button class="exam-analysis-open-btn" id="examAnalysisOpenBtn" onclick="openExamAnalysisModal()">🔍 Analysis<span id="examDiffPreview"></span></button>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal('examTestModal')">Cancel</button>
       <button class="btn-confirm" onclick="saveExamTest()">Save</button>
