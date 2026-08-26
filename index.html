@@ -15,7 +15,7 @@
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.1</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.2</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -53,7 +53,7 @@
     <div style="flex:1"></div>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack 0.9.1 · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack 0.9.2 · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -266,7 +266,7 @@
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 0.9.1 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 0.9.2 · Beta · qttrack.vercel.app</div>
 
     <div class="about-subtabs">
       <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
@@ -347,35 +347,32 @@
   <div class="changelog-wrap">
 
     <div class="cl-version">
-      <div><span class="cl-ver-num">0.9.1</span></div>
-      <ul class="cl-items">
-        <li>Exam Analytics: brand new overview strip — Average Performance, Top Score and Lowest Score (each with the test name and date) at the top of the page, all time, per mode</li>
-        <li>Exam Analytics: the old 4-box single-test summary is gone — every test is now its own compact colour-graded score card in a grid, showing a score circle (green→yellow→red), Physics/Chemistry/Maths bars, rank, percentile and total candidates, editable and openable for analysis at any time</li>
-        <li>Exam Analytics: percentile is now calculated automatically from rank and total candidates appeared using Percentile = ((N − R) / N) × 100 — no more manual entry</li>
-        <li>Exam Analytics: JM / JA badges auto-detected for JEE Main and JEE Advanced mock tests, and both are now always plotted as separate coloured series on every chart instead of being merged</li>
-        <li>Exam Analytics: new Rank trend chart (lower is better, shown inverted) and an increase/decrease indicator on both the Marks and Rank charts comparing against your last test</li>
-        <li>Exam Analytics: new subject-wise bar chart comparing Physics/Chemistry/Maths across every test</li>
-        <li>Exam Analytics: Paper Analysis now includes a per-subject written review box and a "look it up" reference link on every topic row, including Physics topics</li>
-        <li>New: explicit "Analysis" toggle on the Exam Analytics page to show/hide all analytics graphs on demand</li>
-        <li>Syllabus Tracker: chapters are now compact vertical tiles in a wrapping grid instead of full-width horizontal rows</li>
-        <li>Syllabus Tracker: new Backlog and Question Practice buttons on every chapter</li>
-        <li>Syllabus Tracker: new "Progress" view — every subject side by side, two per row, the last one spanning full width — plus a plain-language explanation of the progress formula pinned to the bottom of the page</li>
-        <li>About: new "Syllabus Tracker" sub-tab explaining exactly how chapter priorities and the progress % are calculated, in beginner-friendly terms</li>
-        <li>FAQ: added a teaser about upcoming AI integration</li>
-      </ul>
-    </div>
-
-    <div class="cl-version">
       <div><span class="cl-ver-num">0.9.0</span></div>
       <ul class="cl-items">
         <li>New: Syllabus Tracker — track JEE (PCM) and NEET (PCB) chapter-wise progress with priority-weighted scoring, plus a fully custom "Other" mode for any subject; switch between Priority and Unit (broad-topic) views, filter by class, and toggle between everyone using the device</li>
-        <li>New: per-person password lock for Exam Analytics, set from the ⚙ icon — locked data stays hidden from other devices until the password is entered</li>
-        <li>New: per-person toggle in Exam Analytics so everyone sharing a device can keep separate test records</li>
-        <li>Exam Analytics: summary now shows overall rank and percentile instead of per-subject rank/percentile, in a colourful square layout matching the Question Tracker cards</li>
-        <li>Exam Analytics: removed total errors / negative-marking fields; added a "🔍 Analysis" paper-feedback survey (difficulty rating, topic-wise attempted % and scored % estimates) shown only when a test is opened</li>
-        <li>New: Attempted-vs-Scored web chart per subject in Exam Analytics, alongside a weak/strong topic radar built from paper analysis survey data</li>
-        <li>Fixed: Update Log now nests patch versions (like 0.8.1) under their parent version instead of listing them as separate entries</li>
+        <li>New: password lock for Exam Analytics, — locked data stays hidden from other devices until the password is entered</li>
+        <li>New: toggle in Exam Analytics so everyone sharing a device can keep separate test records</li>
+        <li>Exam Analytics: summary now shows overall rank and percentile</li>
+        <li>Exam Analytics: added a "Analysis" paper-feedback survey for student post exam feadback </li>
+        <li>New: charts and graphs for indepth analysis of paper</li>
+        <li>minor bug fixes and reworks</li>
       </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.1</span>
+        <ul class="cl-items">
+          <li> major architectural rework on Exam Anlaytics and some cool features added</li>
+          <li>Syllabus Tracker: new Backlog and Question Practice buttons on every chapter</li>
+          <li>Syllabus Tracker: new "Progress" view</li>
+          <li>major code rewrite and bug fixing</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.2</span>
+        <ul class="cl-items">
+          <li>major bug fixes and complete re-write on exam analytics</li>
+          <li> visuals improved with new feautres added in syllabus tracker</li>
+        </ul>
+      </div>
     </div>
 
     <div class="cl-version">
@@ -385,14 +382,14 @@
         <li>New: JEE / NEET / Boards / Other mode toggle in Exam Analytics to keep competitive and board exam scores from skewing each other's averages</li>
         <li>New: Anonymous mode — hide a person's question data from every other device while keeping it fully visible on the device that turned it on</li>
         <li>New: Pomodoro mode in Study Tracker — automatic work/break cycling with a long break every 4th round and a full-screen flash when phases change</li>
-        <li>Fixed: All-Time dropdown arrow replaced with a properly scalable icon</li>
         <li>Fixed: Study Tracker's fluid fill/drain animation, which wasn't rendering</li>
         <li>Updated About, How to Use, and FAQ sections for all of the above</li>
+        <li>minor functional updates</li>
       </ul>
       <div class="cl-patch">
         <span class="cl-patch-num">0.8.1</span>
         <ul class="cl-items">
-          <li>Exam Analytics re-themed to green &amp; black, matching its own identity separate from Study Tracker's purple</li>
+          <li>exam analytics visual changes and added minor features</li>
         </ul>
       </div>
     </div>
@@ -400,14 +397,12 @@
     <div class="cl-version">
       <div><span class="cl-ver-num">0.7.0</span></div>
       <ul class="cl-items">
-        <li>New: Study Tracker — purple/black-themed focus timer with ring-shaped stopwatch/timer, fluid fill animation, and multi-person simultaneous tracking</li>
-        <li>New: Exam Analytics tab (coming soon preview)</li>
+        <li>New: Study Tracker — focus timer with ring-shaped stopwatch/timer</li>
         <li>Renamed "Home" to "Question Tracker" in the menu</li>
         <li>Removed the confirmation popup when marking a day's log as done</li>
         <li>"Log done" button moved to the bottom of each person's card</li>
-        <li>Enlarged the All-Time dropdown arrow</li>
+        <li>minor functional fixes and upgrades</li>
         <li>Week/Month charts: browse previous weeks and months, with people shown as separate side-by-side bars instead of stacked</li>
-        <li>Update Log formatting: entries now indented and listed below each version number</li>
       </ul>
     </div>
 
@@ -494,7 +489,7 @@
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 0.9.1</span>
+  <span>QTrack 0.9.2</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
