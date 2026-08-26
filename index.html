@@ -15,7 +15,7 @@
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.2</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.3</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -53,7 +53,7 @@
     <div style="flex:1"></div>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack 0.9.2 · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack 0.9.3 · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -200,6 +200,9 @@
     <div class="exam-chip-row" id="examChipRow"></div>
     <div class="exam-mode-toggle" id="examModeToggle"></div>
 
+    <div id="examLockedScreen" class="exam-empty" style="display:none;text-align:center;padding:2rem 1rem"></div>
+
+    <div id="examContent">
     <div class="exam-overview-strip" id="examOverviewStrip"></div>
 
     <div class="exam-section-title" style="margin:.3rem 0 .5rem">Tests</div>
@@ -243,6 +246,7 @@
         <div class="chart-wrap" style="height:210px;"><canvas id="examSubjBarChart"></canvas></div>
       </div>
     </div>
+    </div><!-- /examContent -->
   </div>
 </div><!-- /examPage -->
 
@@ -266,7 +270,7 @@
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 0.9.2 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 0.9.3 · Beta · qttrack.vercel.app</div>
 
     <div class="about-subtabs">
       <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
@@ -373,6 +377,12 @@
           <li> visuals improved with new feautres added in syllabus tracker</li>
         </ul>
       </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.3</span>
+        <ul class="cl-items">
+          <li>minor bug fixes</li>
+        </ul>
+      </div>
     </div>
 
     <div class="cl-version">
@@ -425,10 +435,13 @@
         <li>Adding people now saves reliably</li>
         <li>Adding subjects now saves reliably</li>
         <li>Calendar only shows days with activity</li>
-        <ul class="cl-sub">
-          <li>0.5.1 — Added a Report Bug button added</li>
-        </ul>
       </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.5.1</span>
+        <ul class="cl-items">
+          <li>Added a Report Bug button</li>
+        </ul>
+      </div>
     </div>
 
     <div class="cl-version">
@@ -440,13 +453,31 @@
         <li>Leaderboard added</li>
         <li>About page with how-to guide and FAQ</li>
         <li>Send feedback button added</li>
-        <ul class="cl-sub">
-          <li>0.4.1 — Your session is remembered next time you open the app</li>
-          <li>0.4.2 — Layout fixes on phones</li>
-          <li>0.4.3 — First-visit tip pointing to the menu</li>
-          <li>0.4.4 — Smoother live sync between devices</li>
-        </ul>
       </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.4.1</span>
+        <ul class="cl-items">
+          <li>Your session is remembered next time you open the app</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.4.2</span>
+        <ul class="cl-items">
+          <li>Layout fixes on phones</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.4.3</span>
+        <ul class="cl-items">
+          <li>First-visit tip pointing to the menu</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.4.4</span>
+        <ul class="cl-items">
+          <li>Smoother live sync between devices</li>
+        </ul>
+      </div>
     </div>
 
     <div class="cl-version">
@@ -465,10 +496,13 @@
         <li>Edit today's log from each person's card</li>
         <li>Weekly chart now shows Mon, Tue, Wed…</li>
         <li>Dates fixed for your local timezone</li>
-        <ul class="cl-sub">
-          <li>0.2.1 — Number keyboard on phones; single-column layout on small screens</li>
-        </ul>
       </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.2.1</span>
+        <ul class="cl-items">
+          <li>Number keyboard on phones; single-column layout on small screens</li>
+        </ul>
+      </div>
     </div>
 
     <div class="cl-version">
@@ -489,7 +523,7 @@
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 0.9.2</span>
+  <span>QTrack 0.9.3</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
