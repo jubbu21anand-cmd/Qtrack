@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.9.1';
+const VERSION = '0.9.5';
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER — reference data (JEE / NEET) + broad units
@@ -705,11 +705,17 @@ function renderSummary() {
   document.getElementById('statToday').textContent = todayTot;
   document.getElementById('statAllTime').textContent = allTot;
   const inner = document.getElementById('topPerformerInner');
-  if (!users.length) { inner.innerHTML = '<span style="color:var(--muted)">—</span>'; return; }
-  const ranked = [...users].map(u => ({ ...u, score: getUserTotal(u.id, 'alltime') })).sort((a, b) => b.score - a.score);
-  const lead = ranked[1] ? ranked[0].score - ranked[1].score : ranked[0].score;
-  inner.innerHTML = `<span class="tp-name">${escHtml(ranked[0].name)}</span>${lead > 0 ? `<span class="tp-lead">▲${lead}</span>` : ''}`;
-  renderAllTimeDrop(ranked);
+  if (!users.length) {
+    inner.innerHTML = '<span style="color:var(--muted)">—</span>';
+    renderAllTimeDrop([]); renderTodayDrop([]);
+    return;
+  }
+  const rankedAll = [...users].map(u => ({ ...u, score: getUserTotal(u.id, 'alltime') })).sort((a, b) => b.score - a.score);
+  const rankedToday = [...users].map(u => ({ ...u, score: getUserTotal(u.id, 'today') })).sort((a, b) => b.score - a.score);
+  const lead = rankedAll[1] ? rankedAll[0].score - rankedAll[1].score : rankedAll[0].score;
+  inner.innerHTML = `<span class="tp-name">${escHtml(rankedAll[0].name)}</span>${lead > 0 ? `<span class="tp-lead">▲${lead}</span>` : ''}`;
+  renderAllTimeDrop(rankedAll);
+  renderTodayDrop(rankedToday);
 }
 
 /* Per-user all-time dropdown */
@@ -725,6 +731,27 @@ function renderAllTimeDrop(ranked) {
 }
 function toggleAllTimeDrop() {
   const el = document.getElementById('allTimeDropdown');
+  const other = document.getElementById('todayDropdown');
+  if (other) other.style.display = 'none';
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+/* Per-user today dropdown — same pattern as the All-Time one */
+function renderTodayDrop(ranked) {
+  const el = document.getElementById('todayDropdown');
+  if (!el) return;
+  if (!ranked.length) { el.innerHTML = '<div style="font-size:.7rem;color:var(--muted);padding:.3rem">No people yet.</div>'; return; }
+  el.innerHTML = ranked.map(u => `
+    <div style="display:flex;justify-content:space-between;gap:.6rem;font-size:.72rem;padding:.3rem .3rem">
+      <span style="font-weight:600">${escHtml(u.name)}</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--muted)">${u.score}</span>
+    </div>`).join('');
+}
+function toggleTodayDrop() {
+  const el = document.getElementById('todayDropdown');
+  const other = document.getElementById('allTimeDropdown');
+  if (other) other.style.display = 'none';
   if (!el) return;
   el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
@@ -732,6 +759,9 @@ document.addEventListener('click', (e) => {
   const drop = document.getElementById('allTimeDropdown');
   const btn = document.getElementById('allTimeDropBtn');
   if (drop && drop.style.display === 'block' && !drop.contains(e.target) && e.target !== btn) drop.style.display = 'none';
+  const drop2 = document.getElementById('todayDropdown');
+  const btn2 = document.getElementById('todayDropBtn');
+  if (drop2 && drop2.style.display === 'block' && !drop2.contains(e.target) && e.target !== btn2) drop2.style.display = 'none';
 });
 
 function renderLegend() {
@@ -876,7 +906,23 @@ function renderPeopleLegend() {
     `<div class="legend-item"><div class="legend-dot" style="background:${userColor(i)}"></div>${escHtml(u.name)}</div>`).join('');
 }
 
-/* ── Weekly chart ── */
+/* ── Weekly chart ──
+   IMPORTANT: this graph must never include a person who has Anonymous mode on for anyone
+   but themselves. Anonymous mode is meant to hide a person's numbers entirely from other
+   devices — including via indirect leakage through aggregate totals. Earlier this pulled
+   straight from state.history for ALL uids, which meant an anonymous person's questions were
+   still baked into the "This week" totals/trend line on other devices, letting anyone infer
+   their daily activity by comparing this total against the sum of the visible cards. It now
+   only ever sums over visibleUserList() (the same filter used everywhere else anonymity is
+   enforced), so an anonymous person's data never touches this chart on a device that isn't theirs. */
+function weekVisibleDayTotal(dt, subjId) {
+  const day = state.history[dt] || {};
+  return visibleUserList().reduce((sum, u) => sum + ((day[u.id] || {})[subjId] || 0), 0);
+}
+function weekVisibleDayGrandTotal(dt) {
+  const day = state.history[dt] || {};
+  return visibleUserList().reduce((sum, u) => sum + state.subjects.reduce((t, s) => t + ((day[u.id] || {})[s.id] || 0), 0), 0);
+}
 function renderWeekChart() {
   const canvas = document.getElementById('weeklyChart');
   const msg = document.getElementById('noDataMsgW');
@@ -893,19 +939,61 @@ function renderWeekChart() {
   const todayIdx = keys.indexOf(todayStr());
   const datasets = state.subjects.map(s => ({
     label: s.name,
-    data: keys.map(dt => Object.values(state.history[dt] || {}).reduce((sum, u) => sum + (u[s.id] || 0), 0)),
+    data: keys.map(dt => weekVisibleDayTotal(dt, s.id)),
     backgroundColor: s.color, borderRadius: 4, borderSkipped: false, order: 2
   }));
   // Trend line over the bars — total questions per day
   const trendColor = document.documentElement.dataset.theme === 'light' ? '#111112' : '#f0ede8';
   datasets.push({
     type: 'line', label: 'Trend',
-    data: keys.map(dt => Object.values(state.history[dt] || {}).reduce((sum, u) => sum + state.subjects.reduce((t, s) => t + (u[s.id] || 0), 0), 0)),
+    data: keys.map(dt => weekVisibleDayGrandTotal(dt)),
     borderColor: trendColor, borderWidth: 2, borderDash: [5, 4], pointRadius: 0,
     tension: .35, fill: false, yAxisID: 'yLine', order: 1
   });
   if (weekChart) { weekChart.destroy(); weekChart = null; }
   weekChart = buildChart('weeklyChart', labels, datasets, todayIdx);
+  renderWeekAvgCorner(keys);
+}
+
+/* ── "This week" corner readout — weekly avg qs solved, toggleable ──
+   Cycles: Overall avg/day → per-person avg/day → per-subject avg/day. Never includes
+   anonymous people's numbers on a device that isn't theirs (same visibleUserList() guard). */
+let weekAvgMode = 'overall'; // 'overall' | 'person' | 'subject'
+function cycleWeekAvg() {
+  weekAvgMode = weekAvgMode === 'overall' ? 'person' : weekAvgMode === 'person' ? 'subject' : 'overall';
+  renderWeekAvgCorner();
+}
+function renderWeekAvgCorner(keysIn) {
+  const el = document.getElementById('weekAvgCorner');
+  if (!el) return;
+  const now = logicalNow(), dow = now.getDay(), offset = dow === 0 ? -6 : 1 - dow;
+  const keys = keysIn || (() => {
+    const ks = [];
+    for (let i = 0; i < 7; i++) { const d = new Date(now); d.setDate(now.getDate() + offset + i); ks.push(d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())); }
+    return ks;
+  })();
+  const days = keys.length || 7;
+  if (weekAvgMode === 'overall') {
+    const total = keys.reduce((s, dt) => s + weekVisibleDayGrandTotal(dt), 0);
+    el.innerHTML = `<span class="wk-avg-label">Avg/day</span><span class="wk-avg-val">${Math.round((total / days) * 10) / 10}</span>`;
+  } else if (weekAvgMode === 'person') {
+    const users = visibleUserList();
+    if (!users.length) { el.innerHTML = `<span class="wk-avg-label">Avg/day</span><span class="wk-avg-val">—</span>`; }
+    else {
+      el.innerHTML = users.map(u => {
+        const total = keys.reduce((s, dt) => s + dayTotal(u.id, dt), 0);
+        return `<span class="wk-avg-chip">${escHtml(u.name)}<b>${Math.round((total / days) * 10) / 10}</b></span>`;
+      }).join('');
+    }
+  } else {
+    if (!state.subjects.length) { el.innerHTML = `<span class="wk-avg-label">Avg/day</span><span class="wk-avg-val">—</span>`; }
+    else {
+      el.innerHTML = state.subjects.map(s => {
+        const total = keys.reduce((sum, dt) => sum + weekVisibleDayTotal(dt, s.id), 0);
+        return `<span class="wk-avg-chip">${escHtml(s.name)}<b>${Math.round((total / days) * 10) / 10}</b></span>`;
+      }).join('');
+    }
+  }
 }
 
 function buildChart(id, labels, datasets, todayIdx = -1, stackedBars = true) {
@@ -1247,6 +1335,9 @@ function showPage(pageId, navId) {
   document.getElementById(pageId).classList.add('active');
   document.getElementById(navId).classList.add('active');
   closeSidebar();
+  // Leaving Exam Analytics always re-locks: any auth for this viewing session is dropped the
+  // instant you navigate away, so coming back (even to the same person) demands the password again.
+  if (pageId !== 'examPage') { examAuthedUid = null; examAuthedCompareUid = null; }
   if (pageId === 'leaderboardPage') renderLeaderboard();
   if (pageId === 'studyPage') renderStudyPage();
   if (pageId === 'examPage') renderExamPage();
@@ -1411,9 +1502,13 @@ function simpleHash(str) {
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
   return String(h);
 }
-function examUnlockedList() { try { return JSON.parse(localStorage.getItem('qttrack_exam_unlocked') || '[]'); } catch (e) { return []; } }
-function examUnlockedHas(uid) { return examUnlockedList().includes(uid); }
-function examUnlockedAdd(uid) { const l = examUnlockedList(); if (!l.includes(uid)) { l.push(uid); localStorage.setItem('qttrack_exam_unlocked', JSON.stringify(l)); } }
+/* Exam Analytics locks are re-checked every single time — there is deliberately NO persistence
+   (no localStorage, no "remember me") for an unlocked state. examAuthedUid/examAuthedCompareUid
+   are plain in-memory variables: a page refresh wipes them automatically, and switching to a
+   different person or leaving the Exam Analytics page resets them on purpose, so the password
+   must be re-entered every single time a locked person's data is viewed. */
+let examAuthedUid = null;
+let examAuthedCompareUid = null;
 
 function examSubjFamily(name) {
   const n = (name || '').toLowerCase();
@@ -1442,6 +1537,27 @@ function renderExamPage() {
   if (!examUid || !state.users[examUid]) examUid = users[0].id;
   renderExamChips();
   renderExamModeToggle();
+
+  // Hard gate: a locked person's data is never rendered unless they are authenticated THIS instant
+  // (examAuthedUid must exactly match examUid — see note above the variable declaration).
+  const locked = state.exams.locks[examUid];
+  const content = document.getElementById('examContent');
+  const lockedScreen = document.getElementById('examLockedScreen');
+  if (locked && examAuthedUid !== examUid) {
+    if (content) content.style.display = 'none';
+    if (lockedScreen) {
+      lockedScreen.style.display = 'block';
+      lockedScreen.innerHTML = `
+        <div style="font-size:2rem;margin-bottom:.5rem">🔒</div>
+        <div style="font-weight:700;margin-bottom:.3rem">${escHtml(state.users[examUid]?.name || 'This person')}'s Exam Analytics is locked</div>
+        <div style="font-size:.72rem;color:var(--ex-muted);margin-bottom:1rem">Enter the password to view it. You'll need to enter it again next time — on refresh, on switching users, or on leaving this page.</div>
+        <button class="btn-confirm" style="max-width:220px;margin:0 auto" onclick="examPromptUnlockCurrent()">Enter password</button>`;
+    }
+    return;
+  }
+  if (content) content.style.display = '';
+  if (lockedScreen) lockedScreen.style.display = 'none';
+
   const tests = examTestsForMode();
   renderExamOverview(tests);
   renderExamTestsGrid(tests);
@@ -1453,16 +1569,34 @@ function renderExamPage() {
   if (examCompareOpen) renderExamCompare();
 }
 
+function examPromptUnlockCurrent() {
+  examPendingUid = examUid;
+  examPassEnterMode = 'primary';
+  document.getElementById('examPassEnterHint').textContent = `${state.users[examUid]?.name || 'This person'} has locked their Exam Analytics. Enter their password to view it.`;
+  document.getElementById('examPassEnterInput').value = '';
+  openModal('examPassEnterModal');
+}
+function examPromptUnlockCompare() {
+  examPendingUid = examCompareUid;
+  examPassEnterMode = 'compare';
+  document.getElementById('examPassEnterHint').textContent = `${state.users[examCompareUid]?.name || 'This person'} has locked their Exam Analytics. Enter their password to compare against them.`;
+  document.getElementById('examPassEnterInput').value = '';
+  openModal('examPassEnterModal');
+}
+
 function toggleExamCompare() {
   examCompareOpen = !examCompareOpen;
   renderExamPage();
 }
 
-/* Compare against another person — password-gated if they've locked their Exam Analytics */
+/* Compare against another person — password-gated if they've locked their Exam Analytics.
+   Re-checked on every switch: examAuthedCompareUid is cleared whenever the compare target changes,
+   so picking someone else and picking them back again still demands the password again. */
 function examSelectCompareUser(uid) {
   if (uid === examCompareUid) return;
+  examAuthedCompareUid = null;
   const locked = state.exams.locks[uid];
-  if (locked && !examUnlockedHas(uid)) {
+  if (locked) {
     examPendingUid = uid;
     examPassEnterMode = 'compare';
     document.getElementById('examPassEnterHint').textContent = `${state.users[uid]?.name || 'This person'} has locked their Exam Analytics. Enter their password to compare against them.`;
@@ -1486,6 +1620,16 @@ function renderExamCompare() {
     const locked = !!state.exams.locks[u.id];
     return `<button class="exam-chip ${u.id === examCompareUid ? 'active' : ''} ${locked ? 'locked-chip' : ''}" onclick="examSelectCompareUser('${u.id}')">${escHtml(u.name)}</button>`;
   }).join('');
+
+  // Same hard gate as the primary view: a locked compare target's data never renders without fresh auth.
+  const compareLocked = state.exams.locks[examCompareUid];
+  if (compareLocked && examAuthedCompareUid !== examCompareUid) {
+    resultHost.innerHTML = `<div class="exam-empty" style="text-align:center;padding:1.4rem 1rem">🔒 ${escHtml(state.users[examCompareUid]?.name || 'This person')}'s data is locked.
+      <br><button class="exam-icon-btn" style="margin-top:.6rem" onclick="examPromptUnlockCompare()">Enter password</button></div>`;
+    if (examCompareTestsChart) { examCompareTestsChart.destroy(); examCompareTestsChart = null; }
+    if (examComparePerfChart) { examComparePerfChart.destroy(); examComparePerfChart = null; }
+    return;
+  }
 
   const meTests = examTestsForMode();
   const themTests = Object.values(state.exams.tests).filter(t => (t.mode || 'jee') === examMode && t.ownerUid === examCompareUid).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
@@ -1684,10 +1828,14 @@ function renderExamChips() {
   }).join('') + `<button class="exam-settings-btn" onclick="openExamPassSet()" title="Lock/unlock ${escHtml(state.users[examUid]?.name || '')}'s data">⚙</button>`;
 }
 
+/* Selecting a locked person always re-prompts for the password — examAuthedUid is only ever
+   set for the exact uid just authenticated, and switching away clears it (see below), so there is
+   no way to "remember" an unlock across a switch. */
 function selectExamUser(uid) {
   if (uid === examUid) return;
+  examAuthedUid = null;
   const locked = state.exams.locks[uid];
-  if (locked && !examUnlockedHas(uid)) {
+  if (locked) {
     examPendingUid = uid;
     examPassEnterMode = 'primary';
     document.getElementById('examPassEnterHint').textContent = `${state.users[uid]?.name || 'This person'} has locked their Exam Analytics. Enter their password to view it.`;
@@ -1703,11 +1851,12 @@ function submitExamPasswordEnter() {
   const pw = document.getElementById('examPassEnterInput').value;
   const locked = state.exams.locks[examPendingUid];
   if (locked && simpleHash(pw) === locked.hash) {
-    examUnlockedAdd(examPendingUid);
     closeModal('examPassEnterModal');
     if (examPassEnterMode === 'compare') {
+      examAuthedCompareUid = examPendingUid;
       examCompareUid = examPendingUid;
     } else {
+      examAuthedUid = examPendingUid;
       examUid = examPendingUid; examSelTestId = null; examWebSubj = null;
     }
     renderExamPage();
@@ -1716,7 +1865,15 @@ function submitExamPasswordEnter() {
   }
 }
 
+/* Changing/removing an existing lock requires being authenticated for it first — otherwise anyone
+   could bypass a lock just by overwriting it with a password of their own choosing. */
 function openExamPassSet() {
+  const locked = state.exams.locks[examUid];
+  if (locked && examAuthedUid !== examUid) {
+    examPromptUnlockCurrent();
+    showToast('Enter the current password first to change it');
+    return;
+  }
   document.getElementById('examPassSetName').textContent = state.users[examUid]?.name || '';
   document.getElementById('examPassSetInput').value = '';
   openModal('examPassSetModal');
@@ -1729,7 +1886,7 @@ function submitExamPasswordSet() {
     return;
   }
   doWrite(() => fbPut('/exams/locks/' + examUid, { hash: simpleHash(pw) }))
-    .then(ok => { if (ok) { examUnlockedAdd(examUid); showToast('Password set'); } });
+    .then(ok => { if (ok) { examAuthedUid = examUid; showToast('Password set'); } });
 }
 
 function renderExamModeToggle() {
