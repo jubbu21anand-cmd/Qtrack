@@ -1602,19 +1602,40 @@ function renderExamOverview(tests) {
     </div>`;
 }
 
-/* Grid of larger, colour-graded test cards — main score circle on the left, Phy/Chem/Maths circles to the right */
+/* Which subject circles to show on a test card.
+   JEE / NEET are fixed, well-known subject sets, so they keep their dedicated family colour scales.
+   Boards / Other have no fixed subject set, so every subject the user actually added on that test is shown. */
+function examCirclesForTest(t) {
+  const bySubj = {};
+  (t.subjects || []).forEach(s => { const f = examSubjFamily(s.name); if (f) bySubj[f] = s; });
+  if (examMode === 'jee' || examMode === 'neet') {
+    const famOrder = examMode === 'jee'
+      ? [['physics', 'PHY'], ['chemistry', 'CHEM'], ['maths', 'MATHS']]
+      : [['physics', 'PHY'], ['chemistry', 'CHEM'], ['biology', 'BIO']];
+    return famOrder.map(([fam, lbl]) => {
+      const s = bySubj[fam];
+      return { label: lbl, score: s ? s.score : null, color: s ? examSubjScoreColor(fam, s.score, s.max || 100) : 'var(--ex-surface2)' };
+    });
+  }
+  return (t.subjects || []).map(s => ({
+    label: (s.name || '').toUpperCase(),
+    score: s.score,
+    color: examSubjScoreColor(examSubjFamily(s.name), s.score, s.max || 100)
+  }));
+}
+
+/* Grid of larger, colour-graded test cards — main score circle on the left, subject circles to the right */
 function renderExamTestsGrid(tests) {
   const host = document.getElementById('examTestsGrid');
   if (!host) return;
   if (!tests.length) { host.innerHTML = '<div class="exam-empty">No tests logged in this mode yet. Tap <strong>+ Add Test</strong> to log your first one.</div>'; return; }
-  const famOrder = [['physics', 'PHY'], ['chemistry', 'CHEM'], ['maths', 'MATHS']];
+  const isOther = examMode === 'other';
   host.innerHTML = [...tests].reverse().map(t => {
     const badge = examJmJa(t);
     const circleColor = examScoreColor(t.obtainedMarks, t.totalMarks || 1);
-    const bySubj = {};
-    (t.subjects || []).forEach(s => { const f = examSubjFamily(s.name); if (f) bySubj[f] = s; });
+    const circles = examCirclesForTest(t);
     const percentile = t.overallPercentile != null ? t.overallPercentile : examCalcPercentile(t.overallRank, t.totalStudents);
-    const diffClass = t.difficulty || '';
+    const pct = t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0;
     return `
     <div class="exam-test-card">
       <div class="exam-test-card-top">
@@ -1622,30 +1643,31 @@ function renderExamTestsGrid(tests) {
           <div class="exam-test-card-name">${escHtml(t.name)}</div>
           <div class="exam-test-card-date">${t.date ? dateLabel(t.date) : ''}</div>
         </div>
-        ${badge ? `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>` : ''}
+        <div style="display:flex;align-items:center;gap:.35rem">
+          ${t.difficulty ? `<span class="exam-diff-badge ${t.difficulty}">${t.difficulty}</span>` : ''}
+          ${badge ? `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>` : ''}
+        </div>
       </div>
       <div class="exam-score-row">
         <div class="exam-score-circle main" style="background:${circleColor}">${t.obtainedMarks ?? 0}<br><span style="font-size:.8em">/${t.totalMarks ?? 0}</span></div>
         <div class="exam-subj-circles">
-          ${famOrder.map(([fam, lbl]) => {
-            const s = bySubj[fam];
-            const col = s ? examSubjScoreColor(fam, s.score, s.max || 100) : 'var(--ex-surface2)';
-            return `<div class="exam-subj-circle-wrap">
-              <div class="exam-subj-circle" style="background:${col}">${s ? (s.score ?? '—') : '—'}</div>
-              <div class="exam-subj-circle-name">${lbl}</div>
-              ${t.difficulty ? `<div class="exam-subj-diff ${diffClass}">${t.difficulty}</div>` : ''}
-            </div>`;
-          }).join('')}
+          ${circles.map(c => `<div class="exam-subj-circle-wrap">
+              <div class="exam-subj-circle" style="background:${c.color}">${c.score ?? '—'}</div>
+              <div class="exam-subj-circle-name">${escHtml(c.label)}</div>
+            </div>`).join('')}
         </div>
       </div>
       <div class="exam-test-stats">
+        ${isOther ? `
+        <div>Percentage: <b>${t.totalMarks ? pct + '%' : '—'}</b></div>
+        <div>Total Marks: <b>${t.totalMarks ?? '—'}</b></div>` : `
         <div>Rank: <b>${t.overallRank ?? '—'}</b> of <b>${t.totalStudents ?? '—'}</b> candidates</div>
-        <div>Percentile: <b>${percentile != null ? percentile + '%' : '—'}</b></div>
+        <div>Percentile: <b>${percentile != null ? percentile + '%' : '—'}</b></div>`}
       </div>
       ${t.note ? `<div class="exam-note-box" style="font-size:.62rem;padding:.4rem .5rem">${escHtml(t.note)}</div>` : ''}
       <div class="exam-test-card-actions">
         <button class="exam-icon-btn" onclick="openExamModal('${t.id}')">Edit</button>
-        <button class="exam-icon-btn" onclick="openExamAnalysisFor('${t.id}')">Paper Analysis</button>
+        ${isOther ? '' : `<button class="exam-icon-btn" onclick="openExamAnalysisFor('${t.id}')">Paper Analysis</button>`}
         <button class="exam-icon-btn" onclick="deleteExamTest('${t.id}')">Delete</button>
       </div>
     </div>`;
@@ -1868,6 +1890,9 @@ function setExamDraftDifficulty(d) {
 function renderExamAnalysisRows() {
   const host = document.getElementById('examAnalysisRows');
   if (!host) return;
+  // "Other" mode has no fixed, known subject syllabus (unlike JEE/NEET), so the topic-wise breakdown
+  // portal doesn't apply here — only the difficulty rating (rendered separately, above this host) is kept.
+  if (examMode === 'other') { host.innerHTML = '<div class="exam-empty">Topic-wise breakdown isn\'t available in Other mode — just log the difficulty above.</div>'; return; }
   const subjects = examDraftSubjects.filter(s => s.name && s.name.trim());
   if (!subjects.length) { host.innerHTML = '<div class="exam-empty">Add subjects in the main form first.</div>'; return; }
   let html = '';
@@ -1945,6 +1970,15 @@ function renderExamCharts(tests) {
   examProgressChart = examRankChart = examRadarChart = examWebChart = examSubjBarChart = null;
   document.getElementById('examMarksTrendBadge').innerHTML = '';
   document.getElementById('examRankTrendBadge').innerHTML = '';
+
+  // "Other" mode has no rank/percentile data and no Paper Analysis portal (topics are JEE/NEET-specific),
+  // so the Rank chart and the whole Analysis-derived charts row (Subject strengths + Attempted vs Scored) are hidden entirely.
+  const isOther = examMode === 'other';
+  const rankSection = document.getElementById('examRankSection');
+  const analysisRow = document.getElementById('examAnalysisChartsRow');
+  if (rankSection) rankSection.style.display = isOther ? 'none' : '';
+  if (analysisRow) analysisRow.style.display = isOther ? 'none' : '';
+
   if (!tests.length) { progCanvas.style.display = 'none'; progMsg.style.display = 'block'; document.getElementById('examWebSubjPicker').innerHTML = ''; return; }
   progCanvas.style.display = 'block'; progMsg.style.display = 'none';
 
@@ -1968,34 +2002,50 @@ function renderExamCharts(tests) {
     }
   });
 
-  // Rank over time — lower is better, so the axis is reversed; JM/JA split the same way
-  document.getElementById('examRankTrendBadge').innerHTML = examTrendBadgeHTML(tests, rankFn, false);
-  examRankChart = new Chart(document.getElementById('examRankChart'), {
-    type: 'line',
-    data: { labels: tests.map(t => t.name), datasets: examBuildJmJaDatasets(tests, rankFn, '#f5c842') },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: examMode === 'jee', position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } },
-        y: { reverse: true, grid: { color: gc }, ticks: { color: tc, font: { size: 9 } } }
+  // Rank over time — lower is better, so the axis is reversed; JM/JA split the same way. Skipped entirely for "Other".
+  if (!isOther) {
+    document.getElementById('examRankTrendBadge').innerHTML = examTrendBadgeHTML(tests, rankFn, false);
+    examRankChart = new Chart(document.getElementById('examRankChart'), {
+      type: 'line',
+      data: { labels: tests.map(t => t.name), datasets: examBuildJmJaDatasets(tests, rankFn, '#f5c842') },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: examMode === 'jee', position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } },
+          y: { reverse: true, grid: { color: gc }, ticks: { color: tc, font: { size: 9 } } }
+        }
       }
-    }
-  });
+    });
+  }
 
-  // Subject-wise performance per test (grouped bars, % of each subject's max)
+  // Subject-wise performance per test (grouped bars, % of each subject's max).
+  // JEE/NEET group by known subject family; Boards/Other plot every distinct subject name the user has actually added.
   const famSet = new Set();
-  tests.forEach(t => (t.subjects || []).forEach(s => { const f = examSubjFamily(s.name); if (f) famSet.add(f); }));
-  const fams = [...famSet];
+  const subjNameSet = new Set();
+  tests.forEach(t => (t.subjects || []).forEach(s => {
+    const f = examSubjFamily(s.name);
+    if (f) famSet.add(f);
+    if (s.name) subjNameSet.add(s.name);
+  }));
+  const fams = (examMode === 'jee' || examMode === 'neet') ? [...famSet] : [...subjNameSet];
+  const subjBarPalette = ['#5b8dee', '#22c55e', '#f5c842', '#b06aed', '#e84a8a', '#f97316', '#2dd4bf', '#a3a3a3'];
   examSubjBarChart = new Chart(document.getElementById('examSubjBarChart'), {
     type: 'bar',
     data: {
       labels: tests.map(t => t.name),
-      datasets: fams.map(f => ({
-        label: f.charAt(0).toUpperCase() + f.slice(1),
-        data: tests.map(t => { const s = (t.subjects || []).find(s => examSubjFamily(s.name) === f); return s ? (s.max ? Math.round((s.score / s.max) * 1000) / 10 : s.score) : null; }),
-        backgroundColor: EXAM_SUBJ_COLOR[f], borderRadius: 3, borderSkipped: false, barPercentage: 1, categoryPercentage: .92
-      }))
+      datasets: fams.map((f, i) => {
+        const byFamily = examMode === 'jee' || examMode === 'neet';
+        const findSubj = t => byFamily
+          ? (t.subjects || []).find(s => examSubjFamily(s.name) === f)
+          : (t.subjects || []).find(s => s.name === f);
+        return {
+          label: byFamily ? (f.charAt(0).toUpperCase() + f.slice(1)) : f,
+          data: tests.map(t => { const s = findSubj(t); return s ? (s.max ? Math.round((s.score / s.max) * 1000) / 10 : s.score) : null; }),
+          backgroundColor: byFamily ? EXAM_SUBJ_COLOR[f] : subjBarPalette[i % subjBarPalette.length],
+          borderRadius: 3, borderSkipped: false, barPercentage: 1, categoryPercentage: .92
+        };
+      })
     },
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -2006,6 +2056,10 @@ function renderExamCharts(tests) {
       }
     }
   });
+
+  // Weak/strong broad-topic radar and the Attempted-vs-Scored web are both built from Paper Analysis data,
+  // which doesn't exist for "Other" mode (no Paper Analysis portal there) — skip building them entirely.
+  if (isOther) return;
 
   // Weak/strong broad-topic radar — averaged "scored %" from every test's paper analysis, across all subjects
   const unitAgg = {};
@@ -2836,4 +2890,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'Enter') addSubjDraft();
   });
 });
-
