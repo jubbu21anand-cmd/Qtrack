@@ -356,6 +356,47 @@ function copySession() {
     .catch(() => showToast('Your ID: ' + fmtSid(sessionId)));
 }
 
+/* ── Share invite (session popup) ──
+   Builds a shareable link that carries the session ID as a query param, plus a short
+   code and a friendly ready-to-send message. Opening the link with ?join=SID auto-fills
+   the join box (wired up below in checkJoinLink()). */
+function buildShareInviteLink() {
+  const url = new URL(location.href);
+  url.search = ''; url.hash = '';
+  url.searchParams.set('join', sessionId);
+  return url.toString();
+}
+function shareSessionInvite() {
+  const link = buildShareInviteLink();
+  const msg = `Hey! Join my QTrack study lobby so we can track questions together 📚\n\nLink: ${link}\nOr just enter this code in QTrack: ${fmtSid(sessionId)}`;
+  document.getElementById('shareInviteText').value = msg;
+  closeModal('sessionModal');
+  openModal('shareInviteModal');
+  if (navigator.share) {
+    navigator.share({ title: 'Join my QTrack session', text: msg, url: link }).catch(() => {});
+  }
+}
+function copyShareInvite() {
+  const txt = document.getElementById('shareInviteText').value;
+  navigator.clipboard.writeText(txt)
+    .then(() => showToast('Invite copied!'))
+    .catch(() => showToast('Could not copy — select the text manually'));
+}
+/* If the app was opened via a shared invite link (?join=SID), pre-fill the join box
+   so the friend just has to tap Join once. */
+function checkJoinLink() {
+  const p = new URLSearchParams(location.search).get('join');
+  if (!p) return;
+  const clean = p.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  if (clean.length >= 8 && clean !== sessionId) {
+    const inp = document.getElementById('joinSidInput');
+    if (inp) inp.value = fmtSid(clean);
+    openModal('sessionModal');
+    showToast('Invite link detected — tap Join to connect');
+  }
+  history.replaceState({}, '', location.pathname);
+}
+
 async function joinSession() {
   const raw = document.getElementById('joinSidInput').value.trim();
   const clean = raw.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
@@ -1344,6 +1385,113 @@ function showPage(pageId, navId) {
   if (pageId === 'syllabusPage') renderSyllabusPage();
 }
 
+/* ── Daily motivational quote ──
+   A small curated bank of real Hindi + English motivational/educational quotes, shown as
+   a bilingual pair and rotated deterministically by the date (same quote all day, for
+   everyone, changes at midnight) rather than fetched from a live third-party API — a public
+   quote API has no reliable Hindi source and would need a translation key to pair the two
+   reliably, so a curated bank is the more dependable "from the internet" alternative. */
+const DAILY_QUOTES = [
+  { en: "The expert in anything was once a beginner.", hi: "हर विशेषज्ञ भी कभी एक शुरुआती था।" },
+  { en: "Small steps every day lead to big results.", hi: "हर दिन के छोटे कदम बड़े नतीजों की ओर ले जाते हैं।" },
+  { en: "Success is the sum of small efforts, repeated day in and day out.", hi: "सफलता छोटे-छोटे प्रयासों का योग है, जो रोज़ दोहराए जाते हैं।" },
+  { en: "Don't watch the clock; do what it does — keep going.", hi: "घड़ी को मत देखो; वही करो जो वह करती है — चलते रहो।" },
+  { en: "Discipline is choosing between what you want now and what you want most.", hi: "अनुशासन का मतलब है अभी क्या चाहिए और सबसे ज़्यादा क्या चाहिए, इसके बीच चुनना।" },
+  { en: "Hard work beats talent when talent doesn't work hard.", hi: "जब प्रतिभा मेहनत नहीं करती, तो मेहनत प्रतिभा को हरा देती है।" },
+  { en: "The pain of discipline weighs ounces; the pain of regret weighs tons.", hi: "अनुशासन का कष्ट हल्का होता है; पछतावे का कष्ट बहुत भारी होता है।" },
+  { en: "You don't have to be great to start, but you have to start to be great.", hi: "शुरुआत करने के लिए महान होना ज़रूरी नहीं, पर महान बनने के लिए शुरुआत ज़रूरी है।" },
+  { en: "Focus on progress, not perfection.", hi: "पूर्णता पर नहीं, प्रगति पर ध्यान दो।" },
+  { en: "A little progress each day adds up to big results.", hi: "हर दिन की थोड़ी प्रगति मिलकर बड़ा परिणाम बनाती है।" },
+  { en: "Believe you can, and you're halfway there.", hi: "विश्वास करो कि तुम कर सकते हो, आधा काम वहीं पूरा हो जाता है।" },
+  { en: "Well begun is half done.", hi: "अच्छी शुरुआत आधा काम है।" },
+  { en: "Knowledge is the only treasure that increases by sharing.", hi: "ज्ञान ही एकमात्र ऐसा धन है जो बाँटने से बढ़ता है।" },
+  { en: "Consistency is what transforms average into excellence.", hi: "निरंतरता ही औसत को उत्कृष्टता में बदलती है।" },
+  { en: "Today's hard work is tomorrow's ease.", hi: "आज की मेहनत, कल का आराम है।" },
+  { en: "Fall seven times, stand up eight.", hi: "सात बार गिरो, आठवीं बार उठ खड़े हो।" },
+  { en: "The best way to predict your future is to create it.", hi: "अपने भविष्य को जानने का सबसे अच्छा तरीका है उसे खुद बनाना।" },
+  { en: "Push yourself, because no one else is going to do it for you.", hi: "खुद को आगे बढ़ाओ, क्योंकि यह काम तुम्हारे लिए कोई और नहीं करेगा।" },
+  { en: "There are no shortcuts to any place worth going.", hi: "जो मंज़िल पाने लायक है, वहाँ कोई शॉर्टकट नहीं होता।" },
+  { en: "Your only limit is the one you set for yourself.", hi: "तुम्हारी सीमा वही है, जो तुम खुद तय करते हो।" }
+];
+function dayOfYear(d) { const start = new Date(d.getFullYear(), 0, 0); const diff = d - start; return Math.floor(diff / 86400000); }
+function renderDailyQuote() {
+  const el = document.getElementById('dailyQuoteText');
+  if (!el) return;
+  const q = DAILY_QUOTES[dayOfYear(logicalNow()) % DAILY_QUOTES.length];
+  el.innerHTML = `“${escHtml(q.en)}”<br>“${escHtml(q.hi)}”`;
+}
+
+/* ── Terms & Conditions standalone page ── */
+function openTermsPage() {
+  document.getElementById('termsPage').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  window.scrollTo(0, 0);
+}
+function closeTermsPage() {
+  document.getElementById('termsPage').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ── Customise (Question Tracker page colour only) ──
+   Applies a hue-rotate + saturation filter scoped to #homePage only, so every other
+   page (Study/Syllabus/Exam/Leaderboard/About) keeps the original look. Persisted
+   per-device via localStorage so it survives refresh, but never syncs to Firebase —
+   it's a personal display preference, not shared session data. */
+const CUSTOMISE_SWATCHES = [
+  { name: 'Default', hue: 0, sat: 1 },
+  { name: 'Pink', hex: '#ff5ca8' },
+  { name: 'Red', hex: '#ff5c5c' },
+  { name: 'Orange', hex: '#ff9c4a' },
+  { name: 'Green', hex: '#4ad991' },
+  { name: 'Teal', hex: '#3ecbc9' },
+  { name: 'Blue', hex: '#4a9dff' },
+  { name: 'Purple', hex: '#a05cff' }
+];
+const CUSTOMISE_BASE_HUE = 250; // approx hue of the app's default violet accent
+
+function hexToHue(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  if (d === 0) return 0;
+  let h;
+  if (max === r) h = ((g - b) / d) % 6;
+  else if (max === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  h *= 60; if (h < 0) h += 360;
+  return h;
+}
+
+function applyCustomTint(hex) {
+  const hue = hexToHue(hex);
+  const deg = hue - CUSTOMISE_BASE_HUE;
+  const home = document.getElementById('homePage');
+  if (home) home.style.filter = `hue-rotate(${deg}deg) saturate(1.15)`;
+  try { localStorage.setItem('qttrack_tint_hex', hex); } catch (e) {}
+}
+function resetCustomTint() {
+  const home = document.getElementById('homePage');
+  if (home) home.style.filter = '';
+  try { localStorage.removeItem('qttrack_tint_hex'); } catch (e) {}
+  const inp = document.getElementById('customiseColorInput');
+  if (inp) inp.value = '#7c5cff';
+  showToast('Question Tracker colours reset');
+}
+function loadCustomTint() {
+  let hex;
+  try { hex = localStorage.getItem('qttrack_tint_hex'); } catch (e) {}
+  if (hex) applyCustomTint(hex);
+  const inp = document.getElementById('customiseColorInput');
+  if (inp && hex) inp.value = hex;
+}
+function renderCustomiseSwatches() {
+  const host = document.getElementById('customiseSwatchRow');
+  if (!host) return;
+  host.innerHTML = CUSTOMISE_SWATCHES.map(s => {
+    if (s.hex) return `<button class="customise-swatch" style="background:${s.hex}" title="${s.name}" onclick="applyCustomTint('${s.hex}')"></button>`;
+    return `<button class="customise-swatch default-swatch" title="${s.name}" onclick="resetCustomTint()">↺</button>`;
+  }).join('');
+}
+
 function toggleFaq(el) { el.classList.toggle('open'); }
 function setAboutSubtab(tab) {
   document.getElementById('aboutGeneralTab').style.display = tab === 'general' ? 'block' : 'none';
@@ -1509,6 +1657,42 @@ function simpleHash(str) {
    must be re-entered every single time a locked person's data is viewed. */
 let examAuthedUid = null;
 let examAuthedCompareUid = null;
+
+/* ── Extra hardening on top of the always-re-check gate above ──
+   1) Switching away from the browser tab/app (visibilitychange) or losing window focus
+      (blur) drops any current exam auth immediately — "anything" causes a re-lock, not
+      just an in-app navigation. This closes the gap where someone leaves the Exam
+      Analytics tab open, unlocked, and steps away from the device.
+   2) A simple per-person attempt throttle discourages sitting there guessing a friend's
+      password over and over — five wrong tries locks further attempts out for 20s. */
+const examAttemptState = {}; // uid -> { fails, lockedUntil }
+function initExamLockHardening() {
+  const relock = () => {
+    if (!examAuthedUid && !examAuthedCompareUid) return;
+    examAuthedUid = null; examAuthedCompareUid = null;
+    const examPage = document.getElementById('examPage');
+    if (examPage && examPage.classList.contains('active')) renderExamPage();
+  };
+  document.addEventListener('visibilitychange', () => { if (document.hidden) relock(); });
+  window.addEventListener('blur', relock);
+  window.addEventListener('pagehide', relock);
+}
+function examCanAttempt(uid) {
+  const st = examAttemptState[uid];
+  if (st && st.lockedUntil && Date.now() < st.lockedUntil) {
+    const secs = Math.ceil((st.lockedUntil - Date.now()) / 1000);
+    showToast(`Too many attempts — wait ${secs}s`);
+    return false;
+  }
+  return true;
+}
+function examRecordAttempt(uid, success) {
+  if (success) { delete examAttemptState[uid]; return; }
+  const st = examAttemptState[uid] || { fails: 0, lockedUntil: 0 };
+  st.fails++;
+  if (st.fails >= 5) { st.lockedUntil = Date.now() + 20000; st.fails = 0; }
+  examAttemptState[uid] = st;
+}
 
 function examSubjFamily(name) {
   const n = (name || '').toLowerCase();
@@ -1848,9 +2032,12 @@ function selectExamUser(uid) {
 }
 
 function submitExamPasswordEnter() {
+  if (!examCanAttempt(examPendingUid)) return;
   const pw = document.getElementById('examPassEnterInput').value;
   const locked = state.exams.locks[examPendingUid];
-  if (locked && simpleHash(pw) === locked.hash) {
+  const ok = locked && simpleHash(examPendingUid + ':' + pw) === locked.hash;
+  examRecordAttempt(examPendingUid, ok);
+  if (ok) {
     closeModal('examPassEnterModal');
     if (examPassEnterMode === 'compare') {
       examAuthedCompareUid = examPendingUid;
@@ -1885,7 +2072,7 @@ function submitExamPasswordSet() {
     doWrite(() => fbDelete('/exams/locks/' + examUid)).then(ok => { if (ok) showToast('Lock removed'); });
     return;
   }
-  doWrite(() => fbPut('/exams/locks/' + examUid, { hash: simpleHash(pw) }))
+  doWrite(() => fbPut('/exams/locks/' + examUid, { hash: simpleHash(examUid + ':' + pw) }))
     .then(ok => { if (ok) { examAuthedUid = examUid; showToast('Password set'); } });
 }
 
@@ -2348,20 +2535,45 @@ function sylChapterPractice(uid, mode, subjKey, chKey) {
 
 function sylClassMatch(cls) { return sylClassFilter === 'both' || !cls || cls === 'Both' || cls === sylClassFilter; }
 
-/* Weighted progress for a set of chapters: { pct, potential, earned, mastered, doing, todo, total } */
+/* Weighted progress for a set of chapters: { pct, potential, earned, mastered, doing, todo, total,
+   backlog, practiceTotal, avgPractice }.
+   backlog: count of chapters flagged "in backlog" — purely a display overlay, never touches
+   the pct formula (backlog is usually a subset of chapters that are behind schedule, so it
+   overlays on top of the earned progress rather than subtracting from it).
+   avgPractice: total questions practised ÷ chapters that are NOT pending. Pending (untouched,
+   0-practice) chapters are deliberately excluded, otherwise a syllabus with lots of untouched
+   chapters would drag the average down toward 0 and make it meaningless. */
 function sylComputeStats(uid, mode, subjKey, chapters) {
-  let potential = 0, earned = 0, mastered = 0, doing = 0, todo = 0, total = 0;
+  let potential = 0, earned = 0, mastered = 0, doing = 0, todo = 0, total = 0, backlog = 0, practiceTotal = 0, nonPendingCount = 0;
   chapters.forEach(ch => {
     if (!sylClassMatch(ch.cls)) return;
     if (sylSearch && !ch.name.toLowerCase().includes(sylSearch.toLowerCase())) return;
     const w = PRIORITY_WEIGHT[ch.tier] || 1;
-    const st = sylChapterStatus(uid, mode, subjKey, sylKey(ch.name));
+    const chKey = sylKey(ch.name);
+    const st = sylChapterStatus(uid, mode, subjKey, chKey);
     potential += w; earned += w * STATUS_VALUE[st]; total++;
     if (st === 'mastered') mastered++;
     else if (st === 'pending') todo++;
     else doing++;
+    if (sylChapterBacklog(uid, mode, subjKey, chKey)) backlog++;
+    const p = sylChapterPractice(uid, mode, subjKey, chKey);
+    practiceTotal += p;
+    if (st !== 'pending') nonPendingCount++;
   });
-  return { pct: potential ? Math.round((earned / potential) * 1000) / 10 : 0, potential, earned, mastered, doing, todo, total };
+  return {
+    pct: potential ? Math.round((earned / potential) * 1000) / 10 : 0,
+    potential, earned, mastered, doing, todo, total, backlog, practiceTotal,
+    avgPractice: nonPendingCount ? Math.round((practiceTotal / nonPendingCount) * 10) / 10 : 0,
+    backlogPct: potential ? Math.round((chaptersBacklogWeight(uid, mode, subjKey, chapters) / potential) * 1000) / 10 : 0
+  };
+}
+function chaptersBacklogWeight(uid, mode, subjKey, chapters) {
+  let w = 0;
+  chapters.forEach(ch => {
+    if (!sylClassMatch(ch.cls)) return;
+    if (sylChapterBacklog(uid, mode, subjKey, sylKey(ch.name))) w += PRIORITY_WEIGHT[ch.tier] || 1;
+  });
+  return w;
 }
 
 function renderSylBody() {
@@ -2380,11 +2592,19 @@ function renderSylBody() {
     <div class="syl-summary-card">
       <div class="syl-progress-big">${overall.pct}%</div>
       <div class="syl-progress-label">Covered${sylClassFilter !== 'both' ? ' · ' + sylClassFilter : ''}</div>
-      <div class="syl-progress-bar-track"><div class="syl-progress-bar-fill" style="width:${overall.pct}%"></div></div>
+      <div class="syl-progress-bar-track">
+        <div class="syl-progress-bar-fill" style="width:${overall.pct}%"></div>
+        ${overall.backlogPct ? `<div class="syl-progress-bar-backlog" style="width:${overall.backlogPct}%" title="${overall.backlog} chapter(s) in backlog"></div>` : ''}
+      </div>
       <div class="syl-stat-row">
         <div><div class="syl-stat-mini-label">Mastered</div><div class="syl-stat-mini-value">${overall.mastered}</div></div>
         <div><div class="syl-stat-mini-label">Doing</div><div class="syl-stat-mini-value">${overall.doing}</div></div>
         <div><div class="syl-stat-mini-label">To Do</div><div class="syl-stat-mini-value">${overall.todo}</div></div>
+        ${overall.backlog ? `<div><div class="syl-stat-mini-label" style="color:var(--syl-red,#e5484d)">Backlog</div><div class="syl-stat-mini-value" style="color:var(--syl-red,#e5484d)">${overall.backlog}</div></div>` : ''}
+      </div>
+      <div class="syl-stat-row" style="margin-top:.35rem">
+        <div><div class="syl-stat-mini-label">Avg Qs/Chapter</div><div class="syl-stat-mini-value">${overall.avgPractice}</div></div>
+        <div><div class="syl-stat-mini-label">Total Practised</div><div class="syl-stat-mini-value">${overall.practiceTotal}</div></div>
       </div>
       <div class="syl-filter-block">
         <div class="syl-filter-label">Class Filter</div>
@@ -2421,11 +2641,16 @@ function renderSylBody() {
       return `<div class="syl-progress-panel">
         <div class="syl-progress-panel-name">${escHtml(s.name)}</div>
         <div class="syl-progress-panel-pct">${st.pct}%</div>
-        <div class="syl-progress-panel-bar"><div class="syl-progress-panel-bar-fill" style="width:${st.pct}%"></div></div>
+        <div class="syl-progress-panel-bar">
+          <div class="syl-progress-panel-bar-fill" style="width:${st.pct}%"></div>
+          ${st.backlogPct ? `<div class="syl-progress-bar-backlog" style="width:${st.backlogPct}%" title="${st.backlog} chapter(s) in backlog"></div>` : ''}
+        </div>
         <div class="syl-progress-panel-stats">
           <div>Mastered: <b>${st.mastered}</b></div>
           <div>Doing: <b>${st.doing}</b></div>
           <div>To Do: <b>${st.todo}</b></div>
+          ${st.backlog ? `<div style="color:var(--syl-red,#e5484d)">Backlog: <b>${st.backlog}</b></div>` : ''}
+          <div>Avg Qs/Ch: <b>${st.avgPractice}</b></div>
         </div>
       </div>`;
     }).join('')}</div>`;
@@ -2464,17 +2689,27 @@ function sylFormulaBoxHTML() {
 }
 
 function sylComputeStatsMixed(chaptersWithSubj) {
-  let potential = 0, earned = 0, mastered = 0, doing = 0, todo = 0, total = 0;
+  let potential = 0, earned = 0, mastered = 0, doing = 0, todo = 0, total = 0, backlog = 0, backlogW = 0, practiceTotal = 0, nonPendingCount = 0;
   chaptersWithSubj.forEach(ch => {
     if (!sylClassMatch(ch.cls)) return;
     const w = PRIORITY_WEIGHT[ch.tier] || 1;
-    const st = sylChapterStatus(sylUid, sylMode, ch.__subj, sylKey(ch.name));
+    const chKey = sylKey(ch.name);
+    const st = sylChapterStatus(sylUid, sylMode, ch.__subj, chKey);
     potential += w; earned += w * STATUS_VALUE[st]; total++;
     if (st === 'mastered') mastered++;
     else if (st === 'pending') todo++;
     else doing++;
+    if (sylChapterBacklog(sylUid, sylMode, ch.__subj, chKey)) { backlog++; backlogW += w; }
+    const p = sylChapterPractice(sylUid, sylMode, ch.__subj, chKey);
+    practiceTotal += p;
+    if (st !== 'pending') nonPendingCount++;
   });
-  return { pct: potential ? Math.round((earned / potential) * 1000) / 10 : 0, potential, earned, mastered, doing, todo, total };
+  return {
+    pct: potential ? Math.round((earned / potential) * 1000) / 10 : 0,
+    potential, earned, mastered, doing, todo, total, backlog, practiceTotal,
+    avgPractice: nonPendingCount ? Math.round((practiceTotal / nonPendingCount) * 10) / 10 : 0,
+    backlogPct: potential ? Math.round((backlogW / potential) * 1000) / 10 : 0
+  };
 }
 
 function selectSylSubject(key) { sylSubjectKey = key; sylOpenGroups.clear(); sylOpenChapter = null; renderSylBody(); }
@@ -2543,8 +2778,9 @@ function renderSylChapterRow(subj, ch) {
         </div>
         <div class="syl-extra-btns">
           <button class="syl-extra-btn backlog ${backlog ? 'active' : ''}" onclick="toggleSylBacklog('${subj.key}','${chKey}')">${backlog ? 'In Backlog' : 'Backlog'}</button>
-          <button class="syl-extra-btn practice" onclick="bumpSylPractice('${subj.key}','${chKey}',1)">Practice<span class="syl-practice-count">${practice}</span></button>
+          <button class="syl-extra-btn practice" onclick="promptAddSylPractice('${subj.key}','${chKey}')">Practice<span class="syl-practice-count">${practice}</span></button>
         </div>
+        <div class="syl-practice-hint">Practice count only ever goes up — enter how many more questions you did.</div>
         ${subj.custom ? `<button class="syl-btn-sm ghost" style="margin-top:.5rem" onclick="deleteSylChapter('${subj.key}','${ch.id}')">Delete chapter</button>` : ''}
       </div>` : ''}
     </div>`;
@@ -2577,11 +2813,24 @@ function toggleSylBacklog(subjKey, chKey) {
     .then(ok => { if (ok) renderSylBody(); });
 }
 
-function bumpSylPractice(subjKey, chKey, delta) {
-  const cur = state.syllabus.progress[sylUid]?.[sylMode]?.[subjKey]?.[chKey] || { status: 'pending', rev: 0, backlog: false };
-  const practice = Math.max(0, (cur.practice || 0) + delta);
+/* Practice count is intentionally irreversible — it can only ever be added to, never reduced,
+   so it stays an honest running total of questions actually practised. The user enters how
+   many MORE questions they did (a positive integer), which is added on top of the existing count. */
+function promptAddSylPractice(subjKey, chKey) {
+  const raw = window.prompt('How many more questions did you practise for this chapter? (whole number, e.g. 15)', '');
+  if (raw === null) return; // cancelled
+  const n = parseInt(raw, 10);
+  if (!Number.isInteger(n) || n <= 0 || String(n) !== raw.trim()) {
+    showToast('Enter a whole positive number');
+    return;
+  }
+  addSylPractice(subjKey, chKey, n);
+}
+function addSylPractice(subjKey, chKey, addAmount) {
+  const cur = state.syllabus.progress[sylUid]?.[sylMode]?.[subjKey]?.[chKey] || { status: 'pending', rev: 0, backlog: false, practice: 0 };
+  const practice = (cur.practice || 0) + Math.max(0, Math.floor(addAmount)); // add-only — never subtracts
   doWrite(() => fbPut(sylProgressPath(subjKey, chKey), { status: cur.status || 'pending', rev: cur.rev || 0, backlog: !!cur.backlog, practice }))
-    .then(ok => { if (ok) renderSylBody(); });
+    .then(ok => { if (ok) { renderSylBody(); showToast(`+${addAmount} logged`); } });
 }
 
 function shareSylProgress() {
@@ -3027,10 +3276,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   initSession();
   loadLocal();   // instant render from cache
   renderAll();
+  renderDailyQuote();
+  loadCustomTint();
+  renderCustomiseSwatches();
   await loadRemote(); // then sync from Firebase
+  checkJoinLink();
   startPoll();
   checkFirstVisit();
   initDevWarning();
+  initExamLockHardening();
 
   // Modal overlay dismiss
   document.querySelectorAll('.modal-overlay').forEach(o => {
