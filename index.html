@@ -15,11 +15,14 @@
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.4</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.5</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
     <button class="session-badge" onclick="openModal('sessionModal')">⚡ <span id="sessionDisplay">…</span></button>
+    <button class="settings-icon-btn" onclick="openModal('settingsModal')" title="Settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
     <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle light/dark">
       <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -51,9 +54,10 @@
     <button class="nav-item" onclick="showPage('leaderboardPage','leaderboardNav')" id="leaderboardNav">Leaderboard</button>
     <button class="nav-item" onclick="showPage('changelogPage','changelogNav')" id="changelogNav">Update Log</button>
     <div style="flex:1"></div>
+    <button class="nav-item" onclick="openModal('customiseModal');closeSidebar()">Customise</button>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack 0.9.4 · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">0.9.5</span> · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -68,8 +72,16 @@
     <button type="button" class="dev-warning-close" id="devWarningClose" aria-label="Dismiss warning">✕</button>
   </div>
 
+  <div class="daily-quote-box" id="dailyQuoteBox">
+    <span id="dailyQuoteText">Loading today's quote…</span>
+  </div>
+
   <div class="summary-strip">
-    <div class="stat-card"><div class="stat-label">Today</div><div class="stat-value" id="statToday">0</div></div>
+    <div class="stat-card" style="position:relative">
+      <div class="stat-label" style="display:flex;align-items:center;justify-content:space-between">Today <button id="todayDropBtn" onclick="toggleTodayDrop()" class="all-time-drop-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button></div>
+      <div class="stat-value" id="statToday">0</div>
+      <div id="todayDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.4rem;z-index:50;max-height:200px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,.18)"></div>
+    </div>
     <div class="stat-card" style="position:relative">
       <div class="stat-label" style="display:flex;align-items:center;justify-content:space-between">All-Time <button id="allTimeDropBtn" onclick="toggleAllTimeDrop()" class="all-time-drop-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button></div>
       <div class="stat-value" id="statAllTime">0</div>
@@ -108,6 +120,7 @@
       <div class="chart-title">This week — per day</div>
       <div class="legend" id="weekLegend"></div>
     </div>
+    <div class="week-avg-corner" id="weekAvgCorner" onclick="cycleWeekAvg()" title="Tap to switch between overall / per-person / per-subject weekly average"></div>
     <div class="chart-wrap" style="height:180px;">
       <div class="no-data-msg" id="noDataMsgW"><strong>No history yet</strong></div>
       <canvas id="weeklyChart" style="display:none"></canvas>
@@ -270,7 +283,7 @@
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 0.9.4 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 0.9.5 · Beta · qttrack.vercel.app</div>
 
     <div class="about-subtabs">
       <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
@@ -387,9 +400,27 @@
         <span class="cl-patch-num">0.9.4</span>
         <ul class="cl-items">
           <li>Revamp: Exam Analytics colour grading — JEE Main, JEE Advanced, Boards and NEET each now use their own realistic scoring bands (JEE Main also adjusts for paper difficulty), down to subject-wise Physics/Chemistry/Maths colours</li>
-          <li>minor bug fixes</li>
+          <li>Fixed: subject swatches in Manage Subjects are circular again</li>
+          <li>Fixed: entering marks for a test could occasionally drop the first subject (usually Physics) — the fix flushes every subject row straight from the form before saving</li>
           <li>Paper Analysis: Attempted/Scored are now entered and shown as marks instead of a 0–100%</li>
-          <li>Privacy upgradations</li>
+          <li>Privacy: a device that's unlocked someone's locked Exam Analytics no longer stays unlocked after the app is closed — the password is asked for again next time</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.5</span>
+        <ul class="cl-items">
+          <li>Security: Exam Analytics lock hardened further — switching browser tabs, losing window focus, or leaving the app now re-locks immediately, on top of the existing refresh/switch-user re-lock; passwords are now salted per-person, and repeated wrong attempts are throttled</li>
+          <li>Fixed: Anonymous mode was leaking a hidden person's numbers into the "This week — per day" chart's totals and trend line on other devices — that chart now only ever sums visible (non-anonymous, or your own) people, same as everywhere else in the app</li>
+          <li>New: "This week" chart now has a toggleable corner readout — tap it to cycle between overall weekly average, per-person average, and per-subject average questions/day</li>
+          <li>New: a "Today" dropdown next to the stat, matching the existing "All-Time" one, showing each person's questions solved today</li>
+          <li>New: daily motivational quote (English + Hindi) shown above the Question Tracker</li>
+          <li>New: Settings icon next to the Session button in the header</li>
+          <li>New: Share option in the Session popup — generates a ready-to-send invite message with a join link and code</li>
+          <li>New: Terms &amp; Conditions page, linked subtly at the bottom of the app</li>
+          <li>New: Customise option in the sidebar — change the Question Tracker page's accent colour (with a reset to default); doesn't affect any other page</li>
+          <li>Syllabus Tracker: Practice count is now entered as a whole number of questions to add, and is strictly irreversible — it can only ever increase, never be reduced</li>
+          <li>Syllabus Tracker: progress bars now show a red backlog overlay for chapters marked "in backlog" (purely visual — never affects the progress % formula), and backlog chapter count is shown in red next to Mastered/Doing/To Do</li>
+          <li>Syllabus Tracker: summary now shows average questions practised per chapter (only counting chapters that aren't still Pending, so untouched chapters don't skew the average toward 0)</li>
         </ul>
       </div>
     </div>
@@ -532,11 +563,65 @@
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 0.9.4</span>
+  <span>QTrack 0.9.5</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
+  <span style="color:var(--muted2)">·</span>
+  <button class="footer-terms-link" onclick="openTermsPage()">Terms &amp; Conditions</button>
 </footer>
+
+<!-- ═══ TERMS & CONDITIONS (standalone page) ══════════════════════ -->
+<div class="terms-page" id="termsPage">
+  <div class="terms-page-inner">
+    <button class="terms-back-btn" onclick="closeTermsPage()">← Back to QTrack</button>
+    <h1>Terms &amp; Conditions</h1>
+    <p class="terms-updated">Last updated with QTrack v0.9.5</p>
+
+    <p>These Terms &amp; Conditions ("Terms") govern your access to and use of QTrack (the "App"), a shared, informal question- and progress-tracking tool built and maintained independently. By opening, browsing, or using the App in any way, you agree to be bound by these Terms in full. If you do not agree with any part of these Terms, you should stop using the App immediately.</p>
+
+    <h2>1. Nature of the App</h2>
+    <p>QTrack is a hobby project, not a commercial product, and is not offered with any warranty of fitness, accuracy, uptime, or reliability. It is built for casual, personal use between friends preparing for exams and similar self-study tracking. It is not a substitute for professional academic advice, an official record of your performance, or a guaranteed measure of exam readiness.</p>
+
+    <h2>2. Shared-Session Data Model</h2>
+    <p>QTrack uses a lightweight shared-session model: anyone who has your Session ID can view and, in most cases, edit the data associated with that session, including question counts, subject breakdowns, syllabus progress, focus-timer history, and exam scores, except where a feature (such as Exam Analytics locking or Anonymous mode) has been explicitly used to restrict visibility. You are solely responsible for who you share your Session ID with. QTrack cannot retroactively "unshare" data that has already been viewed, copied, or recorded by someone you gave access to.</p>
+
+    <h2>3. Exam Analytics Lock &amp; Anonymous Mode</h2>
+    <p>The Exam Analytics password lock and Anonymous mode are provided as casual, good-faith privacy tools intended to deter friends and classmates from casually viewing your data — they are not, and must not be relied upon as, cryptographically secure or enterprise-grade protections. Passwords are stored in a hashed form within the same shared database used for all other session data. A sufficiently motivated person with direct access to the underlying data store, or who intercepts network traffic, may still be able to access locked or anonymous data. Do not use these features to protect information that would cause you serious harm if exposed. You are responsible for choosing a password that is not trivially guessable by people in your session.</p>
+
+    <h2>4. Account-Free, Device-Based Design</h2>
+    <p>The App does not use traditional accounts, logins, or passwords for identity — a "person" in a session is simply a name entered by whoever adds them. QTrack has no way of verifying that the person operating a given device is actually who their card claims to be. You are responsible for the physical and digital security of any device you use to access the App while an Exam Analytics lock or Anonymous mode session is unlocked or active, including locking your device screen, not leaving the App open on shared or public devices, and closing the tab or app when finished.</p>
+
+    <h2>5. Acceptable Use</h2>
+    <p>You agree not to use the App to: (a) harass, impersonate, or misrepresent another person's identity or performance; (b) attempt to guess, brute-force, or otherwise circumvent another person's Exam Analytics password or Anonymous mode setting; (c) upload or enter content that is unlawful, defamatory, obscene, or infringes on the rights of others; (d) attempt to overload, disrupt, scrape at scale, or reverse-engineer the App's backend infrastructure beyond ordinary use; or (e) use the App for any purpose other than personal, non-commercial exam and study tracking.</p>
+
+    <h2>6. Intellectual Property &amp; No Copying of Code</h2>
+    <p>All source code, markup, styling, visual design, feature logic, and underlying architecture of QTrack (collectively, the "Code") are the intellectual property of the developer and are protected accordingly. <strong>Copying, duplicating, cloning, redistributing, reverse-engineering, decompiling, publishing, or reusing any portion of the Code — whether in whole or in part, verbatim or modified, for commercial or non-commercial purposes — is strictly not permitted without prior written consent from the developer.</strong> This restriction applies regardless of the medium through which the Code is accessed, including but not limited to browser developer tools, saved page sources, screenshots of code, or any other method of extraction. Screenshots or descriptions of your own personal data displayed within the App (such as your own progress charts) are excluded from this restriction and may be shared freely, provided no underlying Code is exposed or reproduced in the process.</p>
+
+    <h2>7. Data Accuracy &amp; No Guarantee</h2>
+    <p>All statistics, percentages, progress calculations, percentile estimates, and rankings shown in the App (including the Syllabus Tracker's weighted progress formula and backlog overlay) are approximations generated from user-entered data and fixed internal weightings. They are provided for motivational and organisational purposes only and should not be treated as an authoritative or guaranteed prediction of your actual exam performance, rank, or readiness. The developer makes no representation as to the accuracy, completeness, or reliability of any calculation shown in the App.</p>
+
+    <h2>8. Data Loss &amp; Backups</h2>
+    <p>While reasonable efforts are made to keep session data available and synced, QTrack does not guarantee that your data — including question logs, syllabus progress, focus-timer history, or exam records — will be preserved indefinitely, backed up, or recoverable in the event of technical failure, database migration, service discontinuation, or accidental deletion. You should not treat the App as your sole or permanent record of your study history.</p>
+
+    <h2>9. Irreversible Actions</h2>
+    <p>Certain actions within the App are intentionally irreversible by design, including but not limited to increases to a chapter's logged Practice question count in the Syllabus Tracker, which can only be added to and never reduced, in order to maintain an honest, append-only record of practice volume. You should enter such numbers carefully, as the App will not permit you to undo an over-entry beyond correcting future entries going forward.</p>
+
+    <h2>10. No Liability</h2>
+    <p>To the fullest extent permitted, the developer of QTrack shall not be liable for any direct, indirect, incidental, or consequential damages arising out of your use of, or inability to use, the App — including but not limited to loss of data, loss of study progress, missed revision due to a bug, or any decision made in reliance on the App's statistics or reminders. The App is provided "as is" and "as available," without warranties of any kind, express or implied.</p>
+
+    <h2>11. Changes to the App and These Terms</h2>
+    <p>Features, calculations, and these Terms may be changed, added, or removed at any time, with or without notice, as the App continues to be developed. Continued use of the App after any such change constitutes your acceptance of the updated Terms. Major changes are generally noted in the in-app Update Log.</p>
+
+    <h2>12. Termination of Access</h2>
+    <p>Access to the App or to a particular session may be withdrawn at the developer's discretion, including in cases of suspected abuse of the Acceptable Use section above, without prior notice.</p>
+
+    <h2>13. Governing Spirit</h2>
+    <p>QTrack is a small, independently maintained tool built to help students stay accountable to each other. These Terms exist to set fair, clearly-stated expectations rather than to create a heavyweight legal relationship. If something in these Terms seems unclear or unfair to you, you're welcome to raise it via the Feedback option in the App.</p>
+
+    <p class="terms-footer-note">By continuing to use QTrack, you confirm that you have read, understood, and agree to these Terms &amp; Conditions in full.</p>
+  </div>
+</div>
 
 <!-- ═══ MODALS ══════════════════════════════════════════════════ -->
 
@@ -571,6 +656,64 @@
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal('sessionModal')">Close</button>
       <button class="btn-confirm" onclick="joinSession()">Join</button>
+    </div>
+    <button class="session-share-btn" onclick="shareSessionInvite()">🔗 Share invite link</button>
+  </div>
+</div>
+
+<!-- Session: generated share invite -->
+<div class="modal-overlay" id="shareInviteModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-drag"></div>
+    <h2>Invite a friend</h2>
+    <p class="modal-hint">Send this to whoever you want studying with you — pasting the link (or just the code) into QTrack drops them straight into your session.</p>
+    <div class="field-label">Invite message</div>
+    <textarea id="shareInviteText" rows="4" readonly></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('shareInviteModal')">Close</button>
+      <button class="btn-confirm" onclick="copyShareInvite()">Copy message</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-drag"></div>
+    <h2>Settings</h2>
+    <div class="settings-row" onclick="toggleTheme()">
+      <span>Toggle light / dark theme</span><span class="settings-row-arrow">›</span>
+    </div>
+    <div class="settings-row" onclick="closeModal('settingsModal');openModal('customiseModal')">
+      <span>Customise page colours</span><span class="settings-row-arrow">›</span>
+    </div>
+    <div class="settings-row" onclick="closeModal('settingsModal');openModal('sessionModal')">
+      <span>Session &amp; sharing</span><span class="settings-row-arrow">›</span>
+    </div>
+    <div class="settings-row" onclick="closeModal('settingsModal');openTermsPage()">
+      <span>Terms &amp; Conditions</span><span class="settings-row-arrow">›</span>
+    </div>
+    <div class="settings-row" onclick="closeModal('settingsModal');cycleWeekAvg();showToast('Switched weekly average view')">
+      <span>Cycle weekly-average readout</span><span class="settings-row-arrow">›</span>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('settingsModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Customise (Question Tracker page colours only) -->
+<div class="modal-overlay" id="customiseModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-drag"></div>
+    <h2>Customise Question Tracker</h2>
+    <p class="modal-hint">Pick an accent colour for the Question Tracker page. This only changes how this page looks on this device — every other page stays the same.</p>
+    <div class="customise-swatch-row" id="customiseSwatchRow"></div>
+    <div class="field-label" style="margin-top:.7rem">Or pick your own</div>
+    <input type="color" id="customiseColorInput" value="#7c5cff" oninput="applyCustomTint(this.value)">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="resetCustomTint()">Reset to default</button>
+      <button class="btn-confirm" onclick="closeModal('customiseModal')">Done</button>
     </div>
   </div>
 </div>
