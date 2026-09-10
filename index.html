@@ -303,4 +303,594 @@
 
     <div class="about-h2">About QTrack</div>
     <p class="about-p">QTrack is a simple study tracking platform designed to help users organise their work, monitor progress, and keep everything in one place. It supports all subjects and is made to work across devices so your data stays connected wherever you use it.</p>
-    <p class="about-p">The goal of QTrack is to provide a clean and straightforward experience without unnecessary complexity. You can track completed questions, manage subjects, log focus time with the Study Tracker, record and analyse exam performance in Exam Analytics, and maintain a clear record of your progress without relying on scattered notes or multiple apps pretending to "increase productivity" while mainly increasing s
+    <p class="about-p">The goal of QTrack is to provide a clean and straightforward experience without unnecessary complexity. You can track completed questions, manage subjects, log focus time with the Study Tracker, record and analyse exam performance in Exam Analytics, and maintain a clear record of your progress without relying on scattered notes or multiple apps pretending to "increase productivity" while mainly increasing screen time.</p>
+    <p class="about-p">QTrack is independently developed with the help of modern AI tools to improve features, usability, and development speed while keeping the platform simple and user-focused.</p>
+    <div class="about-note">⚠️ The app is in development phase and may cause bugs and errors. Apologies from the developer's end in advance.</div>
+    <div class="about-note-yellow">🚧 Dev note: we're aiming to leave Beta by version 0.10.0. Until then, expect fairly frequent updates and the occasional rough edge as new features (like Exam Analytics and Study Tracker) get polished based on feedback.</div>
+
+    <div class="about-h2">FAQ</div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What is a Session ID and how do I use it? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">A Session ID is a unique code that links multiple devices to the same shared board. Tap ⚡ in the header, copy your Session ID, and send it to your friend. They tap ⚡, paste the ID into "Join a Session" and hit Join. Both of you will see the same data syncing live every 5 seconds. Your session is remembered — you won't need to re-enter it next time.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Can QTrack track questions automatically? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">No — QTrack is a manual tracking tool. You enter how many questions you've completed yourself. This is intentional: automatic tracking would require integration with specific apps or platforms, adding complexity and privacy concerns. The manual approach is fast, simple, and works regardless of where you're studying.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Can QTrack connect with other apps? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">Currently, no. QTrack does not integrate with third-party apps. All data lives within QTrack's own Firebase database. Integration is on the long-term roadmap but is not available in this version.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">How can my friends join my session? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">(1) Tap ⚡ in the header. (2) Copy your Session ID. (3) Send it via WhatsApp or any messaging app. (4) Your friend opens QTrack, taps ⚡, pastes the ID and hits Join. They'll immediately see your board and can add themselves as a person.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What does Anonymous mode actually hide, and from whom? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">Turning on 🕶 Anonymous for a person hides their question counts, subject breakdown, and chart/leaderboard numbers from every other device connected to the session — those devices just see a locked card confirming "Anonymous mode is on," with no numbers. The device that switched it on keeps seeing that person's full real data, since anonymity is remembered per-device, not per-login (QTrack has no accounts). Only the device that turned it on can turn it back off.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What is the Study Tracker, and what's Pomodoro mode? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">It's a focus-time tracker separate from question logging. Pick one or more people from the chip list at the top, and each gets their own ring-shaped timer with a fluid fill/drain animation. Stopwatch counts up freely; Timer counts down a set number of minutes; Pomodoro alternates fixed work sessions with automatic breaks (a short break after each session, a longer break every 4th one), flashing a full-screen banner whenever a session flips from work to break or back. Several people can run independent timers on the same device at once — the rings shrink and re-centre as more people join. Only actual work/focus time is saved to that person's Focus Calendar and 7-day chart; breaks aren't counted.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What is Exam Analytics and why does it have JEE / NEET / Boards modes? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">Exam Analytics is where you log full test results — total marks, marks obtained, a per-subject breakdown with score and rank, plus a personal note per test. Percentile is calculated automatically from your rank and the total number of candidates, so you never have to work it out yourself. Each test appears as its own colour-graded card with a quick summary on top. The mode toggle (JEE / NEET / Boards / Other) keeps competitive-exam scores separate from board-exam scores, since JEE-style papers are typically much lower-scoring than board papers — mixing the two would skew your averages and trends. Each mode gets its own progress-over-time line chart, a rank trend chart, a radar chart of subject strengths, and a subject-wise bar chart, with JEE Main and JEE Advanced always plotted as separate coloured lines so they never blend into one misleading trend.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Is AI coming to QTrack? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">It's on the roadmap. The plan is an AI layer that can look at your Question Tracker, Study Tracker, Syllabus Tracker and Exam Analytics together and actually say something useful — where your weak chapters and your weak exam topics overlap, whether your practice volume matches what your syllabus progress needs, and what to prioritise next. Nothing is live yet and no data is being sent anywhere for this — it's a teaser, not a feature, and it'll be opt-in whenever it does ship.</div>
+    </div>
+    </div><!-- /aboutGeneralTab -->
+
+    <div id="aboutSyllabusTab" style="display:none">
+      <div class="about-h2">Syllabus Tracker, explained simply</div>
+      <p class="about-p">The Syllabus Tracker doesn't just count how many chapters you've ticked off — it weighs them, the same way an exam paper doesn't give every chapter the same number of marks.</p>
+
+      <div class="how-step"><div class="how-num">①</div><div class="how-text"><strong>Every chapter has a priority.</strong> Chapters are tagged A, B, C or D based on how often they actually show up in past papers and how many marks they tend to carry. An "A" chapter is one that shows up almost every year and carries serious weight — think Current Electricity or Coordination Compounds for JEE. A "D" chapter is one that rarely shows up at all.</div></div>
+      <div class="how-step"><div class="how-num">②</div><div class="how-text"><strong>Priority becomes a weight.</strong> Behind the scenes: A = 3.0×, B = 2.0×, C = 1.5×, D = 1.0× (Adv-only topics sit at 2.5×). So one A-priority chapter is worth as much as three D-priority chapters put together.</div></div>
+      <div class="how-step"><div class="how-num">③</div><div class="how-text"><strong>Your status on a chapter decides how much of that weight you've earned.</strong> Pending = 0% earned, Theory done = 50% earned, PYQs done or Mastered = 100% earned. So half-finishing an A chapter earns you more than fully mastering a D chapter.</div></div>
+      <div class="how-step"><div class="how-num">④</div><div class="how-text"><strong>The percentage you see is:</strong> add up the weight you've actually earned across every chapter, divide by the total weight possible across every chapter, multiply by 100. That's it — no hidden penalties, no guesswork.</div></div>
+      <div class="how-step"><div class="how-num">⑤</div><div class="how-text"><strong>Why it's built this way.</strong> A syllabus tracker that treats every chapter equally can lie to you — you could "finish" 80% of your chapters by clearing the easy, low-weight ones and still be badly unprepared. Weighting by priority keeps the percentage honest about how exam-ready you actually are, not just how much you've clicked through.</div></div>
+      <div class="how-step"><div class="how-num">⑥</div><div class="how-text"><strong>Backlog and Practice</strong> are separate from the percentage on purpose. Marking a chapter as Backlog just flags it red for you to revisit — it doesn't change your score. The Practice counter simply tallies how many times you've sat down and done questions from that chapter, as a personal log, again without affecting the percentage.</div></div>
+
+      <div class="about-note-yellow">In one line: <b>Progress % = (weight earned) ÷ (weight possible)</b>, where "weight" comes from how important a chapter actually is to your exam.</div>
+    </div><!-- /aboutSyllabusTab -->
+  </div>
+</div>
+
+<!-- CHANGELOG --------------------------------------------------- -->
+<div class="page" id="changelogPage">
+  <div class="changelog-wrap">
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.9.0</span></div>
+      <ul class="cl-items">
+        <li>New: Syllabus Tracker — track JEE (PCM) and NEET (PCB) chapter-wise progress with priority-weighted scoring, plus a fully custom "Other" mode for any subject; switch between Priority and Unit (broad-topic) views, filter by class, and toggle between everyone using the device</li>
+        <li>New: password lock for Exam Analytics, — locked data stays hidden from other devices until the password is entered</li>
+        <li>New: toggle in Exam Analytics so everyone sharing a device can keep separate test records</li>
+        <li>Exam Analytics: summary now shows overall rank and percentile</li>
+        <li>Exam Analytics: added a "Analysis" paper-feedback survey for student post exam feadback </li>
+        <li>New: charts and graphs for indepth analysis of paper</li>
+        <li>minor bug fixes and reworks</li>
+      </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.1</span>
+        <ul class="cl-items">
+          <li> major architectural rework on Exam Anlaytics and some cool features added</li>
+          <li>Syllabus Tracker: new Backlog and Question Practice buttons on every chapter</li>
+          <li>Syllabus Tracker: new "Progress" view</li>
+          <li>major code rewrite and bug fixing</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.2</span>
+        <ul class="cl-items">
+          <li>major bug fixes and complete re-write on exam analytics</li>
+          <li> visuals improved with new feautres added in syllabus tracker</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.3</span>
+        <ul class="cl-items">
+          <li>minor bug fixes</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.4</span>
+        <ul class="cl-items">
+          <li>Revamp: Exam Analytics colour grading — JEE Main, JEE Advanced, Boards and NEET each now use their own realistic scoring bands (JEE Main also adjusts for paper difficulty), down to subject-wise Physics/Chemistry/Maths colours</li>
+          <li>Fixed: subject swatches in Manage Subjects are circular again</li>
+          <li>Fixed: entering marks for a test could occasionally drop the first subject (usually Physics) — the fix flushes every subject row straight from the form before saving</li>
+          <li>Paper Analysis: Attempted/Scored are now entered and shown as marks instead of a 0–100%</li>
+          <li>Privacy: a device that's unlocked someone's locked Exam Analytics no longer stays unlocked after the app is closed — the password is asked for again next time</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.5</span>
+        <ul class="cl-items">
+          <li>Security: Exam Analytics lock hardened further — switching browser tabs, losing window focus, or leaving the app now re-locks immediately, on top of the existing refresh/switch-user re-lock; passwords are now salted per-person, and repeated wrong attempts are throttled</li>
+          <li>Fixed: Anonymous mode was leaking a hidden person's numbers into the "This week — per day" chart's totals and trend line on other devices — that chart now only ever sums visible (non-anonymous, or your own) people, same as everywhere else in the app</li>
+          <li>New: "This week" chart now has a toggleable corner readout — tap it to cycle between overall weekly average, per-person average, and per-subject average questions/day</li>
+          <li>New: a "Today" dropdown next to the stat, matching the existing "All-Time" one, showing each person's questions solved today</li>
+          <li>New: daily motivational quote (English + Hindi) shown above the Question Tracker</li>
+          <li>New: Settings icon next to the Session button in the header</li>
+          <li>New: Share option in the Session popup — generates a ready-to-send invite message with a join link and code</li>
+          <li>New: Terms &amp; Conditions page, linked subtly at the bottom of the app</li>
+          <li>New: Customise option in the sidebar — change the Question Tracker page's accent colour (with a reset to default); doesn't affect any other page</li>
+          <li>Syllabus Tracker: Practice count is now entered as a whole number of questions to add, and is strictly irreversible — it can only ever increase, never be reduced</li>
+          <li>Syllabus Tracker: progress bars now show a red backlog overlay for chapters marked "in backlog" (purely visual — never affects the progress % formula), and backlog chapter count is shown in red next to Mastered/Doing/To Do</li>
+          <li>Syllabus Tracker: summary now shows average questions practised per chapter (only counting chapters that aren't still Pending, so untouched chapters don't skew the average toward 0)</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.6</span>
+        <ul class="cl-items">
+          <li>Exam Analytics: "Rank over time" is now "Percentile over time" — plots each test's percentile (0–100%, higher is better) instead of raw rank, so it reads on the same intuitive scale as the Progress chart</li>
+          <li>Paper Analysis: the per-topic entry fields are relabelled "Attempted (marks)" / "Scored (marks)" — they were always meant to be marks, not a 0–100%, and the "%" label was misleading</li>
+          <li>Fixed: Subject strengths radar and the Attempted vs Scored web chart were averaging raw entered marks as if they were already percentages; both now correctly convert marks to percentage form (scored ÷ attempted, and each topic's share of attempted marks) before plotting</li>
+          <li>Fixed: Physics detection in Exam Analytics — subject names containing "phy" (e.g. "Phy") are recognised again, not just "phys"</li>
+          <li>Fixed: on the Progress and Percentile charts, a JEE Main and JEE Advanced test logged on the same date now share one point on the same date instead of sitting a slot apart, so same-day papers line up for a direct comparison</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.8.0</span></div>
+      <ul class="cl-items">
+        <li>New: Exam Analytics — log full test results (marks, errors, negative marking, per-subject score/rank/percentile, notes), browse them as tabs, and view progress-over-time, subject-strength, and subject-breakdown charts</li>
+        <li>New: JEE / NEET / Boards / Other mode toggle in Exam Analytics to keep competitive and board exam scores from skewing each other's averages</li>
+        <li>New: Anonymous mode — hide a person's question data from every other device while keeping it fully visible on the device that turned it on</li>
+        <li>New: Pomodoro mode in Study Tracker — automatic work/break cycling with a long break every 4th round and a full-screen flash when phases change</li>
+        <li>Fixed: Study Tracker's fluid fill/drain animation, which wasn't rendering</li>
+        <li>Updated About, How to Use, and FAQ sections for all of the above</li>
+        <li>minor functional updates</li>
+      </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.8.1</span>
+        <ul class="cl-items">
+          <li>exam analytics visual changes and added minor features</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.7.0</span></div>
+      <ul class="cl-items">
+        <li>New: Study Tracker — focus timer with ring-shaped stopwatch/timer</li>
+        <li>Renamed "Home" to "Question Tracker" in the menu</li>
+        <li>Removed the confirmation popup when marking a day's log as done</li>
+        <li>"Log done" button moved to the bottom of each person's card</li>
+        <li>minor functional fixes and upgrades</li>
+        <li>Week/Month charts: browse previous weeks and months, with people shown as separate side-by-side bars instead of stacked</li>
+      </ul>
+    </div>
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.6.0</span></div>
+      <ul class="cl-items">
+        <li>12am timer reset gone, Timer now resets at 5:00 AM</li>
+        <li>Day logs can be finalised by user</li>
+        <li>Backdated logging — add a day picker in Add Questions to log for a forgotten day</li>
+        <li>Trend line added</li>
+        <li>Session history added</li>
+        <li>minor changes and architechtural rework in light mode</li>
+      </ul>
+    </div>
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.5.0</span></div>
+      <ul class="cl-items">
+        <li>Full architectural rewrite</li>
+        <li>Adding people now saves reliably</li>
+        <li>Adding subjects now saves reliably</li>
+        <li>Calendar only shows days with activity</li>
+      </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.5.1</span>
+        <ul class="cl-items">
+          <li>Added a Report Bug button</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.4.0</span></div>
+      <ul class="cl-items">
+        <li>New sidebar menu — Home, Leaderboard, About, Update Log</li>
+        <li>Light and dark mode toggle</li>
+        <li>add subject feature introduced</li>
+        <li>Leaderboard added</li>
+        <li>About page with how-to guide and FAQ</li>
+        <li>Send feedback button added</li>
+      </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.4.1</span>
+        <ul class="cl-items">
+          <li>Your session is remembered next time you open the app</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.4.2</span>
+        <ul class="cl-items">
+          <li>Layout fixes on phones</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.4.3</span>
+        <ul class="cl-items">
+          <li>First-visit tip pointing to the menu</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.4.4</span>
+        <ul class="cl-items">
+          <li>Smoother live sync between devices</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.3.0</span></div>
+      <ul class="cl-items">
+        <li>Faster, more reliable sync between devices</li>
+        <li>Fixed data loss when two people saved at once</li>
+        <li>Works offline; sync status dot in the header</li>
+      </ul>
+    </div>
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.2.0</span></div>
+      <ul class="cl-items">
+        <li>Live cloud sync added</li>
+        <li>Edit today's log from each person's card</li>
+        <li>Weekly chart now shows Mon, Tue, Wed…</li>
+        <li>Dates fixed for your local timezone</li>
+      </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.2.1</span>
+        <ul class="cl-items">
+          <li>Number keyboard on phones; single-column layout on small screens</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">0.1.0</span></div>
+      <ul class="cl-items">
+        <li>First release — bar chart, shared sessions, manual question entry</li>
+        <li>Daily reset with full history and calendar view</li>
+        <li>Dark minimal look</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /page-wrap -->
+
+<!-- ═══ FOOTER ══════════════════════════════════════════════════ -->
+<footer>
+  <span>Made by Arnav Anand</span>
+  <span style="color:var(--muted2)">·</span>
+  <span>QTrack 0.9.6</span>
+  <span style="color:var(--muted2)">·</span>
+  <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
+  <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
+  <span style="color:var(--muted2)">·</span>
+  <button class="footer-terms-link" onclick="openTermsPage()">Terms &amp; Conditions</button>
+</footer>
+
+<!-- ═══ TERMS & CONDITIONS (standalone page) ══════════════════════ -->
+<div class="terms-page" id="termsPage">
+  <div class="terms-page-inner">
+    <button class="terms-back-btn" onclick="closeTermsPage()">← Back to QTrack</button>
+    <h1>Terms &amp; Conditions</h1>
+    <p class="terms-updated">Last updated with QTrack v0.9.6</p>
+
+    <p>These Terms &amp; Conditions ("Terms") govern your access to and use of QTrack (the "App"), a shared, informal question- and progress-tracking tool built and maintained independently. By opening, browsing, or using the App in any way, you agree to be bound by these Terms in full. If you do not agree with any part of these Terms, you should stop using the App immediately.</p>
+
+    <h2>1. Nature of the App</h2>
+    <p>QTrack is a hobby project, not a commercial product, and is not offered with any warranty of fitness, accuracy, uptime, or reliability. It is built for casual, personal use between friends preparing for exams and similar self-study tracking. It is not a substitute for professional academic advice, an official record of your performance, or a guaranteed measure of exam readiness.</p>
+
+    <h2>2. Shared-Session Data Model</h2>
+    <p>QTrack uses a lightweight shared-session model: anyone who has your Session ID can view and, in most cases, edit the data associated with that session, including question counts, subject breakdowns, syllabus progress, focus-timer history, and exam scores, except where a feature (such as Exam Analytics locking or Anonymous mode) has been explicitly used to restrict visibility. You are solely responsible for who you share your Session ID with. QTrack cannot retroactively "unshare" data that has already been viewed, copied, or recorded by someone you gave access to.</p>
+
+    <h2>3. Exam Analytics Lock &amp; Anonymous Mode</h2>
+    <p>The Exam Analytics password lock and Anonymous mode are provided as casual, good-faith privacy tools intended to deter friends and classmates from casually viewing your data — they are not, and must not be relied upon as, cryptographically secure or enterprise-grade protections. Passwords are stored in a hashed form within the same shared database used for all other session data. A sufficiently motivated person with direct access to the underlying data store, or who intercepts network traffic, may still be able to access locked or anonymous data. Do not use these features to protect information that would cause you serious harm if exposed. You are responsible for choosing a password that is not trivially guessable by people in your session.</p>
+
+    <h2>4. Account-Free, Device-Based Design</h2>
+    <p>The App does not use traditional accounts, logins, or passwords for identity — a "person" in a session is simply a name entered by whoever adds them. QTrack has no way of verifying that the person operating a given device is actually who their card claims to be. You are responsible for the physical and digital security of any device you use to access the App while an Exam Analytics lock or Anonymous mode session is unlocked or active, including locking your device screen, not leaving the App open on shared or public devices, and closing the tab or app when finished.</p>
+
+    <h2>5. Acceptable Use</h2>
+    <p>You agree not to use the App to: (a) harass, impersonate, or misrepresent another person's identity or performance; (b) attempt to guess, brute-force, or otherwise circumvent another person's Exam Analytics password or Anonymous mode setting; (c) upload or enter content that is unlawful, defamatory, obscene, or infringes on the rights of others; (d) attempt to overload, disrupt, scrape at scale, or reverse-engineer the App's backend infrastructure beyond ordinary use; or (e) use the App for any purpose other than personal, non-commercial exam and study tracking.</p>
+
+    <h2>6. Intellectual Property &amp; No Copying of Code</h2>
+    <p>All source code, markup, styling, visual design, feature logic, and underlying architecture of QTrack (collectively, the "Code") are the intellectual property of the developer and are protected accordingly. <strong>Copying, duplicating, cloning, redistributing, reverse-engineering, decompiling, publishing, or reusing any portion of the Code — whether in whole or in part, verbatim or modified, for commercial or non-commercial purposes — is strictly not permitted without prior written consent from the developer.</strong> This restriction applies regardless of the medium through which the Code is accessed, including but not limited to browser developer tools, saved page sources, screenshots of code, or any other method of extraction. Screenshots or descriptions of your own personal data displayed within the App (such as your own progress charts) are excluded from this restriction and may be shared freely, provided no underlying Code is exposed or reproduced in the process.</p>
+
+    <h2>7. Data Accuracy &amp; No Guarantee</h2>
+    <p>All statistics, percentages, progress calculations, percentile estimates, and rankings shown in the App (including the Syllabus Tracker's weighted progress formula and backlog overlay) are approximations generated from user-entered data and fixed internal weightings. They are provided for motivational and organisational purposes only and should not be treated as an authoritative or guaranteed prediction of your actual exam performance, rank, or readiness. The developer makes no representation as to the accuracy, completeness, or reliability of any calculation shown in the App.</p>
+
+    <h2>8. Data Loss &amp; Backups</h2>
+    <p>While reasonable efforts are made to keep session data available and synced, QTrack does not guarantee that your data — including question logs, syllabus progress, focus-timer history, or exam records — will be preserved indefinitely, backed up, or recoverable in the event of technical failure, database migration, service discontinuation, or accidental deletion. You should not treat the App as your sole or permanent record of your study history.</p>
+
+    <h2>9. Irreversible Actions</h2>
+    <p>Certain actions within the App are intentionally irreversible by design, including but not limited to increases to a chapter's logged Practice question count in the Syllabus Tracker, which can only be added to and never reduced, in order to maintain an honest, append-only record of practice volume. You should enter such numbers carefully, as the App will not permit you to undo an over-entry beyond correcting future entries going forward.</p>
+
+    <h2>10. No Liability</h2>
+    <p>To the fullest extent permitted, the developer of QTrack shall not be liable for any direct, indirect, incidental, or consequential damages arising out of your use of, or inability to use, the App — including but not limited to loss of data, loss of study progress, missed revision due to a bug, or any decision made in reliance on the App's statistics or reminders. The App is provided "as is" and "as available," without warranties of any kind, express or implied.</p>
+
+    <h2>11. Changes to the App and These Terms</h2>
+    <p>Features, calculations, and these Terms may be changed, added, or removed at any time, with or without notice, as the App continues to be developed. Continued use of the App after any such change constitutes your acceptance of the updated Terms. Major changes are generally noted in the in-app Update Log.</p>
+
+    <h2>12. Termination of Access</h2>
+    <p>Access to the App or to a particular session may be withdrawn at the developer's discretion, including in cases of suspected abuse of the Acceptable Use section above, without prior notice.</p>
+
+    <h2>13. Governing Spirit</h2>
+    <p>QTrack is a small, independently maintained tool built to help students stay accountable to each other. These Terms exist to set fair, clearly-stated expectations rather than to create a heavyweight legal relationship. If something in these Terms seems unclear or unfair to you, you're welcome to raise it via the Feedback option in the App.</p>
+
+    <p class="terms-footer-note">By continuing to use QTrack, you confirm that you have read, understood, and agree to these Terms &amp; Conditions in full.</p>
+  </div>
+</div>
+
+<!-- ═══ MODALS ══════════════════════════════════════════════════ -->
+
+<!-- Add Person -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <h2>Add a person</h2>
+    <input type="text" id="newUserName" placeholder="Name (e.g. Arnav)" maxlength="24">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('addUserModal')">Cancel</button>
+      <button class="btn-confirm" onclick="addUser()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Session -->
+<div class="modal-overlay" id="sessionModal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <h2>Session</h2>
+    <p class="session-info">Share your Session ID with a friend. They paste it below and hit Join. Your session is saved automatically.</p>
+    <div class="field-label">Your Session ID</div>
+    <div class="session-row">
+      <input type="text" id="sessionIdDisplay" readonly style="font-family:'DM Mono',monospace;font-size:.75rem;cursor:default">
+      <button class="btn-cancel" onclick="copySession()" style="white-space:nowrap">Copy</button>
+    </div>
+    <div class="field-label" style="margin-top:.9rem">Session History</div>
+    <div class="sess-hist" id="sessHistList"></div>
+    <div class="field-label" style="margin-top:.75rem">Join a Friend's Session</div>
+    <input type="text" id="joinSidInput" placeholder="Paste session ID here" style="font-family:'DM Mono',monospace;font-size:.75rem;text-transform:uppercase">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('sessionModal')">Close</button>
+      <button class="btn-confirm" onclick="joinSession()">Join</button>
+    </div>
+    <button class="session-share-btn" onclick="shareSessionInvite()">🔗 Share invite link</button>
+  </div>
+</div>
+
+<!-- Session: generated share invite -->
+<div class="modal-overlay" id="shareInviteModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-drag"></div>
+    <h2>Invite a friend</h2>
+    <p class="modal-hint">Send this to whoever you want studying with you — pasting the link (or just the code) into QTrack drops them straight into your session.</p>
+    <div class="field-label">Invite message</div>
+    <textarea id="shareInviteText" rows="4" readonly></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('shareInviteModal')">Close</button>
+      <button class="btn-confirm" onclick="copyShareInvite()">Copy message</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-drag"></div>
+    <h2>Settings</h2>
+    <div class="settings-row" onclick="toggleTheme()">
+      <span>Toggle light / dark theme</span><span class="settings-row-arrow">›</span>
+    </div>
+    <div class="settings-row" onclick="closeModal('settingsModal');openModal('customiseModal')">
+      <span>Customise page colours</span><span class="settings-row-arrow">›</span>
+    </div>
+    <div class="settings-row" onclick="closeModal('settingsModal');openModal('sessionModal')">
+      <span>Session &amp; sharing</span><span class="settings-row-arrow">›</span>
+    </div>
+    <div class="settings-row" onclick="closeModal('settingsModal');openTermsPage()">
+      <span>Terms &amp; Conditions</span><span class="settings-row-arrow">›</span>
+    </div>
+    <div class="settings-row" onclick="closeModal('settingsModal');cycleWeekAvg();showToast('Switched weekly average view')">
+      <span>Cycle weekly-average readout</span><span class="settings-row-arrow">›</span>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('settingsModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Customise (Question Tracker page colours only) -->
+<div class="modal-overlay" id="customiseModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-drag"></div>
+    <h2>Customise Question Tracker</h2>
+    <p class="modal-hint">Pick an accent colour for the Question Tracker page. This only changes how this page looks on this device — every other page stays the same.</p>
+    <div class="customise-swatch-row" id="customiseSwatchRow"></div>
+    <div class="field-label" style="margin-top:.7rem">Or pick your own</div>
+    <input type="color" id="customiseColorInput" value="#7c5cff" oninput="applyCustomTint(this.value)">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="resetCustomTint()">Reset to default</button>
+      <button class="btn-confirm" onclick="closeModal('customiseModal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Subjects -->
+<div class="modal-overlay" id="subjModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-drag"></div>
+    <h2>Manage Subjects</h2>
+    <div class="subj-list" id="subjDraftList"></div>
+    <div class="add-subj-row">
+      <input class="add-subj-inp" type="text" id="newSubjInp" placeholder="New subject name" maxlength="20">
+      <button class="add-subj-btn" onclick="addSubjDraft()">Add</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('subjModal')">Cancel</button>
+      <button class="btn-confirm" onclick="saveSubjects()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit Exam Test -->
+<div class="modal-overlay" id="examTestModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-drag"></div>
+    <h2 id="examModalTitle">Add Test</h2>
+    <div class="field-label">Test name</div>
+    <input type="text" id="examTestName" placeholder="e.g. JEE Mock Test 4" maxlength="60">
+    <div id="examJmJaField" style="display:none">
+      <div class="field-label">Test type</div>
+      <div class="exam-diff-pick" style="margin-bottom:.6rem">
+        <button class="exam-diff-pick-btn" id="examJmJaBtn_" onclick="setExamDraftJmJa(null)">Other</button>
+        <button class="exam-diff-pick-btn" id="examJmJaBtn_JM" onclick="setExamDraftJmJa('JM')">JEE Main</button>
+        <button class="exam-diff-pick-btn" id="examJmJaBtn_JA" onclick="setExamDraftJmJa('JA')">JEE Advanced</button>
+      </div>
+    </div>
+    <div class="field-label">Date</div>
+    <input type="date" id="examTestDate">
+    <div class="exam-modal-grid">
+      <div><div class="field-label">Total marks</div><input type="number" id="examTotalMarks" placeholder="300"></div>
+      <div><div class="field-label">Marks obtained</div><input type="number" id="examObtMarks" placeholder="210"></div>
+      <div id="examRankField"><div class="field-label">Overall rank</div><input type="number" id="examOverallRank" oninput="updateExamPercentilePreview()" placeholder="1240"></div>
+      <div id="examStudentsField"><div class="field-label">Total candidates appeared</div><input type="number" id="examTotalStudents" oninput="updateExamPercentilePreview()" placeholder="150000"></div>
+    </div>
+    <div class="exam-percentile-preview" id="examPercentilePreview" style="font-size:.68rem;color:var(--muted);margin:-.35rem 0 .6rem">Percentile is calculated automatically from rank and total candidates.</div>
+    <div class="field-label" style="margin-top:.2rem">Subject-wise breakdown</div>
+    <div class="exam-subj-hdr"><span>Subject</span><span>Score</span><span>Max</span><span></span></div>
+    <div id="examSubjRows"></div>
+    <button class="add-subj-btn" style="margin:.3rem 0 .5rem" onclick="addExamSubjRow()">+ Add subject row</button>
+    <div class="field-label">Personal note</div>
+    <textarea id="examNote" rows="3" placeholder="What went wrong, what to revise..."></textarea>
+    <button class="exam-analysis-open-btn" id="examAnalysisOpenBtn" onclick="openExamAnalysisModal()">🔍 Analysis<span id="examDiffPreview"></span></button>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('examTestModal')">Cancel</button>
+      <button class="btn-confirm" onclick="saveExamTest()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Exam Test Analysis (paper feedback survey) -->
+<div class="modal-overlay" id="examAnalysisModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-drag"></div>
+    <h2>Paper Analysis</h2>
+    <div class="field-label">How was the paper?</div>
+    <div class="exam-diff-pick">
+      <button class="exam-diff-pick-btn easy" id="examDiffBtn_easy" onclick="setExamDraftDifficulty('easy')">Easy</button>
+      <button class="exam-diff-pick-btn mod" id="examDiffBtn_mod" onclick="setExamDraftDifficulty('mod')">Moderate</button>
+      <button class="exam-diff-pick-btn tough" id="examDiffBtn_tough" onclick="setExamDraftDifficulty('tough')">Tough</button>
+    </div>
+    <div class="field-label" style="margin-top:.6rem">Rough breakdown by topic — enter the marks you attempted and the marks you scored for each broad topic (in marks, estimate)</div>
+    <div id="examAnalysisRows"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('examAnalysisModal')">Back</button>
+      <button class="btn-confirm" onclick="closeExamAnalysisModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Exam Analytics: set/change password for a person -->
+<div class="modal-overlay" id="examPassSetModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-drag"></div>
+    <h2>Lock <span id="examPassSetName"></span>'s Exam Data</h2>
+    <p class="modal-hint">Set a password so only someone who knows it can view or edit this person's Exam Analytics on other devices. This is a casual lock between friends, not real security.</p>
+    <div class="field-label">New password</div>
+    <input type="password" id="examPassSetInput" placeholder="Leave blank to remove lock">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('examPassSetModal')">Cancel</button>
+      <button class="btn-confirm" onclick="submitExamPasswordSet()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Exam Analytics: enter password to view a locked person -->
+<div class="modal-overlay" id="examPassEnterModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-drag"></div>
+    <h2>Enter Password</h2>
+    <p class="modal-hint" id="examPassEnterHint"></p>
+    <input type="password" id="examPassEnterInput" placeholder="Password" onkeydown="if(event.key==='Enter')submitExamPasswordEnter()">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('examPassEnterModal')">Cancel</button>
+      <button class="btn-confirm" onclick="submitExamPasswordEnter()">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<!-- Colour Picker -->
+<div class="modal-overlay" id="colorModal">
+  <div class="modal" style="max-width:300px">
+    <div class="modal-drag"></div>
+    <h2>Pick a colour</h2>
+    <div class="field-label">Presets</div>
+    <div class="preset-swatches" id="presetSwatches"></div>
+    <div class="field-label">Custom</div>
+    <input type="color" id="colorWheel" oninput="colorPickVal=this.value;document.getElementById('colorPreview').style.background=this.value">
+    <div class="color-preview" id="colorPreview"></div>
+    <div class="modal-btns" style="margin-top:.75rem">
+      <button class="btn-cancel" onclick="closeModal('colorModal')">Cancel</button>
+      <button class="btn-confirm" onclick="applyColor()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Feedback -->
+<div class="modal-overlay" id="feedbackModal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <h2>Feedback</h2>
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem;line-height:1.65">Please give your valuable feedback — it goes directly to the developer.</p>
+    <div class="field-label">Rating</div>
+    <div class="star-row">
+      <button class="star-btn" onclick="setRating(1)">★</button>
+      <button class="star-btn" onclick="setRating(2)">★</button>
+      <button class="star-btn" onclick="setRating(3)">★</button>
+      <button class="star-btn" onclick="setRating(4)">★</button>
+      <button class="star-btn" onclick="setRating(5)">★</button>
+    </div>
+    <div class="field-label">Message (optional)</div>
+    <textarea class="feedback-ta" id="feedbackText" placeholder="suggestion and ideas, or general thoughts"></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('feedbackModal')">Cancel</button>
+      <button class="btn-confirm" onclick="submitFeedback()">Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- Report Bug -->
+<div class="modal-overlay" id="bugModal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <h2>Report a Bug</h2>
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem;line-height:1.65">Describe what went wrong — the more detail, the faster it gets fixed.</p>
+    <div class="field-label">What happened?</div>
+    <textarea class="feedback-ta" id="bugText" placeholder="We are sorry for the bug :("></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('bugModal')">Cancel</button>
+      <button class="btn-confirm" onclick="submitBug()">Send</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
+
