@@ -93,7 +93,7 @@ const SYLLABUS_DATA = {
     ]},
     maths: { name: 'Mathematics', chapters: [
       mkCh('Limits','A','Calculus','12th'),
-      mkCh('Limits, Continuity & Differentiability','C','Calculus','12th'),
+      mkCh('Continuity & Differentiability','C','Calculus','12th'),
       mkCh('Application of Derivatives','B','Calculus','12th'),
       mkCh('Indefinite Integration','A','Calculus','12th'),
       mkCh('Definite Integration & Area','A','Calculus','12th'),
@@ -112,13 +112,14 @@ const SYLLABUS_DATA = {
       mkCh('Differential Equations','B','Calculus','12th'),
       mkCh('Vector Algebra','A','Vector & 3D Geometry','12th'),
       mkCh('3D Geometry','A','Vector & 3D Geometry','12th'),
-      mkCh('Trigonometry & Inverse Trigonometry','C','Trigonometry','11th'),
+      mkCh('Trigonometric functions','A','Trigonometry','11th'),
+      mkCh('Trigonometric equation','C','Trigonometry','11th'),
+      mkCh('inverse Trigonometry','C','Trigonometry','11th'),
       mkCh('Binomial Theorem','B','Algebra','11th'),
       mkCh('Functions','A','Sets, Relations & Functions','11th'),
       mkCh('Sets & Relations','C','Sets, Relations & Functions','11th'),
       mkCh('Permutations & Combinations','C','Algebra','11th'),
       mkCh('Statistics','C','Algebra','11th'),
-      mkCh('Mathematical Induction','D','Algebra','11th'),
       mkCh('Basic Algebra, modulus and Inequalities','D','Algebra','11th')
     ]}
   },
