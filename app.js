@@ -1,4 +1,3 @@
-
 /* ═══════════════════════════════════════════════════════════════
    QTrack 0.5.0 — app.js
    Architecture: Firebase REST, write-then-read, no polling conflicts
@@ -2048,4 +2047,1305 @@ function selectExamUser(uid) {
   if (locked) {
     examPendingUid = uid;
     examPassEnterMode = 'primary';
-    document.getElementById('examPassEnterHint').textContent = `${state.users[uid]?.name || 'This person'} has 
+    document.getElementById('examPassEnterHint').textContent = `${state.users[uid]?.name || 'This person'} has locked their Exam Analytics. Enter their password to view it.`;
+    document.getElementById('examPassEnterInput').value = '';
+    openModal('examPassEnterModal');
+    return;
+  }
+  examUid = uid; examSelTestId = null; examWebSubj = null;
+  renderExamPage();
+}
+
+function submitExamPasswordEnter() {
+  if (!examCanAttempt(examPendingUid)) return;
+  const pw = document.getElementById('examPassEnterInput').value;
+  const locked = state.exams.locks[examPendingUid];
+  const ok = locked && simpleHash(examPendingUid + ':' + pw) === locked.hash;
+  examRecordAttempt(examPendingUid, ok);
+  if (ok) {
+    closeModal('examPassEnterModal');
+    if (examPassEnterMode === 'compare') {
+      examAuthedCompareUid = examPendingUid;
+      examCompareUid = examPendingUid;
+    } else {
+      examAuthedUid = examPendingUid;
+      examUid = examPendingUid; examSelTestId = null; examWebSubj = null;
+    }
+    renderExamPage();
+  } else {
+    showToast('Incorrect password');
+  }
+}
+
+/* Changing/removing an existing lock requires being authenticated for it first — otherwise anyone
+   could bypass a lock just by overwriting it with a password of their own choosing. */
+function openExamPassSet() {
+  const locked = state.exams.locks[examUid];
+  if (locked && examAuthedUid !== examUid) {
+    examPromptUnlockCurrent();
+    showToast('Enter the current password first to change it');
+    return;
+  }
+  document.getElementById('examPassSetName').textContent = state.users[examUid]?.name || '';
+  document.getElementById('examPassSetInput').value = '';
+  openModal('examPassSetModal');
+}
+function submitExamPasswordSet() {
+  const pw = document.getElementById('examPassSetInput').value;
+  closeModal('examPassSetModal');
+  if (!pw) {
+    doWrite(() => fbDelete('/exams/locks/' + examUid)).then(ok => { if (ok) showToast('Lock removed'); });
+    return;
+  }
+  doWrite(() => fbPut('/exams/locks/' + examUid, { hash: simpleHash(examUid + ':' + pw) }))
+    .then(ok => { if (ok) { examAuthedUid = examUid; showToast('Password set'); } });
+}
+
+function renderExamModeToggle() {
+  const host = document.getElementById('examModeToggle');
+  if (!host) return;
+  host.innerHTML = EXAM_MODES.map(m =>
+    `<button class="exam-mode-btn ${m.id === examMode ? 'active' : ''}" onclick="setExamMode('${m.id}')">${m.label}</button>`).join('');
+}
+function setExamMode(m) { examMode = m; examSelTestId = null; examWebSubj = null; renderExamPage(); }
+
+function examAnalysisSummaryHTML(t) {
+  if (!t.analysis) return '';
+  const rows = [];
+  Object.keys(t.analysis).forEach(subj => {
+    const units = t.analysis[subj];
+    const sorted = Object.keys(units).sort((a, b) => (units[b].attempted || 0) - (units[a].attempted || 0));
+    if (!sorted.length) return;
+    const most = sorted[0], least = sorted[sorted.length - 1];
+    rows.push(`<div style="margin-bottom:.3rem"><strong>${escHtml(subj)}:</strong> most emphasized — ${escHtml(most)} (${units[most].attempted || 0} marks attempted) · least — ${escHtml(least)} (${units[least].attempted || 0} marks attempted)</div>`);
+  });
+  return rows.length ? `<div class="exam-note-box">🔍 <strong>Paper analysis</strong><br>${rows.join('')}</div>` : '';
+}
+
+function openExamModal(editId = null) {
+  examEditingId = editId;
+  const t = editId ? state.exams.tests[editId] : null;
+  document.getElementById('examModalTitle').textContent = editId ? 'Edit Test' : 'Add Test';
+  document.getElementById('examTestName').value = t ? t.name : '';
+  document.getElementById('examTestDate').value = t ? t.date : todayStr();
+  document.getElementById('examTestDate').max = todayStr();
+  document.getElementById('examTotalMarks').value = t ? t.totalMarks ?? '' : '';
+  document.getElementById('examObtMarks').value = t ? t.obtainedMarks ?? '' : '';
+  document.getElementById('examOverallRank').value = t ? t.overallRank ?? '' : '';
+  document.getElementById('examTotalStudents').value = t ? t.totalStudents ?? '' : '';
+  document.getElementById('examNote').value = t ? t.note || '' : '';
+  examDraftSubjects = t ? JSON.parse(JSON.stringify(t.subjects || [])) : state.subjects.map(s => ({ name: s.name, score: '', max: '' }));
+  if (!examDraftSubjects.length) examDraftSubjects = [{ name: '', score: '', max: '' }];
+  examDraftDifficulty = t ? t.difficulty || null : null;
+  examDraftJmJa = t ? t.jmja || null : null;
+  examDraftAnalysis = t ? JSON.parse(JSON.stringify(t.analysis || {})) : {};
+  examDraftReviews = t ? JSON.parse(JSON.stringify(t.subjectReviews || {})) : {};
+  examAnalysisStandalone = false;
+  renderExamSubjRows();
+  updateExamDiffPreview();
+  updateExamPercentilePreview();
+  document.getElementById('examJmJaField').style.display = examMode === 'jee' ? 'block' : 'none';
+  updateExamJmJaButtons();
+  openModal('examTestModal');
+}
+
+function setExamDraftJmJa(v) { examDraftJmJa = v; updateExamJmJaButtons(); }
+function updateExamJmJaButtons() {
+  document.querySelectorAll('[id^="examJmJaBtn_"]').forEach(b => b.classList.remove('selected'));
+  document.getElementById('examJmJaBtn_' + (examDraftJmJa || '')).classList.add('selected');
+}
+
+function updateExamPercentilePreview() {
+  const el = document.getElementById('examPercentilePreview');
+  if (!el) return;
+  const rank = document.getElementById('examOverallRank').value;
+  const total = document.getElementById('examTotalStudents').value;
+  const p = examCalcPercentile(rank, total);
+  el.textContent = p != null ? `Calculated percentile: ${p}%` : 'Percentile is calculated automatically from rank and total candidates.';
+}
+
+function updateExamDiffPreview() {
+  const el = document.getElementById('examDiffPreview');
+  if (el) el.innerHTML = examDraftDifficulty ? `<span class="exam-diff-badge ${examDraftDifficulty}">${examDraftDifficulty}</span>` : '';
+}
+
+function renderExamSubjRows() {
+  const host = document.getElementById('examSubjRows');
+  if (!host) return;
+  host.innerHTML = examDraftSubjects.map((r, i) => `
+    <div class="exam-subj-row">
+      <input type="text" placeholder="Subject" value="${escHtml(r.name || '')}" oninput="examDraftSubjects[${i}].name=this.value">
+      <input type="number" placeholder="Score" value="${r.score ?? ''}" oninput="examDraftSubjects[${i}].score=this.value">
+      <input type="number" placeholder="Max" value="${r.max ?? ''}" oninput="examDraftSubjects[${i}].max=this.value">
+      <button class="exam-subj-row-del" onclick="removeExamSubjRow(${i})">✕</button>
+    </div>`).join('');
+}
+function addExamSubjRow() { examDraftSubjects.push({ name: '', score: '', max: '' }); renderExamSubjRows(); }
+function removeExamSubjRow(i) { examDraftSubjects.splice(i, 1); renderExamSubjRows(); }
+
+function saveExamTest() {
+  const name = document.getElementById('examTestName').value.trim();
+  if (!name) { showToast('Enter a test name'); return; }
+  const id = examEditingId || ('ex' + Date.now());
+  const rank = document.getElementById('examOverallRank').value ? Number(document.getElementById('examOverallRank').value) : null;
+  const totalStudents = document.getElementById('examTotalStudents').value ? Number(document.getElementById('examTotalStudents').value) : null;
+  const test = {
+    id, mode: examMode, name, ownerUid: examUid,
+    date: document.getElementById('examTestDate').value || todayStr(),
+    totalMarks: Number(document.getElementById('examTotalMarks').value) || 0,
+    obtainedMarks: Number(document.getElementById('examObtMarks').value) || 0,
+    overallRank: rank,
+    totalStudents: totalStudents,
+    overallPercentile: examCalcPercentile(rank, totalStudents),
+    note: document.getElementById('examNote').value.trim(),
+    difficulty: examDraftDifficulty,
+    jmja: examMode === 'jee' ? examDraftJmJa : null,
+    analysis: examDraftAnalysis,
+    subjectReviews: examDraftReviews,
+    subjects: examDraftSubjects.filter(s => s.name && s.name.trim()).map(s => ({
+      name: s.name.trim(), score: Number(s.score) || 0, max: Number(s.max) || 0
+    }))
+  };
+  closeModal('examTestModal');
+  doWrite(() => fbPut('/exams/tests/' + id, test)).then(ok => { if (ok) { examSelTestId = id; showToast('Test saved'); } });
+}
+
+function deleteExamTest(id) {
+  if (!confirm('Delete this test entry?')) return;
+  doWrite(() => fbDelete('/exams/tests/' + id)).then(ok => { if (ok) { examSelTestId = null; showToast('Deleted'); } });
+}
+
+/* ── Paper Analysis survey (opened from the Add/Edit Test modal, or directly from a test card) ── */
+function openExamAnalysisModal() {
+  document.querySelectorAll('.exam-diff-pick-btn').forEach(b => b.classList.remove('selected'));
+  if (examDraftDifficulty) document.getElementById('examDiffBtn_' + examDraftDifficulty)?.classList.add('selected');
+  renderExamAnalysisRows();
+  openModal('examAnalysisModal');
+}
+
+/* Open the Analysis survey straight from a test card, without going through the full edit form —
+   "analysis section can be accessed anytime at will" */
+function openExamAnalysisFor(id) {
+  const t = state.exams.tests[id];
+  if (!t) return;
+  examEditingId = id;
+  examDraftSubjects = (t.subjects && t.subjects.length) ? JSON.parse(JSON.stringify(t.subjects)) : state.subjects.map(s => ({ name: s.name, score: '', max: '' }));
+  examDraftDifficulty = t.difficulty || null;
+  examDraftAnalysis = JSON.parse(JSON.stringify(t.analysis || {}));
+  examDraftReviews = JSON.parse(JSON.stringify(t.subjectReviews || {}));
+  examAnalysisStandalone = true;
+  openExamAnalysisModal();
+}
+
+/* "Done" on the Analysis modal — if opened standalone (not via the full edit form), save the
+   analysis/difficulty/reviews straight back onto the existing test instead of discarding them */
+function closeExamAnalysisModal() {
+  if (examAnalysisStandalone && examEditingId) {
+    const t = state.exams.tests[examEditingId];
+    if (t) {
+      const updated = { ...t, difficulty: examDraftDifficulty, analysis: examDraftAnalysis, subjectReviews: examDraftReviews };
+      doWrite(() => fbPut('/exams/tests/' + examEditingId, updated)).then(ok => { if (ok) showToast('Analysis saved'); });
+    }
+    examAnalysisStandalone = false;
+  }
+  closeModal('examAnalysisModal');
+}
+function setExamDraftDifficulty(d) {
+  examDraftDifficulty = d;
+  document.querySelectorAll('.exam-diff-pick-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('examDiffBtn_' + d)?.classList.add('selected');
+  updateExamDiffPreview();
+}
+function renderExamAnalysisRows() {
+  const host = document.getElementById('examAnalysisRows');
+  if (!host) return;
+  // "Other" mode has no fixed, known subject syllabus (unlike JEE/NEET), so the topic-wise breakdown
+  // portal doesn't apply here — only the difficulty rating (rendered separately, above this host) is kept.
+  if (examMode === 'other') { host.innerHTML = '<div class="exam-empty">Topic-wise breakdown isn\'t available in Other mode — just log the difficulty above.</div>'; return; }
+  const subjects = examDraftSubjects.filter(s => s.name && s.name.trim());
+  if (!subjects.length) { host.innerHTML = '<div class="exam-empty">Add subjects in the main form first.</div>'; return; }
+  let html = '';
+  subjects.forEach(s => {
+    const fam = examSubjFamily(s.name);
+    const units = fam ? BROAD_UNITS[fam] : null;
+    if (!units) return;
+    if (!examDraftAnalysis[s.name]) examDraftAnalysis[s.name] = {};
+    html += `<div class="exam-analysis-subj"><div class="exam-analysis-subj-name">${escHtml(s.name)}</div>
+      <div class="exam-analysis-hdr"><span>Topic</span><span>Attempted (marks)</span><span>Scored (marks)</span></div>
+      ${units.map(u => {
+        const v = examDraftAnalysis[s.name][u] || { attempted: '', scored: '' };
+        return `<div class="exam-analysis-unit-row">
+          <span class="exam-analysis-unit-name">${escHtml(u)}</span>
+          <input type="number" min="0" value="${v.attempted}" placeholder="marks" oninput="setExamAnalysisVal('${escHtml(s.name)}','${escHtml(u)}','attempted',this.value)">
+          <input type="number" min="0" value="${v.scored}" placeholder="marks" oninput="setExamAnalysisVal('${escHtml(s.name)}','${escHtml(u)}','scored',this.value)">
+        </div>`;
+      }).join('')}
+      <div class="exam-review-box">
+        <div class="exam-review-label">Your ${escHtml(s.name)} review</div>
+        <textarea placeholder="What felt easy, what to revise, how you felt going in..." oninput="examDraftReviews['${escHtml(s.name)}']=this.value">${escHtml(examDraftReviews[s.name] || '')}</textarea>
+      </div>
+    </div>`;
+  });
+  host.innerHTML = html || '<div class="exam-empty">Subject names don\'t match a known Physics/Chemistry/Maths/Biology family, so no topic breakdown is available.</div>';
+}
+function setExamAnalysisVal(subj, unit, field, val) {
+  if (!examDraftAnalysis[subj]) examDraftAnalysis[subj] = {};
+  if (!examDraftAnalysis[subj][unit]) examDraftAnalysis[subj][unit] = { attempted: '', scored: '' };
+  examDraftAnalysis[subj][unit][field] = val === '' ? '' : Number(val);
+}
+
+function hexAlpha(hex, alpha) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* JEE Main and JEE Advanced are always plotted as separate coloured series — never merged into one line.
+   `dates` is the shared, deduplicated list of calendar dates for the whole JEE test set (see renderExamCharts):
+   plotting against dates instead of one slot per test row means a JM test and a JA test logged on the same
+   date land on the very same x-position, so they can be compared directly instead of being a slot apart. */
+function examBuildJmJaDatasets(tests, valueFn, colorOther, dates) {
+  if (examMode !== 'jee') {
+    return [{
+      label: 'Score', data: tests.map(valueFn), borderColor: colorOther, backgroundColor: hexAlpha(colorOther, .18),
+      borderWidth: 2, pointRadius: 3, pointBackgroundColor: colorOther, tension: .3, fill: true, spanGaps: true
+    }];
+  }
+  const colors = { JM: '#5b8dee', JA: '#e84a8a', Other: colorOther };
+  const names = { JM: 'JEE Main', JA: 'JEE Advanced', Other: 'Other JEE' };
+  const groups = { JM: [], JA: [], Other: [] };
+  tests.forEach(t => { groups[examJmJa(t) || 'Other'].push(t); });
+  return Object.keys(groups).filter(g => groups[g].length).map(g => {
+    // If two tests in the same group share a date (shouldn't normally happen), the later one in date-sorted order wins.
+    const byDate = {};
+    groups[g].forEach(t => { if (t.date) byDate[t.date] = t; });
+    return {
+      label: names[g],
+      data: dates.map(d => byDate[d] ? valueFn(byDate[d]) : null),
+      borderColor: colors[g], backgroundColor: hexAlpha(colors[g], .16),
+      borderWidth: 2, pointRadius: 3, pointBackgroundColor: colors[g], tension: .3, fill: false, spanGaps: true
+    };
+  });
+}
+
+/* Increase/decrease indicator comparing the latest test to the one before it */
+function examTrendBadgeHTML(tests, valueFn, higherIsBetter) {
+  if (tests.length < 2) return '';
+  const last = valueFn(tests[tests.length - 1]), prev = valueFn(tests[tests.length - 2]);
+  if (last == null || prev == null) return '';
+  const diff = Math.round((last - prev) * 10) / 10;
+  if (diff === 0) return `<span class="exam-trend-badge flat">– no change</span>`;
+  const improved = higherIsBetter ? diff > 0 : diff < 0;
+  return `<span class="exam-trend-badge ${improved ? 'up' : 'down'}">${diff > 0 ? '▲' : '▼'} ${Math.abs(diff)} vs last</span>`;
+}
+
+let examProgressChart = null, examRankChart = null, examRadarChart = null, examWebChart = null, examSubjBarChart = null;
+function renderExamCharts(tests) {
+  const progCanvas = document.getElementById('examProgressChart');
+  const progMsg = document.getElementById('examProgNoData');
+  [examProgressChart, examRankChart, examRadarChart, examWebChart, examSubjBarChart].forEach(c => c && c.destroy());
+  examProgressChart = examRankChart = examRadarChart = examWebChart = examSubjBarChart = null;
+  document.getElementById('examMarksTrendBadge').innerHTML = '';
+  document.getElementById('examRankTrendBadge').innerHTML = '';
+
+  // "Other" mode has no rank/percentile data and no Paper Analysis portal (topics are JEE/NEET-specific),
+  // so the Rank chart and the whole Analysis-derived charts row (Subject strengths + Attempted vs Scored) are hidden entirely.
+  const isOther = examMode === 'other';
+  const rankSection = document.getElementById('examRankSection');
+  const analysisRow = document.getElementById('examAnalysisChartsRow');
+  if (rankSection) rankSection.style.display = isOther ? 'none' : '';
+  if (analysisRow) analysisRow.style.display = isOther ? 'none' : '';
+
+  if (!tests.length) { progCanvas.style.display = 'none'; progMsg.style.display = 'block'; document.getElementById('examWebSubjPicker').innerHTML = ''; return; }
+  progCanvas.style.display = 'block'; progMsg.style.display = 'none';
+
+  const tc = '#7fae8f';
+  const gc = 'rgba(34,197,94,0.1)';
+  const pctFn = t => t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0;
+  // Percentile is stored on the test when available; otherwise derive it from rank + total candidates (same formula as entry time)
+  const percentileFn = t => t.overallPercentile != null ? t.overallPercentile : examCalcPercentile(t.overallRank, t.totalStudents);
+
+  // In JEE mode, plot by calendar date rather than one slot per test row — so a JEE Main and JEE Advanced
+  // test logged on the same date share a single point instead of sitting a slot apart with a gap between them.
+  const examDates = examMode === 'jee' ? [...new Set(tests.map(t => t.date).filter(Boolean))].sort() : null;
+  const chartLabels = examMode === 'jee' ? examDates.map(dateLabel) : tests.map(t => t.name);
+
+  // Progress over time (marks %) — JM/JA always split into separate coloured series
+  document.getElementById('examMarksTrendBadge').innerHTML = examTrendBadgeHTML(tests, pctFn, true);
+  examProgressChart = new Chart(progCanvas, {
+    type: 'line',
+    data: { labels: chartLabels, datasets: examBuildJmJaDatasets(tests, pctFn, '#22c55e', examDates) },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: examMode === 'jee', position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } },
+        y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, callback: v => v + '%' }, beginAtZero: true, max: 100 }
+      }
+    }
+  });
+
+  // Percentile over time — higher is better; JM/JA split the same way. Skipped entirely for "Other".
+  if (!isOther) {
+    document.getElementById('examRankTrendBadge').innerHTML = examTrendBadgeHTML(tests, percentileFn, true);
+    examRankChart = new Chart(document.getElementById('examRankChart'), {
+      type: 'line',
+      data: { labels: chartLabels, datasets: examBuildJmJaDatasets(tests, percentileFn, '#f5c842', examDates) },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: examMode === 'jee', position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } },
+          y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, callback: v => v + '%' }, beginAtZero: true, max: 100 }
+        }
+      }
+    });
+  }
+
+  // Subject-wise performance per test (grouped bars, % of each subject's max).
+  // JEE/NEET group by known subject family; Boards/Other plot every distinct subject name the user has actually added.
+  const famSet = new Set();
+  const subjNameSet = new Set();
+  tests.forEach(t => (t.subjects || []).forEach(s => {
+    const f = examSubjFamily(s.name);
+    if (f) famSet.add(f);
+    if (s.name) subjNameSet.add(s.name);
+  }));
+  const fams = (examMode === 'jee' || examMode === 'neet') ? [...famSet] : [...subjNameSet];
+  const subjBarPalette = ['#5b8dee', '#22c55e', '#f5c842', '#b06aed', '#e84a8a', '#f97316', '#2dd4bf', '#a3a3a3'];
+  examSubjBarChart = new Chart(document.getElementById('examSubjBarChart'), {
+    type: 'bar',
+    data: {
+      labels: tests.map(t => t.name),
+      datasets: fams.map((f, i) => {
+        const byFamily = examMode === 'jee' || examMode === 'neet';
+        const findSubj = t => byFamily
+          ? (t.subjects || []).find(s => examSubjFamily(s.name) === f)
+          : (t.subjects || []).find(s => s.name === f);
+        return {
+          label: byFamily ? (f.charAt(0).toUpperCase() + f.slice(1)) : f,
+          data: tests.map(t => { const s = findSubj(t); return s ? (s.max ? Math.round((s.score / s.max) * 1000) / 10 : s.score) : null; }),
+          backgroundColor: byFamily ? EXAM_SUBJ_COLOR[f] : subjBarPalette[i % subjBarPalette.length],
+          borderRadius: 3, borderSkipped: false, barPercentage: 1, categoryPercentage: .92
+        };
+      })
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: !!fams.length, position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } },
+        y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 } }, beginAtZero: true }
+      }
+    }
+  });
+
+  // Weak/strong broad-topic radar and the Attempted-vs-Scored web are both built from Paper Analysis data,
+  // which doesn't exist for "Other" mode (no Paper Analysis portal there) — skip building them entirely.
+  if (isOther) return;
+
+  // Weak/strong broad-topic radar. Paper Analysis entries are marks (attempted/scored), not percentages, so this
+  // converts them into a real percentage before plotting: total marks scored ÷ total marks attempted, per topic,
+  // pooled across every test — not a raw average of the entered mark values (which the old version plotted as-is).
+  const unitAgg = {};
+  tests.forEach(t => { if (!t.analysis) return; Object.values(t.analysis).forEach(units => Object.keys(units).forEach(u => {
+    const v = units[u]; if (v.attempted === '' || v.attempted == null || v.scored === '' || v.scored == null) return;
+    if (!unitAgg[u]) unitAgg[u] = { attSum: 0, scoSum: 0 };
+    unitAgg[u].attSum += Number(v.attempted); unitAgg[u].scoSum += Number(v.scored);
+  })); });
+  const unitNames = Object.keys(unitAgg);
+  const unitAccuracyPct = n => unitAgg[n].attSum > 0 ? Math.round(Math.max(0, Math.min(100, (unitAgg[n].scoSum / unitAgg[n].attSum) * 100))) : 0;
+  examRadarChart = new Chart(document.getElementById('examRadarChart'), {
+    type: 'radar',
+    data: {
+      labels: unitNames.length ? unitNames : ['No analysis data yet'],
+      datasets: [{
+        label: 'Accuracy % (scored ÷ attempted)', data: unitNames.length ? unitNames.map(unitAccuracyPct) : [0],
+        backgroundColor: 'rgba(34,197,94,.25)', borderColor: '#22c55e', pointBackgroundColor: '#22c55e'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { r: { min: 0, max: 100, grid: { color: gc }, angleLines: { color: gc }, pointLabels: { color: tc, font: { size: 8 } }, ticks: { display: false } } }
+    }
+  });
+
+  // Attempted vs Scored web, per subject (togglable)
+  const subjNames = [...new Set(tests.flatMap(t => Object.keys(t.analysis || {})))];
+  const picker = document.getElementById('examWebSubjPicker');
+  if (subjNames.length) {
+    if (!examWebSubj || !subjNames.includes(examWebSubj)) examWebSubj = subjNames[0];
+    picker.innerHTML = `<select onchange="setExamWebSubj(this.value)">${subjNames.map(n => `<option value="${escHtml(n)}" ${n === examWebSubj ? 'selected' : ''}>${escHtml(n)}</option>`).join('')}</select>`;
+  } else { picker.innerHTML = ''; }
+
+  // wUnitAgg holds raw summed marks per topic; the two series plotted below are both derived percentages,
+  // not the raw marks themselves — "Attempted %" is each topic's share of the marks attempted in this subject,
+  // "Scored %" is that topic's accuracy (marks scored ÷ marks attempted). Both land on a normal 0–100 scale.
+  const wUnitAgg = {}; // unit -> {attSum,scoSum}
+  if (examWebSubj) {
+    tests.forEach(t => {
+      const units = t.analysis?.[examWebSubj]; if (!units) return;
+      Object.keys(units).forEach(u => {
+        const v = units[u];
+        if (!wUnitAgg[u]) wUnitAgg[u] = { attSum: 0, scoSum: 0 };
+        if (v.attempted !== '' && v.attempted != null) wUnitAgg[u].attSum += Number(v.attempted);
+        if (v.scored !== '' && v.scored != null) wUnitAgg[u].scoSum += Number(v.scored);
+      });
+    });
+  }
+  const wNames = Object.keys(wUnitAgg);
+  const wTotalAttempted = wNames.reduce((sum, n) => sum + wUnitAgg[n].attSum, 0);
+  const wAttemptedSharePct = n => wTotalAttempted > 0 ? Math.round((wUnitAgg[n].attSum / wTotalAttempted) * 100) : 0;
+  const wAccuracyPct = n => wUnitAgg[n].attSum > 0 ? Math.round(Math.max(0, Math.min(100, (wUnitAgg[n].scoSum / wUnitAgg[n].attSum) * 100))) : 0;
+  examWebChart = new Chart(document.getElementById('examWebChart'), {
+    type: 'radar',
+    data: {
+      labels: wNames.length ? wNames : ['No analysis data yet'],
+      datasets: [
+        { label: 'Attempted % (share of marks attempted)', data: wNames.length ? wNames.map(wAttemptedSharePct) : [0], backgroundColor: 'rgba(91,141,238,.22)', borderColor: '#5b8dee', pointBackgroundColor: '#5b8dee' },
+        { label: 'Scored % (accuracy)', data: wNames.length ? wNames.map(wAccuracyPct) : [0], backgroundColor: 'rgba(34,197,94,.22)', borderColor: '#22c55e', pointBackgroundColor: '#22c55e' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
+      scales: { r: { min: 0, max: 100, grid: { color: gc }, angleLines: { color: gc }, pointLabels: { color: tc, font: { size: 8 } }, ticks: { display: false } } }
+    }
+  });
+}
+function setExamWebSubj(name) { examWebSubj = name; renderExamCharts(examTestsForMode()); }
+
+/* ════════════════════════════════════════════════════════════
+   SYLLABUS TRACKER
+════════════════════════════════════════════════════════════ */
+let sylMode = 'jee';          // 'jee' | 'neet' | 'other'
+let sylUid = null;
+let sylSubjectKey = null;
+let sylViewMode = 'priority'; // 'priority' | 'unit'
+let sylClassFilter = 'both';  // '11th' | '12th' | 'both'
+let sylSearch = '';
+let sylOpenGroups = new Set();
+let sylOpenChapter = null;
+
+function sylKey(s) { return String(s).replace(/[.#$\[\]\/]/g, '_').replace(/\s+/g, '_').slice(0, 80); }
+
+function renderSyllabusPage() {
+  renderSylModeToggle();
+  renderSylChips();
+  renderSylBody();
+}
+
+function renderSylModeToggle() {
+  const host = document.getElementById('sylModeToggle');
+  if (!host) return;
+  host.innerHTML = ['jee', 'neet', 'other'].map(m =>
+    `<button class="syl-mode-btn ${m === sylMode ? 'active' : ''}" onclick="setSylMode('${m}')">${m === 'jee' ? 'JEE' : m === 'neet' ? 'NEET' : 'Other'}</button>`).join('');
+}
+function setSylMode(m) { sylMode = m; sylSubjectKey = null; sylOpenGroups.clear(); sylOpenChapter = null; renderSyllabusPage(); }
+
+function renderSylChips() {
+  const host = document.getElementById('sylChipRow');
+  if (!host) return;
+  const users = userList();
+  if (!users.length) { host.innerHTML = '<div class="syl-empty" style="padding:.4rem">Add a person on the Question Tracker page first.</div>'; return; }
+  if (!sylUid || !state.users[sylUid]) sylUid = users[0].id;
+  host.innerHTML = users.map(u =>
+    `<button class="syl-chip ${u.id === sylUid ? 'active' : ''}" onclick="selectSylUser('${u.id}')">${escHtml(u.name)}</button>`).join('');
+}
+function selectSylUser(uid) { sylUid = uid; sylSubjectKey = null; sylOpenGroups.clear(); sylOpenChapter = null; renderSylBody(); }
+
+function sylSubjectsForMode() {
+  if (sylMode === 'other') {
+    const custom = (state.syllabus.custom[sylUid] && state.syllabus.custom[sylUid].subjects) || {};
+    return Object.keys(custom).map(id => ({ key: id, name: custom[id].name, chapters: Object.values(custom[id].chapters || {}), custom: true }));
+  }
+  const src = SYLLABUS_DATA[sylMode];
+  return Object.keys(src).map(key => ({ key, name: src[key].name, chapters: src[key].chapters, custom: false }));
+}
+
+function sylChapterStatus(uid, mode, subjKey, chKey) {
+  const node = state.syllabus.progress[uid]?.[mode]?.[subjKey]?.[chKey];
+  return (node && node.status) || 'pending';
+}
+function sylChapterRevs(uid, mode, subjKey, chKey) {
+  const node = state.syllabus.progress[uid]?.[mode]?.[subjKey]?.[chKey];
+  return (node && node.rev) || 0;
+}
+function sylChapterBacklog(uid, mode, subjKey, chKey) {
+  const node = state.syllabus.progress[uid]?.[mode]?.[subjKey]?.[chKey];
+  return !!(node && node.backlog);
+}
+function sylChapterPractice(uid, mode, subjKey, chKey) {
+  const node = state.syllabus.progress[uid]?.[mode]?.[subjKey]?.[chKey];
+  return (node && node.practice) || 0;
+}
+
+function sylClassMatch(cls) { return sylClassFilter === 'both' || !cls || cls === 'Both' || cls === sylClassFilter; }
+
+/* Weighted progress for a set of chapters: { pct, potential, earned, mastered, doing, todo, total,
+   backlog, practiceTotal, avgPractice }.
+   backlog: count of chapters flagged "in backlog" — purely a display overlay, never touches
+   the pct formula (backlog is usually a subset of chapters that are behind schedule, so it
+   overlays on top of the earned progress rather than subtracting from it).
+   avgPractice: total questions practised ÷ chapters that are NOT pending. Pending (untouched,
+   0-practice) chapters are deliberately excluded, otherwise a syllabus with lots of untouched
+   chapters would drag the average down toward 0 and make it meaningless. */
+function sylComputeStats(uid, mode, subjKey, chapters) {
+  let potential = 0, earned = 0, mastered = 0, doing = 0, todo = 0, total = 0, backlog = 0, practiceTotal = 0, nonPendingCount = 0;
+  chapters.forEach(ch => {
+    if (!sylClassMatch(ch.cls)) return;
+    if (sylSearch && !ch.name.toLowerCase().includes(sylSearch.toLowerCase())) return;
+    const w = PRIORITY_WEIGHT[ch.tier] || 1;
+    const chKey = sylKey(ch.name);
+    const st = sylChapterStatus(uid, mode, subjKey, chKey);
+    potential += w; earned += w * STATUS_VALUE[st]; total++;
+    if (st === 'mastered') mastered++;
+    else if (st === 'pending') todo++;
+    else doing++;
+    if (sylChapterBacklog(uid, mode, subjKey, chKey)) backlog++;
+    const p = sylChapterPractice(uid, mode, subjKey, chKey);
+    practiceTotal += p;
+    if (st !== 'pending') nonPendingCount++;
+  });
+  return {
+    pct: potential ? Math.round((earned / potential) * 1000) / 10 : 0,
+    potential, earned, mastered, doing, todo, total, backlog, practiceTotal,
+    avgPractice: nonPendingCount ? Math.round((practiceTotal / nonPendingCount) * 10) / 10 : 0,
+    backlogPct: potential ? Math.round((chaptersBacklogWeight(uid, mode, subjKey, chapters) / potential) * 1000) / 10 : 0
+  };
+}
+function chaptersBacklogWeight(uid, mode, subjKey, chapters) {
+  let w = 0;
+  chapters.forEach(ch => {
+    if (!sylClassMatch(ch.cls)) return;
+    if (sylChapterBacklog(uid, mode, subjKey, sylKey(ch.name))) w += PRIORITY_WEIGHT[ch.tier] || 1;
+  });
+  return w;
+}
+
+function renderSylBody() {
+  const host = document.getElementById('sylBody');
+  if (!host) return;
+  if (!userList().length) { host.innerHTML = ''; return; }
+  const subjects = sylSubjectsForMode();
+  if (!sylSubjectKey || !subjects.find(s => s.key === sylSubjectKey)) sylSubjectKey = subjects[0]?.key || null;
+
+  // Overall stats across every subject in this mode (for the summary card)
+  let allCh = [];
+  subjects.forEach(s => allCh = allCh.concat(s.chapters.map(c => ({ ...c, __subj: s.key }))));
+  const overall = sylComputeStatsMixed(allCh);
+
+  let html = `
+    <div class="syl-summary-card">
+      <div class="syl-progress-big">${overall.pct}%</div>
+      <div class="syl-progress-label">Covered${sylClassFilter !== 'both' ? ' · ' + sylClassFilter : ''}</div>
+      <div class="syl-progress-bar-track">
+        <div class="syl-progress-bar-fill" style="width:${overall.pct}%"></div>
+        ${overall.backlogPct ? `<div class="syl-progress-bar-backlog" style="width:${overall.backlogPct}%" title="${overall.backlog} chapter(s) in backlog"></div>` : ''}
+      </div>
+      <div class="syl-stat-row">
+        <div><div class="syl-stat-mini-label">Mastered</div><div class="syl-stat-mini-value">${overall.mastered}</div></div>
+        <div><div class="syl-stat-mini-label">Doing</div><div class="syl-stat-mini-value">${overall.doing}</div></div>
+        <div><div class="syl-stat-mini-label">To Do</div><div class="syl-stat-mini-value">${overall.todo}</div></div>
+        ${overall.backlog ? `<div><div class="syl-stat-mini-label" style="color:var(--syl-red,#e5484d)">Backlog</div><div class="syl-stat-mini-value" style="color:var(--syl-red,#e5484d)">${overall.backlog}</div></div>` : ''}
+      </div>
+      <div class="syl-stat-row" style="margin-top:.35rem">
+        <div><div class="syl-stat-mini-label">Avg Qs/Chapter</div><div class="syl-stat-mini-value">${overall.avgPractice}</div></div>
+        <div><div class="syl-stat-mini-label">Total Practised</div><div class="syl-stat-mini-value">${overall.practiceTotal}</div></div>
+      </div>
+      <div class="syl-filter-block">
+        <div class="syl-filter-label">Class Filter</div>
+        <div class="syl-filter-btns">
+          ${['11th','12th','both'].map(c => `<button class="syl-filter-btn ${sylClassFilter===c?'active':''}" onclick="setSylClassFilter('${c}')">${c==='both'?'All':c}</button>`).join('')}
+        </div>
+      </div>
+      <div class="syl-filter-block">
+        <div class="syl-filter-label">View Mode</div>
+        <div class="syl-filter-btns">
+          ${['priority','unit','progress'].map(v => `<button class="syl-filter-btn ${sylViewMode===v?'active':''}" onclick="setSylViewMode('${v}')">${v==='priority'?'Priority':v==='unit'?'Unit':'Progress'}</button>`).join('')}
+        </div>
+      </div>
+      <input class="syl-search-inp" type="text" placeholder="Search chapters..." value="${escHtml(sylSearch)}" oninput="setSylSearch(this.value)">
+      <div class="syl-actions-row">
+        <button class="syl-btn-sm ghost" onclick="shareSylProgress()">Share</button>
+        <button class="syl-btn-sm ghost" onclick="resetSylProgress()">Reset</button>
+      </div>
+    </div>`;
+
+  if (!subjects.length) {
+    html += sylMode === 'other'
+      ? `<div class="syl-empty">No custom subjects yet.</div>${sylAddSubjectFormHTML()}`
+      : `<div class="syl-empty">No syllabus data.</div>`;
+    html += sylFormulaBoxHTML();
+    host.innerHTML = html;
+    return;
+  }
+
+  if (sylViewMode === 'progress') {
+    // "Progress" view — every subject side by side, two per row, last one spanning full width if odd
+    html += `<div class="syl-progress-grid">${subjects.map(s => {
+      const st = sylComputeStats(sylUid, sylMode, s.key, s.chapters);
+      return `<div class="syl-progress-panel">
+        <div class="syl-progress-panel-name">${escHtml(s.name)}</div>
+        <div class="syl-progress-panel-pct">${st.pct}%</div>
+        <div class="syl-progress-panel-bar">
+          <div class="syl-progress-panel-bar-fill" style="width:${st.pct}%"></div>
+          ${st.backlogPct ? `<div class="syl-progress-bar-backlog" style="width:${st.backlogPct}%" title="${st.backlog} chapter(s) in backlog"></div>` : ''}
+        </div>
+        <div class="syl-progress-panel-stats">
+          <div>Mastered: <b>${st.mastered}</b></div>
+          <div>Doing: <b>${st.doing}</b></div>
+          <div>To Do: <b>${st.todo}</b></div>
+          ${st.backlog ? `<div style="color:var(--syl-red,#e5484d)">Backlog: <b>${st.backlog}</b></div>` : ''}
+          <div>Avg Qs/Ch: <b>${st.avgPractice}</b></div>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+    html += sylFormulaBoxHTML();
+    host.innerHTML = html;
+    return;
+  }
+
+  html += `<div class="syl-subject-tabs">${subjects.map(s => {
+    const st = sylComputeStats(sylUid, sylMode, s.key, s.chapters);
+    return `<div class="syl-subject-tab ${s.key === sylSubjectKey ? 'active' : ''}" onclick="selectSylSubject('${s.key}')">
+      <div class="syl-subject-tab-name">${escHtml(s.name)}<span class="syl-subject-tab-pct">${st.pct}%</span></div>
+      <div class="syl-subject-tab-count">${st.total} chapters</div>
+    </div>`;
+  }).join('')}</div>`;
+
+  const subj = subjects.find(s => s.key === sylSubjectKey);
+  if (subj) html += renderSylSubjectGroups(subj);
+  if (sylMode === 'other') html += sylAddSubjectFormHTML() + (subj ? sylAddChapterFormHTML(subj) : '');
+
+  html += sylFormulaBoxHTML();
+  host.innerHTML = html;
+}
+
+/* Plain-language, always-visible explanation of how the progress % is worked out */
+function sylFormulaBoxHTML() {
+  return `
+    <div class="syl-formula-box">
+      <h4>How is the progress % worked out?</h4>
+      Every chapter is given a priority — <code>A</code>, <code>B</code>, <code>C</code> or <code>D</code> — based on how often it tends to show up and how heavily it's weighted in past papers. Higher-priority chapters count for more, the same way a 4-mark question matters more to your score than a 1-mark one.
+      <br><br>
+      Each status is worth a fraction of that chapter's weight: <code>Pending</code> = 0%, <code>Theory done</code> = 50%, <code>PYQs done</code> or <code>Mastered</code> = 100%. Your subject % is simply <em>(weight actually earned) ÷ (total weight possible)</em> — so finishing five easy D-priority chapters moves the needle far less than finishing one A-priority chapter.
+      <br><br>
+      In short: <b>Progress % = earned weight ÷ total possible weight, summed across every chapter you're tracking.</b> It rewards you for clearing the chapters that matter most first, not just for ticking off the most boxes.
+    </div>`;
+}
+
+function sylComputeStatsMixed(chaptersWithSubj) {
+  let potential = 0, earned = 0, mastered = 0, doing = 0, todo = 0, total = 0, backlog = 0, backlogW = 0, practiceTotal = 0, nonPendingCount = 0;
+  chaptersWithSubj.forEach(ch => {
+    if (!sylClassMatch(ch.cls)) return;
+    const w = PRIORITY_WEIGHT[ch.tier] || 1;
+    const chKey = sylKey(ch.name);
+    const st = sylChapterStatus(sylUid, sylMode, ch.__subj, chKey);
+    potential += w; earned += w * STATUS_VALUE[st]; total++;
+    if (st === 'mastered') mastered++;
+    else if (st === 'pending') todo++;
+    else doing++;
+    if (sylChapterBacklog(sylUid, sylMode, ch.__subj, chKey)) { backlog++; backlogW += w; }
+    const p = sylChapterPractice(sylUid, sylMode, ch.__subj, chKey);
+    practiceTotal += p;
+    if (st !== 'pending') nonPendingCount++;
+  });
+  return {
+    pct: potential ? Math.round((earned / potential) * 1000) / 10 : 0,
+    potential, earned, mastered, doing, todo, total, backlog, practiceTotal,
+    avgPractice: nonPendingCount ? Math.round((practiceTotal / nonPendingCount) * 10) / 10 : 0,
+    backlogPct: potential ? Math.round((backlogW / potential) * 1000) / 10 : 0
+  };
+}
+
+function selectSylSubject(key) { sylSubjectKey = key; sylOpenGroups.clear(); sylOpenChapter = null; renderSylBody(); }
+function setSylClassFilter(c) { sylClassFilter = c; renderSylBody(); }
+function setSylViewMode(v) { sylViewMode = v; sylOpenGroups.clear(); renderSylBody(); }
+function setSylSearch(v) { sylSearch = v; renderSylBody(); }
+
+function renderSylSubjectGroups(subj) {
+  const chapters = subj.chapters.filter(ch => !sylSearch || ch.name.toLowerCase().includes(sylSearch.toLowerCase()));
+  let groupKeys, groupOf, groupLabel;
+  if (sylViewMode === 'priority' || subj.custom) {
+    groupKeys = ['A', 'Adv', 'B', 'C', 'D'];
+    groupOf = ch => ch.tier || 'D';
+    groupLabel = k => ({ A: 'Priority A', Adv: 'Priority Adv', B: 'Priority B', C: 'Priority C', D: 'Priority D' }[k]);
+  } else {
+    groupKeys = BROAD_UNITS[subj.key] || [...new Set(chapters.map(c => c.unit))];
+    groupOf = ch => ch.unit || 'Other';
+    groupLabel = k => k;
+  }
+  let html = '<div class="syl-groups-grid">';
+  groupKeys.forEach(gk => {
+    const chs = chapters.filter(ch => groupOf(ch) === gk && sylClassMatch(ch.cls));
+    if (!chs.length) return;
+    const st = sylComputeStats(sylUid, sylMode, subj.key, chs);
+    const open = sylOpenGroups.has(gk);
+    html += `
+      <div class="syl-group">
+        <div class="syl-group-head" onclick="toggleSylGroup('${gk}')">
+          <div class="syl-group-name">${escHtml(groupLabel(gk))}</div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="syl-group-pct">${st.pct}%</span><span class="syl-chevron ${open?'open':''}">▾</span></div>
+        </div>
+        ${open ? `<div class="syl-group-body">${chs.map(ch => renderSylChapterRow(subj, ch)).join('')}</div>` : ''}
+      </div>`;
+  });
+  html += '</div>';
+  return html === '<div class="syl-groups-grid"></div>' ? '<div class="syl-empty">No chapters match.</div>' : html;
+}
+
+function toggleSylGroup(gk) { sylOpenGroups.has(gk) ? sylOpenGroups.delete(gk) : sylOpenGroups.add(gk); renderSylBody(); }
+
+function renderSylChapterRow(subj, ch) {
+  const chKey = sylKey(ch.name);
+  const status = sylChapterStatus(sylUid, sylMode, subj.key, chKey);
+  const revs = sylChapterRevs(sylUid, sylMode, subj.key, chKey);
+  const backlog = sylChapterBacklog(sylUid, sylMode, subj.key, chKey);
+  const practice = sylChapterPractice(sylUid, sylMode, subj.key, chKey);
+  const open = sylOpenChapter === subj.key + '::' + chKey;
+  return `
+    <div class="syl-chapter-row">
+      <div class="syl-chapter-top" onclick="toggleSylChapter('${subj.key}','${chKey}')">
+        <div class="syl-chapter-name"><span class="syl-status-dot ${backlog ? 'backlog' : status}"></span><span class="syl-chapter-name-text">${escHtml(ch.name)}</span></div>
+        <div class="syl-chapter-meta">${ch.cls ? `<span class="syl-cls-tag">${ch.cls}</span>` : ''}<span class="syl-chevron ${open?'open':''}">▾</span></div>
+      </div>
+      ${open ? `
+      <div class="syl-chapter-detail">
+        <div class="syl-status-btns">
+          ${['pending','theory','pyq','mastered'].map(s => `<button class="syl-status-btn ${status===s?'active':''}" onclick="setSylStatus('${subj.key}','${chKey}','${s}')">${STATUS_LABEL[s]}</button>`).join('')}
+        </div>
+        <div class="syl-rev-row">
+          <span class="syl-rev-label">Revisions</span>
+          <div class="syl-rev-ctrl">
+            <button class="syl-rev-btn" onclick="bumpSylRev('${subj.key}','${chKey}',-1)">−</button>
+            <span class="syl-rev-count">${revs}</span>
+            <button class="syl-rev-btn" onclick="bumpSylRev('${subj.key}','${chKey}',1)">+</button>
+          </div>
+        </div>
+        <div class="syl-extra-btns">
+          <button class="syl-extra-btn backlog ${backlog ? 'active' : ''}" onclick="toggleSylBacklog('${subj.key}','${chKey}')">${backlog ? 'In Backlog' : 'Backlog'}</button>
+          <button class="syl-extra-btn practice" onclick="promptAddSylPractice('${subj.key}','${chKey}')">Practice<span class="syl-practice-count">${practice}</span></button>
+        </div>
+        <div class="syl-practice-hint">Practice count only ever goes up — enter how many more questions you did.</div>
+        ${subj.custom ? `<button class="syl-btn-sm ghost" style="margin-top:.5rem" onclick="deleteSylChapter('${subj.key}','${ch.id}')">Delete chapter</button>` : ''}
+      </div>` : ''}
+    </div>`;
+}
+
+function toggleSylChapter(subjKey, chKey) {
+  const id = subjKey + '::' + chKey;
+  sylOpenChapter = sylOpenChapter === id ? null : id;
+  renderSylBody();
+}
+
+function sylProgressPath(subjKey, chKey) { return `/syllabus/progress/${sylUid}/${sylMode}/${subjKey}/${chKey}`; }
+
+function setSylStatus(subjKey, chKey, status) {
+  const cur = state.syllabus.progress[sylUid]?.[sylMode]?.[subjKey]?.[chKey] || {};
+  doWrite(() => fbPut(sylProgressPath(subjKey, chKey), { status, rev: cur.rev || 0, backlog: !!cur.backlog, practice: cur.practice || 0 }))
+    .then(ok => { if (ok) renderSylBody(); });
+}
+
+function bumpSylRev(subjKey, chKey, delta) {
+  const cur = state.syllabus.progress[sylUid]?.[sylMode]?.[subjKey]?.[chKey] || { status: 'pending', rev: 0 };
+  const rev = Math.max(0, (cur.rev || 0) + delta);
+  doWrite(() => fbPut(sylProgressPath(subjKey, chKey), { status: cur.status || 'pending', rev, backlog: !!cur.backlog, practice: cur.practice || 0 }))
+    .then(ok => { if (ok) renderSylBody(); });
+}
+
+function toggleSylBacklog(subjKey, chKey) {
+  const cur = state.syllabus.progress[sylUid]?.[sylMode]?.[subjKey]?.[chKey] || { status: 'pending', rev: 0, practice: 0 };
+  doWrite(() => fbPut(sylProgressPath(subjKey, chKey), { status: cur.status || 'pending', rev: cur.rev || 0, backlog: !cur.backlog, practice: cur.practice || 0 }))
+    .then(ok => { if (ok) renderSylBody(); });
+}
+
+/* Practice count is intentionally irreversible — it can only ever be added to, never reduced,
+   so it stays an honest running total of questions actually practised. The user enters how
+   many MORE questions they did (a positive integer), which is added on top of the existing count. */
+function promptAddSylPractice(subjKey, chKey) {
+  const raw = window.prompt('How many more questions did you practise for this chapter? (whole number, e.g. 15)', '');
+  if (raw === null) return; // cancelled
+  const n = parseInt(raw, 10);
+  if (!Number.isInteger(n) || n <= 0 || String(n) !== raw.trim()) {
+    showToast('Enter a whole positive number');
+    return;
+  }
+  addSylPractice(subjKey, chKey, n);
+}
+function addSylPractice(subjKey, chKey, addAmount) {
+  const cur = state.syllabus.progress[sylUid]?.[sylMode]?.[subjKey]?.[chKey] || { status: 'pending', rev: 0, backlog: false, practice: 0 };
+  const practice = (cur.practice || 0) + Math.max(0, Math.floor(addAmount)); // add-only — never subtracts
+  doWrite(() => fbPut(sylProgressPath(subjKey, chKey), { status: cur.status || 'pending', rev: cur.rev || 0, backlog: !!cur.backlog, practice }))
+    .then(ok => { if (ok) { renderSylBody(); showToast(`+${addAmount} logged`); } });
+}
+
+function shareSylProgress() {
+  const subjects = sylSubjectsForMode();
+  const lines = [`${state.users[sylUid]?.name || ''}'s ${sylMode.toUpperCase()} syllabus progress:`];
+  subjects.forEach(s => { const st = sylComputeStats(sylUid, sylMode, s.key, s.chapters); lines.push(`${s.name}: ${st.pct}%`); });
+  const text = lines.join('\n');
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard')).catch(() => showToast(text));
+  else showToast(text);
+}
+
+function resetSylProgress() {
+  if (!confirm(`Reset all ${sylMode.toUpperCase()} progress for ${state.users[sylUid]?.name || 'this person'}?`)) return;
+  doWrite(() => fbDelete(`/syllabus/progress/${sylUid}/${sylMode}`)).then(ok => { if (ok) showToast('Progress reset'); });
+}
+
+/* ── "Other" mode: custom subjects & chapters ── */
+function sylAddSubjectFormHTML() {
+  return `
+    <div class="syl-add-row">
+      <input type="text" id="sylNewSubjName" placeholder="New subject name" style="flex:1">
+      <button class="syl-btn-sm" onclick="addSylSubject()">+ Add Subject</button>
+    </div>`;
+}
+function sylAddChapterFormHTML(subj) {
+  return `
+    <div class="syl-add-row">
+      <input type="text" id="sylNewChName" placeholder="New chapter in ${escHtml(subj.name)}" style="flex:2">
+      <select id="sylNewChTier"><option value="A">A</option><option value="Adv">Adv</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+      <button class="syl-btn-sm" onclick="addSylChapter('${subj.key}')">+ Add</button>
+    </div>`;
+}
+function addSylSubject() {
+  const inp = document.getElementById('sylNewSubjName');
+  const name = inp.value.trim();
+  if (!name) return;
+  const id = 'sub' + Date.now();
+  doWrite(() => fbPut(`/syllabus/custom/${sylUid}/subjects/${id}`, { id, name, chapters: {} }))
+    .then(ok => { if (ok) { sylSubjectKey = id; showToast('Subject added'); } });
+}
+function addSylChapter(subjKey) {
+  const nameInp = document.getElementById('sylNewChName');
+  const tierInp = document.getElementById('sylNewChTier');
+  const name = nameInp.value.trim();
+  if (!name) return;
+  const id = 'ch' + Date.now();
+  doWrite(() => fbPut(`/syllabus/custom/${sylUid}/subjects/${subjKey}/chapters/${id}`, { id, name, tier: tierInp.value, unit: 'Custom', cls: 'Both' }))
+    .then(ok => { if (ok) showToast('Chapter added'); });
+}
+function deleteSylChapter(subjKey, chId) {
+  if (!confirm('Delete this chapter?')) return;
+  doWrite(() => fbDelete(`/syllabus/custom/${sylUid}/subjects/${subjKey}/chapters/${chId}`)).then(ok => { if (ok) showToast('Deleted'); });
+}
+
+/* ════════════════════════════════════════════════════════════
+   STUDY TRACKER
+════════════════════════════════════════════════════════════ */
+let studyActive = {};           // uid -> { mode, running, elapsed, remaining, durationSec, flushedSec, intervalId }
+let studyCalYear, studyCalMonth, studySelCalDate = null;
+const SR_CIRC = 2 * Math.PI * 86; // r=86
+
+function initStudyCal() { const n = logicalNow(); studyCalYear = n.getFullYear(); studyCalMonth = n.getMonth(); }
+
+function renderStudyPage() {
+  if (!studyCalYear) initStudyCal();
+  renderStudyChips();
+  renderStudyRings();
+  renderStudyStats();
+}
+
+function renderStudyChips() {
+  const row = document.getElementById('studyChipRow');
+  if (!row) return;
+  const users = userList();
+  if (!users.length) { row.innerHTML = '<div class="study-empty" style="padding:.5rem">Add a person on the Question Tracker page first.</div>'; return; }
+  row.innerHTML = users.map(u =>
+    `<button class="study-chip ${studyActive[u.id] ? 'active' : ''}" onclick="toggleStudyUser('${u.id}')">${escHtml(u.name)}</button>`).join('');
+}
+
+function toggleStudyUser(uid) {
+  if (studyActive[uid]) {
+    removeStudyUser(uid);
+  } else {
+    studyActive[uid] = {
+      mode: 'stopwatch', running: false, elapsed: 0, remaining: 0, durationSec: 25 * 60, flushedSec: 0, intervalId: null,
+      pomoPhase: 'work', pomoWorkMin: 25, pomoBreakMin: 5, pomoLongBreakMin: 15, pomoCyclesBeforeLong: 4, pomoCount: 0
+    };
+    renderStudyChips();
+    renderStudyRings();
+  }
+}
+
+function removeStudyUser(uid) {
+  const t = studyActive[uid];
+  if (!t) return;
+  if (t.intervalId) clearInterval(t.intervalId);
+  flushStudyTime(uid);
+  delete studyActive[uid];
+  renderStudyChips();
+  renderStudyRings();
+}
+
+function fmtHMS(sec) {
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return pad(h) + ':' + pad(m) + ':' + pad(s);
+}
+
+function renderStudyRings() {
+  const host = document.getElementById('studyRings');
+  const empty = document.getElementById('studyEmpty');
+  const uids = Object.keys(studyActive);
+  host.dataset.count = String(uids.length);
+  if (!uids.length) {
+    host.innerHTML = '<div class="study-empty" id="studyEmpty">Select a person above to start tracking focus time.</div>';
+    return;
+  }
+  host.innerHTML = uids.map(uid => buildRingHTML(uid)).join('');
+  uids.forEach(uid => updateRingVisual(uid));
+}
+
+function buildRingHTML(uid) {
+  const t = studyActive[uid];
+  const name = state.users[uid]?.name || '?';
+  return `
+  <div class="study-ring-card ${t.mode === 'pomodoro' && t.pomoPhase !== 'work' ? 'is-break' : ''}" data-uid="${uid}">
+    <div class="sr-name">${escHtml(name)}</div>
+    <div class="sr-mode-toggle">
+      <button class="sr-mode-btn ${t.mode === 'stopwatch' ? 'active' : ''}" onclick="setStudyMode('${uid}','stopwatch')">Stopwatch</button>
+      <button class="sr-mode-btn ${t.mode === 'timer' ? 'active' : ''}" onclick="setStudyMode('${uid}','timer')">Timer</button>
+      <button class="sr-mode-btn ${t.mode === 'pomodoro' ? 'active' : ''}" onclick="setStudyMode('${uid}','pomodoro')">Pomodoro</button>
+    </div>
+    <div class="sr-duration-row" id="srDurRow_${uid}" style="${(t.mode === 'timer' || t.mode === 'pomodoro') && !t.running ? '' : 'display:none'}">
+      ${t.mode === 'pomodoro'
+        ? `<input type="number" min="5" max="120" id="srDurInp_${uid}" value="${t.pomoWorkMin}" onchange="setStudyDuration('${uid}',this.value)"> min work · ${t.pomoBreakMin} min break`
+        : `<input type="number" min="1" max="300" id="srDurInp_${uid}" value="${Math.round(t.durationSec/60)}" onchange="setStudyDuration('${uid}',this.value)"> min`}
+    </div>
+    <div class="sr-ring-wrap">
+      <svg class="sr-ring-svg" viewBox="0 0 200 200">
+        <defs>
+          <clipPath id="srClip_${uid}"><circle cx="100" cy="100" r="86"/></clipPath>
+          <linearGradient id="srGrad_${uid}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#c084fc"/><stop offset="100%" stop-color="#6d28d9"/>
+          </linearGradient>
+        </defs>
+        <circle class="sr-track" cx="100" cy="100" r="86"/>
+        <g clip-path="url(#srClip_${uid})">
+          <g class="sr-fluid-level" id="srWaveWrap_${uid}" style="transform:translateY(210px)">
+            <path class="sr-fluid-wave sr-fluid-wave-back" fill="url(#srGrad_${uid})" opacity=".55"
+              d="M-260,208 C-230,196 -210,196 -180,208 C-150,220 -130,220 -100,208 C-70,196 -50,196 -20,208 C10,220 30,220 60,208 C90,196 110,196 140,208 C170,220 190,220 220,208 C250,196 270,196 300,208 C330,220 350,220 380,208 L380,420 L-260,420 Z"/>
+            <path class="sr-fluid-wave sr-fluid-wave-front" fill="url(#srGrad_${uid})" opacity=".85"
+              d="M-260,200 C-230,190 -210,190 -180,200 C-150,210 -130,210 -100,200 C-70,190 -50,190 -20,200 C10,210 30,210 60,200 C90,190 110,190 140,200 C170,210 190,210 220,200 C250,190 270,190 300,200 C330,210 350,210 380,200 L380,420 L-260,420 Z"/>
+          </g>
+        </g>
+        <circle class="sr-progress" id="srProgress_${uid}" cx="100" cy="100" r="86"
+          stroke-dasharray="${SR_CIRC}" stroke-dashoffset="${SR_CIRC}" stroke="url(#srGrad_${uid})"/>
+      </svg>
+      <div class="sr-time" id="srTime_${uid}">00:00:00</div>
+      <div class="sr-phase-label" id="srPhase_${uid}"></div>
+      <div class="sr-complete-overlay" id="srComplete_${uid}">✓<div>Session complete!</div></div>
+    </div>
+    <div class="sr-controls">
+      <button class="sr-btn sr-start ${t.running ? 'running' : ''}" id="srStartBtn_${uid}" onclick="toggleStudyRun('${uid}')">${t.running ? 'Pause' : 'Start'}</button>
+      <button class="sr-btn sr-skip" id="srSkipBtn_${uid}" onclick="skipPomoPhase('${uid}')" style="${t.mode === 'pomodoro' ? '' : 'display:none'}">Skip</button>
+      <button class="sr-btn sr-reset" onclick="resetStudyTimer('${uid}')">Reset</button>
+      <button class="sr-btn sr-remove" onclick="removeStudyUser('${uid}')">✕</button>
+    </div>
+  </div>`;
+}
+
+function setStudyMode(uid, mode) {
+  const t = studyActive[uid];
+  if (!t || t.running) return; // must pause first
+  t.mode = mode;
+  t.elapsed = 0; t.flushedSec = 0;
+  if (mode === 'pomodoro') { t.pomoPhase = 'work'; t.pomoCount = 0; t.remaining = t.pomoWorkMin * 60; }
+  else t.remaining = t.durationSec;
+  renderStudyRings();
+}
+
+function setStudyDuration(uid, mins) {
+  const t = studyActive[uid];
+  if (!t) return;
+  const m = Math.max(1, Math.min(300, parseInt(mins) || 25));
+  if (t.mode === 'pomodoro') { t.pomoWorkMin = m; t.remaining = m * 60; }
+  else { t.durationSec = m * 60; t.remaining = m * 60; }
+  updateRingVisual(uid);
+}
+
+function toggleStudyRun(uid) {
+  const t = studyActive[uid];
+  if (!t) return;
+  if (t.running) {
+    t.running = false;
+    clearInterval(t.intervalId); t.intervalId = null;
+    if (t.mode !== 'pomodoro' || t.pomoPhase === 'work') flushStudyTime(uid);
+  } else {
+    if (t.mode === 'timer' && t.remaining <= 0) t.remaining = t.durationSec;
+    if (t.mode === 'pomodoro' && t.remaining <= 0) {
+      const phaseDur = t.pomoPhase === 'work' ? t.pomoWorkMin * 60 : (t.pomoPhase === 'longbreak' ? t.pomoLongBreakMin * 60 : t.pomoBreakMin * 60);
+      t.remaining = phaseDur;
+    }
+    t.running = true;
+    t.intervalId = setInterval(() => studyTick(uid), 1000);
+  }
+  renderStudyRings();
+}
+
+function skipPomoPhase(uid) {
+  const t = studyActive[uid];
+  if (!t || t.mode !== 'pomodoro') return;
+  t.remaining = 0;
+  completePomoPhase(uid);
+}
+
+function studyTick(uid) {
+  const t = studyActive[uid];
+  if (!t || !t.running) return;
+  t.elapsed += 1;
+  if (t.mode === 'timer') {
+    t.remaining -= 1;
+    if (t.remaining <= 0) { t.remaining = 0; completeStudyTimer(uid); return; }
+  } else if (t.mode === 'pomodoro') {
+    t.remaining -= 1;
+    if (t.remaining <= 0) { t.remaining = 0; completePomoPhase(uid); return; }
+  }
+  updateRingVisual(uid);
+}
+
+function completePomoPhase(uid) {
+  const t = studyActive[uid];
+  if (!t) return;
+  if (t.intervalId) clearInterval(t.intervalId);
+  t.intervalId = null; t.running = false;
+  const name = state.users[uid]?.name || 'Someone';
+  if (t.pomoPhase === 'work') {
+    flushStudyTime(uid);
+    t.pomoCount++;
+    const isLong = t.pomoCount % t.pomoCyclesBeforeLong === 0;
+    t.pomoPhase = isLong ? 'longbreak' : 'break';
+    const mins = isLong ? t.pomoLongBreakMin : t.pomoBreakMin;
+    t.remaining = mins * 60; t.elapsed = 0; t.flushedSec = 0;
+    flashPomo(`${name} — ${isLong ? 'Long break' : 'Break'} time! (${mins} min)`, 'break');
+  } else {
+    t.pomoPhase = 'work';
+    t.remaining = t.pomoWorkMin * 60; t.elapsed = 0; t.flushedSec = 0;
+    flashPomo(`${name} — back to work!`, 'work');
+  }
+  t.running = true;
+  t.intervalId = setInterval(() => studyTick(uid), 1000);
+  renderStudyRings();
+}
+
+let pomoFlashTimeout = null;
+function flashPomo(text, kind) {
+  let el = document.getElementById('pomoFlashOverlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'pomoFlashOverlay';
+    el.className = 'pomo-flash';
+    document.body.appendChild(el);
+  }
+  el.textContent = (kind === 'break' ? '☕ ' : '🍅 ') + text;
+  el.classList.remove('work-flash', 'break-flash');
+  el.classList.add(kind === 'break' ? 'break-flash' : 'work-flash');
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(pomoFlashTimeout);
+  pomoFlashTimeout = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+function completeStudyTimer(uid) {
+  const t = studyActive[uid];
+  clearInterval(t.intervalId); t.intervalId = null;
+  t.running = false;
+  flushStudyTime(uid);
+  updateRingVisual(uid);
+  const btn = document.getElementById('srStartBtn_' + uid);
+  if (btn) { btn.textContent = 'Start'; btn.classList.remove('running'); }
+  const overlay = document.getElementById('srComplete_' + uid);
+  if (overlay) { overlay.classList.remove('show'); void overlay.offsetWidth; overlay.classList.add('show'); setTimeout(() => overlay.classList.remove('show'), 2200); }
+  t.elapsed = 0; t.remaining = t.durationSec;
+  setTimeout(() => updateRingVisual(uid), 2200);
+}
+
+function resetStudyTimer(uid) {
+  const t = studyActive[uid];
+  if (!t) return;
+  if (t.intervalId) clearInterval(t.intervalId);
+  if (t.mode !== 'pomodoro' || t.pomoPhase === 'work') flushStudyTime(uid);
+  t.running = false; t.intervalId = null;
+  t.elapsed = 0; t.flushedSec = 0;
+  if (t.mode === 'pomodoro') { t.pomoPhase = 'work'; t.pomoCount = 0; t.remaining = t.pomoWorkMin * 60; }
+  else t.remaining = t.durationSec;
+  renderStudyRings();
+}
+
+/* Save the newly-studied seconds (since the last flush) to Firebase. */
+function flushStudyTime(uid) {
+  const t = studyActive[uid];
+  if (!t) return;
+  const delta = t.elapsed - t.flushedSec;
+  t.flushedSec = t.elapsed;
+  if (delta <= 0) return;
+  const dt = todayStr();
+  const cur = ((state.study.logs[dt] || {})[uid]) || 0;
+  const next = cur + delta;
+  state.study.logs[dt] = state.study.logs[dt] || {};
+  state.study.logs[dt][uid] = next; // optimistic
+  doWrite(() => fbPut('/study/logs/' + dt + '/' + uid, next)).then(() => renderStudyStats());
+}
+
+function updateRingVisual(uid) {
+  const t = studyActive[uid];
+  if (!t) return;
+  const timeEl = document.getElementById('srTime_' + uid);
+  const progEl = document.getElementById('srProgress_' + uid);
+  const waveWrap = document.getElementById('srWaveWrap_' + uid);
+  const phaseEl = document.getElementById('srPhase_' + uid);
+  if (!timeEl || !progEl) return;
+  let pct, displaySec;
+  if (t.mode === 'timer') {
+    displaySec = t.remaining;
+    pct = t.durationSec ? t.remaining / t.durationSec : 0; // drains
+  } else if (t.mode === 'pomodoro') {
+    displaySec = t.remaining;
+    const phaseDur = t.pomoPhase === 'work' ? t.pomoWorkMin * 60 : (t.pomoPhase === 'longbreak' ? t.pomoLongBreakMin * 60 : t.pomoBreakMin * 60);
+    pct = phaseDur ? t.remaining / phaseDur : 0; // drains
+  } else {
+    displaySec = t.elapsed;
+    pct = (t.elapsed % 3600) / 3600; // fills up, laps every hour
+  }
+  timeEl.textContent = fmtHMS(displaySec);
+  progEl.style.strokeDashoffset = String(SR_CIRC * (1 - pct));
+  if (waveWrap) {
+    // native wave baseline sits at y≈200-210 (hidden below the r=86 clip circle, visible range y 14–186).
+    // Move it up by up to ~215px so pct=1 fully covers the circle.
+    const dy = 210 - (pct * 215);
+    waveWrap.style.transform = `translateY(${dy}px)`;
+  }
+  if (phaseEl) {
+    if (t.mode === 'pomodoro') {
+      phaseEl.textContent = t.pomoPhase === 'work' ? `Work · #${t.pomoCount + 1}` : (t.pomoPhase === 'longbreak' ? 'Long break' : 'Break');
+      phaseEl.style.display = 'block';
+    } else phaseEl.style.display = 'none';
+  }
+}
+
+/* ── Study calendar ── */
+function studyCalNav(dir) {
+  studyCalMonth += dir;
+  if (studyCalMonth > 11) { studyCalMonth = 0; studyCalYear++; }
+  if (studyCalMonth < 0) { studyCalMonth = 11; studyCalYear--; }
+  renderStudyCal();
+}
+
+function studyDayTotalSec(ds) {
+  const d = state.study.logs[ds] || {};
+  return Object.values(d).reduce((s, v) => s + v, 0);
+}
+
+function renderStudyCal() {
+  if (!studyCalYear) initStudyCal();
+  const MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('studyCalMonthLabel').textContent = MON[studyCalMonth] + ' ' + studyCalYear;
+  const first = new Date(studyCalYear, studyCalMonth, 1);
+  const startDow = (first.getDay() + 6) % 7; // Mon=0
+  const dim = new Date(studyCalYear, studyCalMonth + 1, 0).getDate();
+  const grid = document.getElementById('studyCalGrid');
+  if (!grid) return;
+  let html = ['Mo','Tu','We','Th','Fr','Sa','Su'].map(d => `<div class="cal-hdr">${d}</div>`).join('');
+  for (let i = 0; i < startDow; i++) html += '<div class="cal-day empty"></div>';
+  for (let d = 1; d <= dim; d++) {
+    const ds = studyCalYear + '-' + pad(studyCalMonth + 1) + '-' + pad(d);
+    const sec = studyDayTotalSec(ds);
+    const isToday = ds === todayStr();
+    html += `<div class="cal-day ${sec ? 'has-data' : ''} ${isToday ? 'today' : ''}" onclick="selectStudyCalDay('${ds}')">
+      <div class="cal-num">${d}</div>${sec ? `<div class="cal-tot">${Math.round(sec/60)}m</div>` : ''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+  if (studySelCalDate) renderStudyCalDetail(studySelCalDate);
+}
+
+function selectStudyCalDay(ds) {
+  studySelCalDate = ds;
+  renderStudyCalDetail(ds);
+}
+
+function renderStudyCalDetail(ds) {
+  const box = document.getElementById('studyCalDetail');
+  if (!box) return;
+  const d = state.study.logs[ds] || {};
+  const rows = userList().map(u => `<div class="subj-row"><div class="subj-lbl">${escHtml(u.name)}</div><div class="subj-cnt">${fmtHMS(d[u.id] || 0)}</div></div>`).join('');
+  box.style.display = 'block';
+  box.innerHTML = `<div class="section-label" style="margin:.6rem 0 .3rem">${dateLabel(ds)}</div>${rows || '<div class="no-subj-msg">No focus time logged.</div>'}`;
+}
+
+/* ── Study bar chart (last 7 days, grouped by person) ── */
+let studyChart = null;
+function renderStudyStats() {
+  renderStudyCal();
+  renderStudyChart();
+}
+function renderStudyChart() {
+  const canvas = document.getElementById('studyChart');
+  const msg = document.getElementById('studyNoDataMsg');
+  if (!canvas) return;
+  const users = userList();
+  const totalAll = Object.values(state.study.logs || {}).reduce((s, day) => s + Object.values(day).reduce((a, b) => a + b, 0), 0);
+  if (!users.length || !totalAll) {
+    canvas.style.display = 'none'; if (msg) msg.style.display = 'block';
+    if (studyChart) { studyChart.destroy(); studyChart = null; }
+    return;
+  }
+  canvas.style.display = 'block'; if (msg) msg.style.display = 'none';
+  const now = logicalNow();
+  const keys = [], labels = [];
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now); d.setDate(now.getDate() - i);
+    keys.push(d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()));
+    labels.push(dayNames[d.getDay()] + ' ' + d.getDate());
+  }
+  const datasets = users.map((u, i) => ({
+    label: u.name,
+    data: keys.map(k => Math.round(((state.study.logs[k] || {})[u.id] || 0) / 60)), // minutes
+    backgroundColor: userColor(i), borderRadius: 3, borderSkipped: false,
+    barPercentage: 0.9, categoryPercentage: 0.7
+  }));
+  document.getElementById('studyLegend').innerHTML = users.map((u, i) =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${userColor(i)}"></div>${escHtml(u.name)}</div>`).join('');
+  if (studyChart) { studyChart.destroy(); studyChart = null; }
+  studyChart = buildChart('studyChart', labels, datasets, keys.indexOf(todayStr()), false);
+}
+
+/* ════════════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', async () => {
+  loadTheme();
+  initCal();
+  initStudyCal();
+  initSession();
+  loadLocal();   // instant render from cache
+  renderAll();
+  renderDailyQuote();
+  loadCustomTint();
+  renderCustomiseSwatches();
+  await loadRemote(); // then sync from Firebase
+  checkJoinLink();
+  startPoll();
+  checkFirstVisit();
+  initDevWarning();
+  initExamLockHardening();
+
+  // Modal overlay dismiss
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+  });
+
+  // Enter key on add user input
+  document.getElementById('newUserName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addUser();
+  });
+
+  // Enter key on new subject input
+  document.getElementById('newSubjInp').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addSubjDraft();
+  });
+});
