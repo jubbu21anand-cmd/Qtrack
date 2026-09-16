@@ -54,7 +54,7 @@ const SYLLABUS_DATA = {
       mkCh('Units, Dimensions & Errors','C','Experimental Physics','11th'),
       mkCh('Experimental Physics','C','Experimental Physics','Both'),
       mkCh('Basic Mathematics and vector','D','Experimental Physics','11th'),
-      mkCh('Semiconductor','B','Misclaneous physics','12th')
+      mkCh('Semiconductor','B','Miscellaneous Physics','12th')
     ]},
     chemistry: { name: 'Chemistry', chapters: [
       mkCh('Chemical Bonding & Molecular Structure','A','Inorganic Chemistry','11th'),
@@ -204,9 +204,9 @@ const SYLLABUS_DATA = {
 /* Broad "unit" categories per subject family — used for Unit view grouping
    and for the Exam Analytics test-analysis survey. */
 const BROAD_UNITS = {
-  physics: ['Mechanics','Oscillations & Waves','Thermal Physics','Electrostatics and current dynamics','Magnetism','EM Waves and Alternating Current','Optics','Modern Physics','Experimental Physics'],
+  physics: ['Mechanics','Oscillations & Waves','Thermal Physics','Thermodynamics and Thermal Physics','Electrostatics and current dynamics','Magnetism','Electromagnetism','EM Waves and Alternating Current','Optics','Modern Physics','Experimental Physics','Miscellaneous Physics'],
   chemistry: ['Physical Chemistry','Organic Chemistry','Inorganic Chemistry'],
-  maths: ['Algebra','Calculus','Coordinate Geometry','Vector & 3D Geometry','Trigonometry','Sets, Relations & Functions'],
+  maths: ['Algebra','Calculus','Conic section and coordinate geometry','Vector & 3D Geometry','Trigonometry','Sets, Relations & Functions'],
   biology: ['Diversity','Structural Organisation','Cell Biology','Plant Physiology','Human Physiology','Reproduction','Genetics & Evolution','Biology & Human Welfare','Biotechnology','Ecology']
 };
 
@@ -742,6 +742,13 @@ function getUserTotal(uid, scope, sid = null) {
 
 function pct(v, t) { return t === 0 ? 0 : Math.round((v / t) * 100); }
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+/* Escapes a string for safe embedding inside a single-quoted argument of an inline onclick="fn('...')"
+   attribute. sylKey() (and a few other id-like helpers) keep characters like apostrophes and ampersands
+   in the key itself — on purpose, so existing stored progress keeps matching the same key — but that
+   apostrophe breaks out of the single-quoted onclick string, which silently kills the click handler
+   (e.g. a chapter named "Newton's Laws & Friction" simply wouldn't open). This escapes at the point the
+   value is embedded in an attribute, not at the key source, so nothing about stored data changes. */
+function escJs(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 
 /* ════════════════════════════════════════════════════════════
    RENDER
@@ -2276,13 +2283,13 @@ function renderExamAnalysisRows() {
         const v = examDraftAnalysis[s.name][u] || { attempted: '', scored: '' };
         return `<div class="exam-analysis-unit-row">
           <span class="exam-analysis-unit-name">${escHtml(u)}</span>
-          <input type="number" min="0" value="${v.attempted}" placeholder="marks" oninput="setExamAnalysisVal('${escHtml(s.name)}','${escHtml(u)}','attempted',this.value)">
-          <input type="number" min="0" value="${v.scored}" placeholder="marks" oninput="setExamAnalysisVal('${escHtml(s.name)}','${escHtml(u)}','scored',this.value)">
+          <input type="number" min="0" value="${v.attempted}" placeholder="marks" oninput="setExamAnalysisVal('${escJs(s.name)}','${escJs(u)}','attempted',this.value)">
+          <input type="number" min="0" value="${v.scored}" placeholder="marks" oninput="setExamAnalysisVal('${escJs(s.name)}','${escJs(u)}','scored',this.value)">
         </div>`;
       }).join('')}
       <div class="exam-review-box">
         <div class="exam-review-label">Your ${escHtml(s.name)} review</div>
-        <textarea placeholder="What felt easy, what to revise, how you felt going in..." oninput="examDraftReviews['${escHtml(s.name)}']=this.value">${escHtml(examDraftReviews[s.name] || '')}</textarea>
+        <textarea placeholder="What felt easy, what to revise, how you felt going in..." oninput="examDraftReviews['${escJs(s.name)}']=this.value">${escHtml(examDraftReviews[s.name] || '')}</textarea>
       </div>
     </div>`;
   });
@@ -2588,11 +2595,12 @@ function sylClassMatch(cls) { return sylClassFilter === 'both' || !cls || cls ==
    backlog: count of chapters flagged "in backlog" — purely a display overlay, never touches
    the pct formula (backlog is usually a subset of chapters that are behind schedule, so it
    overlays on top of the earned progress rather than subtracting from it).
-   avgPractice: total questions practised ÷ chapters that are NOT pending. Pending (untouched,
-   0-practice) chapters are deliberately excluded, otherwise a syllabus with lots of untouched
-   chapters would drag the average down toward 0 and make it meaningless. */
+   avgPractice: total questions practised ÷ chapters that actually HAVE a practice count logged
+   (practice > 0). Chapters marked Theory/PYQ/Mastered with zero practice logged are excluded from
+   the denominator too — a status change alone isn't practice, and counting it as "0 questions done"
+   was dragging the average down even when the chapters you'd actually drilled averaged ~100 each. */
 function sylComputeStats(uid, mode, subjKey, chapters) {
-  let potential = 0, earned = 0, mastered = 0, doing = 0, todo = 0, total = 0, backlog = 0, practiceTotal = 0, nonPendingCount = 0;
+  let potential = 0, earned = 0, mastered = 0, doing = 0, todo = 0, total = 0, backlog = 0, practiceTotal = 0, practicedCount = 0;
   chapters.forEach(ch => {
     if (!sylClassMatch(ch.cls)) return;
     if (sylSearch && !ch.name.toLowerCase().includes(sylSearch.toLowerCase())) return;
@@ -2606,12 +2614,12 @@ function sylComputeStats(uid, mode, subjKey, chapters) {
     if (sylChapterBacklog(uid, mode, subjKey, chKey)) backlog++;
     const p = sylChapterPractice(uid, mode, subjKey, chKey);
     practiceTotal += p;
-    if (st !== 'pending') nonPendingCount++;
+    if (p > 0) practicedCount++;
   });
   return {
     pct: potential ? Math.round((earned / potential) * 1000) / 10 : 0,
     potential, earned, mastered, doing, todo, total, backlog, practiceTotal,
-    avgPractice: nonPendingCount ? Math.round((practiceTotal / nonPendingCount) * 10) / 10 : 0,
+    avgPractice: practicedCount ? Math.round((practiceTotal / practicedCount) * 10) / 10 : 0,
     backlogPct: potential ? Math.round((chaptersBacklogWeight(uid, mode, subjKey, chapters) / potential) * 1000) / 10 : 0
   };
 }
@@ -2635,6 +2643,8 @@ function renderSylBody() {
   let allCh = [];
   subjects.forEach(s => allCh = allCh.concat(s.chapters.map(c => ({ ...c, __subj: s.key }))));
   const overall = sylComputeStatsMixed(allCh);
+  // Per-subject avg practice (Physics/Chemistry/Maths or Biology, or custom subject names in Other mode)
+  const perSubjPractice = subjects.map(s => ({ name: s.name, avgPractice: sylComputeStats(sylUid, sylMode, s.key, s.chapters).avgPractice }));
 
   let html = `
     <div class="syl-summary-card">
@@ -2654,6 +2664,9 @@ function renderSylBody() {
         <div><div class="syl-stat-mini-label">Avg Qs/Chapter</div><div class="syl-stat-mini-value">${overall.avgPractice}</div></div>
         <div><div class="syl-stat-mini-label">Total Practised</div><div class="syl-stat-mini-value">${overall.practiceTotal}</div></div>
       </div>
+      ${perSubjPractice.length ? `<div class="syl-stat-row" style="margin-top:.35rem">
+        ${perSubjPractice.map(s => `<div><div class="syl-stat-mini-label">${escHtml(s.name)} Avg Qs</div><div class="syl-stat-mini-value">${s.avgPractice}</div></div>`).join('')}
+      </div>` : ''}
       <div class="syl-filter-block">
         <div class="syl-filter-label">Class Filter</div>
         <div class="syl-filter-btns">
@@ -2709,7 +2722,7 @@ function renderSylBody() {
 
   html += `<div class="syl-subject-tabs">${subjects.map(s => {
     const st = sylComputeStats(sylUid, sylMode, s.key, s.chapters);
-    return `<div class="syl-subject-tab ${s.key === sylSubjectKey ? 'active' : ''}" onclick="selectSylSubject('${s.key}')">
+    return `<div class="syl-subject-tab ${s.key === sylSubjectKey ? 'active' : ''}" onclick="selectSylSubject('${escJs(s.key)}')">
       <div class="syl-subject-tab-name">${escHtml(s.name)}<span class="syl-subject-tab-pct">${st.pct}%</span></div>
       <div class="syl-subject-tab-count">${st.total} chapters</div>
     </div>`;
@@ -2737,7 +2750,7 @@ function sylFormulaBoxHTML() {
 }
 
 function sylComputeStatsMixed(chaptersWithSubj) {
-  let potential = 0, earned = 0, mastered = 0, doing = 0, todo = 0, total = 0, backlog = 0, backlogW = 0, practiceTotal = 0, nonPendingCount = 0;
+  let potential = 0, earned = 0, mastered = 0, doing = 0, todo = 0, total = 0, backlog = 0, backlogW = 0, practiceTotal = 0, practicedCount = 0;
   chaptersWithSubj.forEach(ch => {
     if (!sylClassMatch(ch.cls)) return;
     const w = PRIORITY_WEIGHT[ch.tier] || 1;
@@ -2750,12 +2763,12 @@ function sylComputeStatsMixed(chaptersWithSubj) {
     if (sylChapterBacklog(sylUid, sylMode, ch.__subj, chKey)) { backlog++; backlogW += w; }
     const p = sylChapterPractice(sylUid, sylMode, ch.__subj, chKey);
     practiceTotal += p;
-    if (st !== 'pending') nonPendingCount++;
+    if (p > 0) practicedCount++;
   });
   return {
     pct: potential ? Math.round((earned / potential) * 1000) / 10 : 0,
     potential, earned, mastered, doing, todo, total, backlog, practiceTotal,
-    avgPractice: nonPendingCount ? Math.round((practiceTotal / nonPendingCount) * 10) / 10 : 0,
+    avgPractice: practicedCount ? Math.round((practiceTotal / practicedCount) * 10) / 10 : 0,
     backlogPct: potential ? Math.round((backlogW / potential) * 1000) / 10 : 0
   };
 }
@@ -2785,7 +2798,7 @@ function renderSylSubjectGroups(subj) {
     const open = sylOpenGroups.has(gk);
     html += `
       <div class="syl-group">
-        <div class="syl-group-head" onclick="toggleSylGroup('${gk}')">
+        <div class="syl-group-head" onclick="toggleSylGroup('${escJs(gk)}')">
           <div class="syl-group-name">${escHtml(groupLabel(gk))}</div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="syl-group-pct">${st.pct}%</span><span class="syl-chevron ${open?'open':''}">▾</span></div>
         </div>
@@ -2805,31 +2818,32 @@ function renderSylChapterRow(subj, ch) {
   const backlog = sylChapterBacklog(sylUid, sylMode, subj.key, chKey);
   const practice = sylChapterPractice(sylUid, sylMode, subj.key, chKey);
   const open = sylOpenChapter === subj.key + '::' + chKey;
+  const sk = escJs(subj.key), ck = escJs(chKey); // safe for embedding inside onclick='...' — see escJs
   return `
     <div class="syl-chapter-row">
-      <div class="syl-chapter-top" onclick="toggleSylChapter('${subj.key}','${chKey}')">
+      <div class="syl-chapter-top" onclick="toggleSylChapter('${sk}','${ck}')">
         <div class="syl-chapter-name"><span class="syl-status-dot ${backlog ? 'backlog' : status}"></span><span class="syl-chapter-name-text">${escHtml(ch.name)}</span></div>
         <div class="syl-chapter-meta">${ch.cls ? `<span class="syl-cls-tag">${ch.cls}</span>` : ''}<span class="syl-chevron ${open?'open':''}">▾</span></div>
       </div>
       ${open ? `
       <div class="syl-chapter-detail">
         <div class="syl-status-btns">
-          ${['pending','theory','pyq','mastered'].map(s => `<button class="syl-status-btn ${status===s?'active':''}" onclick="setSylStatus('${subj.key}','${chKey}','${s}')">${STATUS_LABEL[s]}</button>`).join('')}
+          ${['pending','theory','pyq','mastered'].map(s => `<button class="syl-status-btn ${status===s?'active':''}" onclick="setSylStatus('${sk}','${ck}','${s}')">${STATUS_LABEL[s]}</button>`).join('')}
         </div>
         <div class="syl-rev-row">
           <span class="syl-rev-label">Revisions</span>
           <div class="syl-rev-ctrl">
-            <button class="syl-rev-btn" onclick="bumpSylRev('${subj.key}','${chKey}',-1)">−</button>
+            <button class="syl-rev-btn" onclick="bumpSylRev('${sk}','${ck}',-1)">−</button>
             <span class="syl-rev-count">${revs}</span>
-            <button class="syl-rev-btn" onclick="bumpSylRev('${subj.key}','${chKey}',1)">+</button>
+            <button class="syl-rev-btn" onclick="bumpSylRev('${sk}','${ck}',1)">+</button>
           </div>
         </div>
         <div class="syl-extra-btns">
-          <button class="syl-extra-btn backlog ${backlog ? 'active' : ''}" onclick="toggleSylBacklog('${subj.key}','${chKey}')">${backlog ? 'In Backlog' : 'Backlog'}</button>
-          <button class="syl-extra-btn practice" onclick="promptAddSylPractice('${subj.key}','${chKey}')">Practice<span class="syl-practice-count">${practice}</span></button>
+          <button class="syl-extra-btn backlog ${backlog ? 'active' : ''}" onclick="toggleSylBacklog('${sk}','${ck}')">${backlog ? 'In Backlog' : 'Backlog'}</button>
+          <button class="syl-extra-btn practice" onclick="promptAddSylPractice('${sk}','${ck}')">Practice<span class="syl-practice-count">${practice}</span></button>
         </div>
         <div class="syl-practice-hint">Practice count only ever goes up — enter how many more questions you did.</div>
-        ${subj.custom ? `<button class="syl-btn-sm ghost" style="margin-top:.5rem" onclick="deleteSylChapter('${subj.key}','${ch.id}')">Delete chapter</button>` : ''}
+        ${subj.custom ? `<button class="syl-btn-sm ghost" style="margin-top:.5rem" onclick="deleteSylChapter('${sk}','${escJs(ch.id)}')">Delete chapter</button>` : ''}
       </div>` : ''}
     </div>`;
 }
