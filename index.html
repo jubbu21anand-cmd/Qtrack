@@ -15,7 +15,7 @@
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.6</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.7</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -57,7 +57,7 @@
     <button class="nav-item" onclick="openModal('customiseModal');closeSidebar()">Customise</button>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">0.9.6</span> · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">0.9.7</span> · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -120,6 +120,7 @@
       <div class="chart-title">This week — per day</div>
       <div class="legend" id="weekLegend"></div>
     </div>
+    <div class="week-people-legend" id="weekPeopleLegend" style="font-size:.64rem;color:var(--muted);margin:-.2rem 0 .3rem"></div>
     <div class="week-avg-corner" id="weekAvgCorner" onclick="cycleWeekAvg()" title="Tap to switch between overall / per-person / per-subject weekly average"></div>
     <div class="chart-wrap" style="height:180px;">
       <div class="no-data-msg" id="noDataMsgW"><strong>No history yet</strong></div>
@@ -283,7 +284,7 @@
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 0.9.6 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 0.9.7 · Beta · qttrack.vercel.app</div>
 
     <div class="about-subtabs">
       <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
@@ -433,6 +434,16 @@
           <li>Fixed: on the Progress and Percentile charts, a JEE Main and JEE Advanced test logged on the same date now share one point on the same date instead of sitting a slot apart, so same-day papers line up for a direct comparison</li>
         </ul>
       </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">0.9.7</span>
+        <ul class="cl-items">
+          <li>Fixed: the Today/All-Time per-person dropdowns on Question Tracker were closing themselves the instant they opened — tapping the little arrow icon registered as an "outside click" and immediately shut the dropdown back</li>
+          <li>"This week — per day" chart now shows a separate bar for each person every day (grouped side by side), with each person's own bar still stacked by subject, instead of collapsing everyone into one collective bar per day</li>
+          <li>Reverted 0.9.6's same-date merge on the Progress and Percentile charts — it was silently dropping one test whenever two tests of the same JM/JA type landed on the same date. Every test now always gets its own point again, and a dotted "Day avg" line overlays the mean for any date shared by more than one test</li>
+          <li>Exam Analytics' subject-wise chart is now three (or more) superimposed line graphs — one per subject — instead of a grouped bar chart, with a dotted "Avg of subjects" line overlaid on top</li>
+          <li>JEE Advanced (JA) badges are now colour-graded by that test's percentile instead of a fixed colour: red (0–60, deepest at 0) → yellow (60.1–75, lightest at 75) → green (75.1–100, deepest at 100). JEE Main (JM) badges are unchanged</li>
+        </ul>
+      </div>
     </div>
 
     <div class="cl-version">
@@ -573,7 +584,7 @@
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 0.9.6</span>
+  <span>QTrack 0.9.7</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -586,7 +597,7 @@
   <div class="terms-page-inner">
     <button class="terms-back-btn" onclick="closeTermsPage()">← Back to QTrack</button>
     <h1>Terms &amp; Conditions</h1>
-    <p class="terms-updated">Last updated with QTrack v0.9.6</p>
+    <p class="terms-updated">Last updated with QTrack v0.9.7</p>
 
     <p>These Terms &amp; Conditions ("Terms") govern your access to and use of QTrack (the "App"), a shared, informal question- and progress-tracking tool built and maintained independently. By opening, browsing, or using the App in any way, you agree to be bound by these Terms in full. If you do not agree with any part of these Terms, you should stop using the App immediately.</p>
 
