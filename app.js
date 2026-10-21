@@ -1695,12 +1695,14 @@ function examSubjScoreColor(fam, score, max) {
 /* JM = JEE Main mock, JA = JEE Advanced mock — chosen by the user in the Add/Edit Test form, not auto-detected */
 function examJmJa(t) { return (t.mode || 'jee') === 'jee' ? (t.jmja || null) : null; }
 
-/* JEE Advanced (JA) badge colour is now driven by the test's percentile instead of a fixed colour:
+/* For JEE Advanced (JA) papers only, the main score circle's colour is driven by the test's
+   percentile instead of the usual obtained/total grading:
      0 – 60     → red band:    deep red at 0, progressively lighter to light red at 60
      60.1 – 75  → yellow band: dark orangish-yellow at 60.1, progressively lighter to light yellow at 75
      75.1 – 100 → green band:  light green at 75.1, progressively deeper to dark green at 100
-   JM keeps its fixed colour (unchanged, per the original design). Returns null when there's no
-   percentile to grade on, in which case the caller falls back to the plain .ja CSS class colour. */
+   The JM/JA badge itself keeps its original fixed colour — only the circle changes, and only for JA.
+   Returns null when there's no percentile to grade on, in which case the caller falls back to the
+   normal obtained/total colour grading. */
 function examJaPercentileColor(pct) {
   if (pct == null || isNaN(pct)) return null;
   pct = Math.max(0, Math.min(100, pct));
@@ -2035,9 +2037,12 @@ function renderExamTestsGrid(tests) {
   const isOther = examMode === 'other';
   host.innerHTML = [...tests].reverse().map(t => {
     const badge = examJmJa(t);
-    const circleColor = examScoreColor(t.obtainedMarks, t.totalMarks || 1);
-    const circles = examCirclesForTest(t);
     const percentile = t.overallPercentile != null ? t.overallPercentile : examCalcPercentile(t.overallRank, t.totalStudents);
+    // The main score circle's colour grading is percentile-based ONLY for JEE Advanced papers — every
+    // other test (including JEE Main) keeps the plain obtained/total colour grading as before.
+    const jaCol = badge && badge.toLowerCase() === 'ja' ? examJaPercentileColor(percentile) : null;
+    const circleColor = jaCol || examScoreColor(t.obtainedMarks, t.totalMarks || 1);
+    const circles = examCirclesForTest(t);
     const pct = t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0;
     return `
     <div class="exam-test-card">
@@ -2048,19 +2053,11 @@ function renderExamTestsGrid(tests) {
         </div>
         <div style="display:flex;align-items:center;gap:.35rem">
           ${t.difficulty ? `<span class="exam-diff-badge ${t.difficulty}">${t.difficulty}</span>` : ''}
-          ${badge ? (() => {
-            if (badge.toLowerCase() === 'ja') {
-              const jaCol = examJaPercentileColor(percentile);
-              return jaCol
-                ? `<span class="exam-jmja-badge ja" style="background:${jaCol};color:#15110c">${badge}</span>`
-                : `<span class="exam-jmja-badge ja">${badge}</span>`;
-            }
-            return `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>`;
-          })() : ''}
+          ${badge ? `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>` : ''}
         </div>
       </div>
       <div class="exam-score-row">
-        <div class="exam-score-circle main" style="background:${circleColor}">${t.obtainedMarks ?? 0}<br><span style="font-size:.8em">/${t.totalMarks ?? 0}</span></div>
+        <div class="exam-score-circle main" style="background:${circleColor}${jaCol ? ';color:#15110c' : ''}">${t.obtainedMarks ?? 0}<br><span style="font-size:.8em">/${t.totalMarks ?? 0}</span></div>
         <div class="exam-subj-circles">
           ${circles.map(c => `<div class="exam-subj-circle-wrap">
               <div class="exam-subj-circle" style="background:${c.color}">${c.score ?? '—'}</div>
