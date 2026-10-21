@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.9.6';
+const VERSION = '0.9.7';
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER — reference data (JEE / NEET) + broad units
@@ -829,12 +829,16 @@ function toggleTodayDrop() {
   el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 document.addEventListener('click', (e) => {
+  // Use btn.contains(e.target) rather than e.target !== btn — the dropdown buttons hold an
+  // inner <svg>/<polyline>, so a tap's real e.target is that child, not the button element
+  // itself. Comparing by reference made every single click look like an "outside click" and
+  // instantly re-closed the dropdown the same button had just opened.
   const drop = document.getElementById('allTimeDropdown');
   const btn = document.getElementById('allTimeDropBtn');
-  if (drop && drop.style.display === 'block' && !drop.contains(e.target) && e.target !== btn) drop.style.display = 'none';
+  if (drop && drop.style.display === 'block' && !drop.contains(e.target) && !(btn && btn.contains(e.target))) drop.style.display = 'none';
   const drop2 = document.getElementById('todayDropdown');
   const btn2 = document.getElementById('todayDropBtn');
-  if (drop2 && drop2.style.display === 'block' && !drop2.contains(e.target) && e.target !== btn2) drop2.style.display = 'none';
+  if (drop2 && drop2.style.display === 'block' && !drop2.contains(e.target) && !(btn2 && btn2.contains(e.target))) drop2.style.display = 'none';
 });
 
 function renderLegend() {
@@ -996,10 +1000,17 @@ function weekVisibleDayGrandTotal(dt) {
   const day = state.history[dt] || {};
   return visibleUserList().reduce((sum, u) => sum + state.subjects.reduce((t, s) => t + ((day[u.id] || {})[s.id] || 0), 0), 0);
 }
+/* "This week — per day": one grouped bar PER PERSON for each day (not everyone collapsed into a
+   single collective bar), and each person's own bar is still stacked by subject so the subject
+   breakdown is never lost. Chart.js groups side-by-side by distinct `stack` value and stacks
+   within a shared `stack` value, so giving every (person, subject) dataset `stack: person.id`
+   gets both behaviours from one chart. Anonymous people are still excluded on devices that
+   aren't theirs, via visibleUserList(), same as everywhere else anonymity is enforced. */
 function renderWeekChart() {
   const canvas = document.getElementById('weeklyChart');
   const msg = document.getElementById('noDataMsgW');
-  if (!state.subjects.length) { canvas.style.display = 'none'; msg.style.display = 'block'; if (weekChart) { weekChart.destroy(); weekChart = null; } return; }
+  const people = visibleUserList();
+  if (!state.subjects.length || !people.length) { canvas.style.display = 'none'; msg.style.display = 'block'; if (weekChart) { weekChart.destroy(); weekChart = null; } document.getElementById('weekPeopleLegend').innerHTML = ''; return; }
   canvas.style.display = 'block'; msg.style.display = 'none';
   const now = logicalNow(), dow = now.getDay(), offset = dow === 0 ? -6 : 1 - dow;
   const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -1010,21 +1021,28 @@ function renderWeekChart() {
     labels.push(dayNames[i] + ' ' + d.getDate());
   }
   const todayIdx = keys.indexOf(todayStr());
-  const datasets = state.subjects.map(s => ({
-    label: s.name,
-    data: keys.map(dt => weekVisibleDayTotal(dt, s.id)),
-    backgroundColor: s.color, borderRadius: 4, borderSkipped: false, order: 2
-  }));
-  // Trend line over the bars — total questions per day
+  const datasets = [];
+  people.forEach(u => {
+    state.subjects.forEach(s => {
+      datasets.push({
+        label: `${u.name} — ${s.name}`,
+        data: keys.map(dt => (((state.history[dt] || {})[u.id] || {})[s.id]) || 0),
+        backgroundColor: s.color, stack: u.id, borderRadius: 4, borderSkipped: false,
+        barPercentage: 0.85, categoryPercentage: 0.85, order: 2
+      });
+    });
+  });
+  // Dotted average line — mean total across everyone, per day (not any single person's line)
   const trendColor = document.documentElement.dataset.theme === 'light' ? '#111112' : '#f0ede8';
   datasets.push({
-    type: 'line', label: 'Trend',
-    data: keys.map(dt => weekVisibleDayGrandTotal(dt)),
+    type: 'line', label: 'Avg/day',
+    data: keys.map(dt => Math.round((weekVisibleDayGrandTotal(dt) / people.length) * 10) / 10),
     borderColor: trendColor, borderWidth: 2, borderDash: [5, 4], pointRadius: 0,
     tension: .35, fill: false, yAxisID: 'yLine', order: 1
   });
   if (weekChart) { weekChart.destroy(); weekChart = null; }
   weekChart = buildChart('weeklyChart', labels, datasets, todayIdx);
+  document.getElementById('weekPeopleLegend').innerHTML = `Bars per day (left→right): ${people.map(u => escHtml(u.name)).join(', ')}`;
   renderWeekAvgCorner(keys);
 }
 
@@ -1677,6 +1695,31 @@ function examSubjScoreColor(fam, score, max) {
 /* JM = JEE Main mock, JA = JEE Advanced mock — chosen by the user in the Add/Edit Test form, not auto-detected */
 function examJmJa(t) { return (t.mode || 'jee') === 'jee' ? (t.jmja || null) : null; }
 
+/* JEE Advanced (JA) badge colour is now driven by the test's percentile instead of a fixed colour:
+     0 – 60     → red band:    deep red at 0, progressively lighter to light red at 60
+     60.1 – 75  → yellow band: dark orangish-yellow at 60.1, progressively lighter to light yellow at 75
+     75.1 – 100 → green band:  light green at 75.1, progressively deeper to dark green at 100
+   JM keeps its fixed colour (unchanged, per the original design). Returns null when there's no
+   percentile to grade on, in which case the caller falls back to the plain .ja CSS class colour. */
+function examJaPercentileColor(pct) {
+  if (pct == null || isNaN(pct)) return null;
+  pct = Math.max(0, Math.min(100, pct));
+  let h, s, l;
+  if (pct <= 60) {
+    h = 0; s = 75;
+    l = 30 + (pct / 60) * 45; // 30% (deep) at 0 → 75% (light) at 60
+  } else if (pct <= 75) {
+    const t = (pct - 60) / 15;
+    h = 38 + t * 14; s = 80;
+    l = 42 + t * 36; // dark orangish-yellow → light yellow
+  } else {
+    const t = (pct - 75) / 25;
+    h = 120; s = 55;
+    l = 68 - t * 43; // light green → dark green
+  }
+  return `hsl(${h}, ${s}%, ${l}%)`;
+}
+
 function simpleHash(str) {
   let h = 0;
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
@@ -2005,7 +2048,15 @@ function renderExamTestsGrid(tests) {
         </div>
         <div style="display:flex;align-items:center;gap:.35rem">
           ${t.difficulty ? `<span class="exam-diff-badge ${t.difficulty}">${t.difficulty}</span>` : ''}
-          ${badge ? `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>` : ''}
+          ${badge ? (() => {
+            if (badge.toLowerCase() === 'ja') {
+              const jaCol = examJaPercentileColor(percentile);
+              return jaCol
+                ? `<span class="exam-jmja-badge ja" style="background:${jaCol};color:#15110c">${badge}</span>`
+                : `<span class="exam-jmja-badge ja">${badge}</span>`;
+            }
+            return `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>`;
+          })() : ''}
         </div>
       </div>
       <div class="exam-score-row">
@@ -2307,11 +2358,12 @@ function hexAlpha(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-/* JEE Main and JEE Advanced are always plotted as separate coloured series — never merged into one line.
-   `dates` is the shared, deduplicated list of calendar dates for the whole JEE test set (see renderExamCharts):
-   plotting against dates instead of one slot per test row means a JM test and a JA test logged on the same
-   date land on the very same x-position, so they can be compared directly instead of being a slot apart. */
-function examBuildJmJaDatasets(tests, valueFn, colorOther, dates) {
+/* JEE Main and JEE Advanced are always plotted as separate coloured series — never merged into one line,
+   and EVERY test keeps its own x-axis slot (one point per test, in date-sorted order) even when two tests
+   share a calendar date — two JEE Advanced attempts on the same day must show as two distinct points, never
+   silently collapsed into one. The flat day-to-day average (when several tests share a date) is a separate
+   dotted "Day avg" line added alongside these datasets in renderExamCharts, not a merge of the points themselves. */
+function examBuildJmJaDatasets(tests, valueFn, colorOther) {
   if (examMode !== 'jee') {
     return [{
       label: 'Score', data: tests.map(valueFn), borderColor: colorOther, backgroundColor: hexAlpha(colorOther, .18),
@@ -2320,18 +2372,26 @@ function examBuildJmJaDatasets(tests, valueFn, colorOther, dates) {
   }
   const colors = { JM: '#5b8dee', JA: '#e84a8a', Other: colorOther };
   const names = { JM: 'JEE Main', JA: 'JEE Advanced', Other: 'Other JEE' };
-  const groups = { JM: [], JA: [], Other: [] };
-  tests.forEach(t => { groups[examJmJa(t) || 'Other'].push(t); });
-  return Object.keys(groups).filter(g => groups[g].length).map(g => {
-    // If two tests in the same group share a date (shouldn't normally happen), the later one in date-sorted order wins.
-    const byDate = {};
-    groups[g].forEach(t => { if (t.date) byDate[t.date] = t; });
-    return {
-      label: names[g],
-      data: dates.map(d => byDate[d] ? valueFn(byDate[d]) : null),
-      borderColor: colors[g], backgroundColor: hexAlpha(colors[g], .16),
-      borderWidth: 2, pointRadius: 3, pointBackgroundColor: colors[g], tension: .3, fill: false, spanGaps: true
-    };
+  const present = ['JM', 'JA', 'Other'].filter(g => tests.some(t => (examJmJa(t) || 'Other') === g));
+  return present.map(g => ({
+    label: names[g],
+    data: tests.map(t => (examJmJa(t) || 'Other') === g ? valueFn(t) : null),
+    borderColor: colors[g], backgroundColor: hexAlpha(colors[g], .16),
+    borderWidth: 2, pointRadius: 3, pointBackgroundColor: colors[g], tension: .3, fill: false, spanGaps: true
+  }));
+}
+
+/* Dotted "average for that day" overlay — when several tests share a calendar date, every point on
+   that date gets the same value: the mean of valueFn() across just that date's tests. Days with a single
+   test just show that test's own value, so the line still tracks the overall trend day to day. */
+function examDayAvgLine(tests, valueFn) {
+  const byDate = {};
+  tests.forEach((t, i) => { const d = t.date || ('_row' + i); (byDate[d] = byDate[d] || []).push(valueFn(t)); });
+  return tests.map((t, i) => {
+    const d = t.date || ('_row' + i);
+    const vals = byDate[d].filter(v => v != null);
+    if (!vals.length) return null;
+    return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10;
   });
 }
 
@@ -2368,23 +2428,31 @@ function renderExamCharts(tests) {
 
   const tc = '#7fae8f';
   const gc = 'rgba(34,197,94,0.1)';
+  const dark = document.documentElement.dataset.theme !== 'light';
+  const avgLineColor = dark ? '#f0ede8' : '#111112';
   const pctFn = t => t.totalMarks ? Math.round((t.obtainedMarks / t.totalMarks) * 1000) / 10 : 0;
   // Percentile is stored on the test when available; otherwise derive it from rank + total candidates (same formula as entry time)
   const percentileFn = t => t.overallPercentile != null ? t.overallPercentile : examCalcPercentile(t.overallRank, t.totalStudents);
 
-  // In JEE mode, plot by calendar date rather than one slot per test row — so a JEE Main and JEE Advanced
-  // test logged on the same date share a single point instead of sitting a slot apart with a gap between them.
-  const examDates = examMode === 'jee' ? [...new Set(tests.map(t => t.date).filter(Boolean))].sort() : null;
-  const chartLabels = examMode === 'jee' ? examDates.map(dateLabel) : tests.map(t => t.name);
+  // Every test gets its own x-axis slot — two tests sharing a date (e.g. two JEE Advanced attempts the
+  // same day) are two distinct points, never merged. A dotted "Day avg" line overlays the mean for any
+  // date shared by more than one test (see examDayAvgLine above).
+  const chartLabels = tests.map(t => t.name);
 
-  // Progress over time (marks %) — JM/JA always split into separate coloured series
+  // Progress over time (marks %) — JM/JA always split into separate coloured series, plus the day-avg overlay
   document.getElementById('examMarksTrendBadge').innerHTML = examTrendBadgeHTML(tests, pctFn, true);
   examProgressChart = new Chart(progCanvas, {
     type: 'line',
-    data: { labels: chartLabels, datasets: examBuildJmJaDatasets(tests, pctFn, '#22c55e', examDates) },
+    data: {
+      labels: chartLabels,
+      datasets: [
+        ...examBuildJmJaDatasets(tests, pctFn, '#22c55e'),
+        { type: 'line', label: 'Day avg', data: examDayAvgLine(tests, pctFn), borderColor: avgLineColor, borderWidth: 2, borderDash: [5, 4], pointRadius: 0, tension: 0, fill: false, spanGaps: true }
+      ]
+    },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: examMode === 'jee', position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
+      plugins: { legend: { display: true, position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
       scales: {
         x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } },
         y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, callback: v => v + '%' }, beginAtZero: true, max: 100 }
@@ -2392,15 +2460,21 @@ function renderExamCharts(tests) {
     }
   });
 
-  // Percentile over time — higher is better; JM/JA split the same way. Skipped entirely for "Other".
+  // Percentile over time — higher is better; JM/JA split the same way, plus the day-avg overlay. Skipped entirely for "Other".
   if (!isOther) {
     document.getElementById('examRankTrendBadge').innerHTML = examTrendBadgeHTML(tests, percentileFn, true);
     examRankChart = new Chart(document.getElementById('examRankChart'), {
       type: 'line',
-      data: { labels: chartLabels, datasets: examBuildJmJaDatasets(tests, percentileFn, '#f5c842', examDates) },
+      data: {
+        labels: chartLabels,
+        datasets: [
+          ...examBuildJmJaDatasets(tests, percentileFn, '#f5c842'),
+          { type: 'line', label: 'Day avg', data: examDayAvgLine(tests, percentileFn), borderColor: avgLineColor, borderWidth: 2, borderDash: [5, 4], pointRadius: 0, tension: 0, fill: false, spanGaps: true }
+        ]
+      },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: examMode === 'jee', position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
+        plugins: { legend: { display: true, position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
         scales: {
           x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } },
           y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, callback: v => v + '%' }, beginAtZero: true, max: 100 }
@@ -2409,7 +2483,8 @@ function renderExamCharts(tests) {
     });
   }
 
-  // Subject-wise performance per test (grouped bars, % of each subject's max).
+  // Subject-wise performance per test — one LINE per subject (e.g. Physics/Chemistry/Maths for JEE),
+  // all superimposed on one chart, plus a dotted overlay for the average of those subjects per test.
   // JEE/NEET group by known subject family; Boards/Other plot every distinct subject name the user has actually added.
   const famSet = new Set();
   const subjNameSet = new Set();
@@ -2419,23 +2494,31 @@ function renderExamCharts(tests) {
     if (s.name) subjNameSet.add(s.name);
   }));
   const fams = (examMode === 'jee' || examMode === 'neet') ? [...famSet] : [...subjNameSet];
-  const subjBarPalette = ['#5b8dee', '#22c55e', '#f5c842', '#b06aed', '#e84a8a', '#f97316', '#2dd4bf', '#a3a3a3'];
+  const subjLinePalette = ['#5b8dee', '#22c55e', '#f5c842', '#b06aed', '#e84a8a', '#f97316', '#2dd4bf', '#a3a3a3'];
+  const byFamily = examMode === 'jee' || examMode === 'neet';
+  const subjValueFns = fams.map(f => t => {
+    const s = byFamily ? (t.subjects || []).find(x => examSubjFamily(x.name) === f) : (t.subjects || []).find(x => x.name === f);
+    return s ? (s.max ? Math.round((s.score / s.max) * 1000) / 10 : s.score) : null;
+  });
+  const subjAvgData = tests.map((t, i) => {
+    const vals = subjValueFns.map(fn => fn(t)).filter(v => v != null);
+    return vals.length ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10 : null;
+  });
   examSubjBarChart = new Chart(document.getElementById('examSubjBarChart'), {
-    type: 'bar',
+    type: 'line',
     data: {
       labels: tests.map(t => t.name),
-      datasets: fams.map((f, i) => {
-        const byFamily = examMode === 'jee' || examMode === 'neet';
-        const findSubj = t => byFamily
-          ? (t.subjects || []).find(s => examSubjFamily(s.name) === f)
-          : (t.subjects || []).find(s => s.name === f);
-        return {
+      datasets: [
+        ...fams.map((f, i) => ({
           label: byFamily ? (f.charAt(0).toUpperCase() + f.slice(1)) : f,
-          data: tests.map(t => { const s = findSubj(t); return s ? (s.max ? Math.round((s.score / s.max) * 1000) / 10 : s.score) : null; }),
-          backgroundColor: byFamily ? EXAM_SUBJ_COLOR[f] : subjBarPalette[i % subjBarPalette.length],
-          borderRadius: 3, borderSkipped: false, barPercentage: 1, categoryPercentage: .92
-        };
-      })
+          data: tests.map(subjValueFns[i]),
+          borderColor: byFamily ? EXAM_SUBJ_COLOR[f] : subjLinePalette[i % subjLinePalette.length],
+          backgroundColor: 'transparent',
+          borderWidth: 2, pointRadius: 3, pointBackgroundColor: byFamily ? EXAM_SUBJ_COLOR[f] : subjLinePalette[i % subjLinePalette.length],
+          tension: .3, fill: false, spanGaps: true
+        })),
+        { label: 'Avg of subjects', data: subjAvgData, borderColor: avgLineColor, borderWidth: 2, borderDash: [5, 4], pointRadius: 0, tension: 0, fill: false, spanGaps: true }
+      ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
