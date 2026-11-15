@@ -1433,6 +1433,7 @@ function showPage(pageId, navId) {
   if (pageId === 'studyPage') renderStudyPage();
   if (pageId === 'examPage') renderExamPage();
   if (pageId === 'syllabusPage') renderSyllabusPage();
+  if (pageId === 'breakdownPage' && window.bdRender) bdRender();
 }
 
 /* ── Daily motivational quote ──

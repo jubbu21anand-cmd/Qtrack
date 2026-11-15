@@ -1,0 +1,50 @@
+/* ═══ Paper In-Depth Breakdown — scoped dark-blue/black palette (same pattern as .exam-wrap / .syl-wrap) ═══ */
+.bd-wrap { --bd-bg:#04070f; --bd-surface:#0a1226; --bd-surface2:#0f1b38; --bd-border:#1c3158; --bd-accent:#3b82f6; --bd-accent2:#1d4ed8; --bd-text:#e8f0ff; --bd-muted:#7d93b8;
+  background: var(--bd-bg); margin: -1rem -1rem 0; padding: 1.1rem 1rem 1.6rem; border-radius: 0 0 16px 16px; color: var(--bd-text); min-height: calc(100vh - var(--header-h)); }
+.bd-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .8rem; }
+.bd-title { font-size: 1.2rem; font-weight: 800; letter-spacing: -.02em; }
+.bd-title em { font-style: normal; color: var(--bd-accent); }
+.bd-card { background: var(--bd-surface); border: 1px solid var(--bd-border); border-radius: 12px; padding: .9rem; margin-bottom: 1rem; }
+.bd-h { font-size: .82rem; font-weight: 700; margin-bottom: .6rem; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; cursor: default; }
+summary.bd-h { cursor: pointer; }
+.bd-pill { font-family: 'DM Mono', monospace; font-size: .56rem; font-weight: 500; color: var(--bd-muted); background: var(--bd-surface2); border: 1px solid var(--bd-border); border-radius: 20px; padding: 2px 8px; }
+.bd-row { display: flex; gap: .45rem; flex-wrap: wrap; align-items: center; margin-bottom: .6rem; }
+.bd-btn { background: var(--bd-surface2); border: 1px solid var(--bd-border); color: var(--bd-text); border-radius: 8px; padding: 7px 13px; font-family: 'Syne', sans-serif; font-size: .7rem; font-weight: 700; cursor: pointer; transition: border-color .18s; }
+.bd-btn:hover { border-color: var(--bd-accent); }
+.bd-primary { background: linear-gradient(135deg, var(--bd-accent), var(--bd-accent2)); border-color: transparent; color: #fff; }
+.bd-chipb { background: var(--bd-surface2); border: 1px solid var(--bd-border); color: var(--bd-muted); border-radius: 20px; padding: 6px 14px; font-family: 'Syne', sans-serif; font-size: .7rem; font-weight: 700; cursor: pointer; }
+.bd-chipb.active { background: linear-gradient(135deg, var(--bd-accent), var(--bd-accent2)); color: #fff; border-color: transparent; box-shadow: 0 0 16px rgba(59,130,246,.35); }
+.bd-ta { width: 100%; min-height: 70px; background: var(--bd-bg); border: 1px solid var(--bd-border); color: var(--bd-text); border-radius: 8px; padding: 8px; font-family: 'DM Mono', monospace; font-size: .66rem; margin-bottom: .5rem; resize: vertical; outline: none; }
+.bd-ta:focus, .bd-wrap select:focus, .bd-wrap input:focus { border-color: var(--bd-accent); }
+.bd-note { font-size: .64rem; color: var(--bd-muted); line-height: 1.55; margin-top: .4rem; }
+.bd-err { color: #f87171; } .bd-warn { color: #f5c842; }
+.bd-empty { color: var(--bd-muted); font-size: .78rem; text-align: center; padding: 2rem 1rem; line-height: 1.8; }
+.bd-empty strong { color: var(--bd-text); display: block; margin-bottom: .3rem; }
+.bd-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .5rem; margin-bottom: 1rem; }
+.bd-tile { background: linear-gradient(150deg, rgba(59,130,246,.2), rgba(59,130,246,.05)); border: 1px solid rgba(59,130,246,.32); border-radius: 9px; padding: .55rem .7rem; }
+.bd-tl { font-size: .5rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--bd-muted); }
+.bd-tv { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 700; margin: 2px 0; }
+.bd-ts { font-size: .54rem; color: var(--bd-muted); line-height: 1.3; }
+.bd-big { font-family: 'DM Mono', monospace; font-size: 2rem; font-weight: 600; color: var(--bd-accent); line-height: 1.1; }
+.bd-sub2 { font-size: .7rem; color: var(--bd-muted); margin-top: .2rem; }
+.bd-tw { overflow-x: auto; }
+.bd-t { width: 100%; border-collapse: collapse; font-size: .7rem; min-width: 520px; }
+.bd-t th { text-align: left; font-size: .52rem; letter-spacing: .07em; text-transform: uppercase; color: var(--bd-muted); padding: 6px 8px; border-bottom: 1px solid var(--bd-border); }
+.bd-t td { padding: 7px 8px; border-bottom: 1px solid rgba(28,49,88,.55); font-family: 'DM Mono', monospace; vertical-align: top; }
+.bd-t td:first-child { font-family: 'Syne', sans-serif; font-weight: 700; }
+.bd-sm { font-family: 'Syne', sans-serif; font-weight: 500; font-size: .56rem; color: var(--bd-muted); margin-top: 2px; }
+.bd-chip { font-family: 'Syne', sans-serif; font-size: .56rem; font-weight: 700; border-radius: 20px; padding: 2px 8px; white-space: nowrap; }
+.bd-chip.strong { background: rgba(34,197,94,.15); color: #4ade80; } .bd-chip.watch { background: rgba(245,200,66,.15); color: #f5c842; }
+.bd-chip.weak { background: rgba(239,68,68,.15); color: #f87171; } .bd-chip.few { background: var(--bd-surface2); color: var(--bd-muted); }
+.bd-chart { position: relative; width: 100%; height: 220px; margin-top: .8rem; }
+.bd-ul { margin: 0; padding-left: 1.1rem; font-size: .74rem; line-height: 1.7; } .bd-ul b { color: var(--bd-accent); }
+.bd-subh { font-size: .74rem; font-weight: 700; margin: .8rem 0 .4rem; } .bd-subh span { color: var(--bd-muted); font-weight: 500; font-size: .6rem; }
+.bd-bulk { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; font-size: .66rem; color: var(--bd-muted); margin-bottom: .5rem; }
+.bd-wrap select, .bd-wrap input[type=number] { background: var(--bd-bg); border: 1px solid var(--bd-border); color: var(--bd-text); border-radius: 6px; padding: 4px 6px; font-family: 'DM Mono', monospace; font-size: .64rem; outline: none; }
+.bd-wrap input[type=number] { width: 52px; } .bd-bulk select { max-width: 190px; }
+.bd-qgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: .35rem; }
+.bd-q { display: flex; align-items: center; gap: .4rem; background: var(--bd-surface2); border: 1px solid var(--bd-border); border-radius: 7px; padding: 4px 6px; font-size: .62rem; }
+.bd-q b { min-width: 18px; font-family: 'DM Mono', monospace; } .bd-q select { flex: 1; min-width: 0; }
+.bd-dot { width: 8px; height: 8px; border-radius: 50%; background: #475a7d; flex-shrink: 0; }
+.bd-dot.C { background: #22c55e; } .bd-dot.W { background: #ef4444; } .bd-dot.P { background: #f5c842; } .bd-dot.U { background: #475a7d; }
+@media (max-width: 480px) { .bd-big { font-size: 1.6rem; } }

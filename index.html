@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>QTrack</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="breakdown.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body>
@@ -51,6 +52,7 @@
     <button class="nav-item" onclick="showPage('studyPage','studyNav')" id="studyNav">Study Tracker</button>
     <button class="nav-item" onclick="showPage('syllabusPage','syllabusNav')" id="syllabusNav">Syllabus Tracker</button>
     <button class="nav-item" onclick="showPage('examPage','examNav')" id="examNav">Exam Analytics</button>
+    <button class="nav-item" onclick="showPage('breakdownPage','breakdownNav')" id="breakdownNav">Paper In-Depth Breakdown</button>
     <button class="nav-item" onclick="showPage('leaderboardPage','leaderboardNav')" id="leaderboardNav">Leaderboard</button>
     <button class="nav-item" onclick="showPage('changelogPage','changelogNav')" id="changelogNav">Update Log</button>
     <div style="flex:1"></div>
@@ -359,6 +361,14 @@
     </div><!-- /aboutSyllabusTab -->
   </div>
 </div>
+
+<!-- PAPER IN-DEPTH BREAKDOWN ------------------------------------ -->
+<div class="page" id="breakdownPage">
+  <div class="bd-wrap">
+    <div class="bd-head"><div class="bd-title">Paper <em>In-Depth Breakdown</em></div></div>
+    <div id="bdBody"></div>
+  </div>
+</div><!-- /breakdownPage -->
 
 <!-- CHANGELOG --------------------------------------------------- -->
 <div class="page" id="changelogPage">
@@ -902,6 +912,8 @@
 <div class="toast" id="toast"></div>
 
 <script src="app.js"></script>
+<script src="breakdown-data.js"></script>
+<script src="breakdown.js"></script>
 </body>
 </html>
 
