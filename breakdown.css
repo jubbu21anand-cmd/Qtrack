@@ -48,3 +48,16 @@ summary.bd-h { cursor: pointer; }
 .bd-dot { width: 8px; height: 8px; border-radius: 50%; background: #475a7d; flex-shrink: 0; }
 .bd-dot.C { background: #22c55e; } .bd-dot.W { background: #ef4444; } .bd-dot.P { background: #f5c842; } .bd-dot.U { background: #475a7d; }
 @media (max-width: 480px) { .bd-big { font-size: 1.6rem; } }
+/* ── v1.0.1 additions ── */
+.bd-qm { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--bd-accent); background: transparent; color: var(--bd-accent); font-family: 'DM Mono', monospace; font-size: .62rem; font-weight: 700; line-height: 1; cursor: pointer; padding: 0; flex-shrink: 0; }
+.bd-qm:hover { background: var(--bd-accent); color: #fff; }
+.bd-help { background: var(--bd-surface2); border: 1px solid var(--bd-border); border-left: 3px solid var(--bd-accent); border-radius: 8px; padding: .65rem .8rem; margin: 0 0 .7rem; font-size: .7rem; line-height: 1.65; color: var(--bd-text); }
+.bd-help ol { margin: .35rem 0 .4rem; padding-left: 1.2rem; } .bd-help code { font-family: 'DM Mono', monospace; font-size: .64rem; background: var(--bd-bg); border: 1px solid var(--bd-border); border-radius: 4px; padding: 1px 5px; }
+.bd-msg { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.35); border-radius: 9px; padding: .7rem .85rem; font-size: .74rem; line-height: 1.65; margin: .3rem 0 .5rem; }
+.bd-msg.good { background: rgba(34,197,94,.08); border-color: rgba(34,197,94,.35); margin: .7rem 0 .2rem; }
+.bd-step { font-size: .7rem; margin: .5rem 0 .35rem; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; } .bd-step b { color: var(--bd-accent); }
+.bd-fix { margin-top: .6rem; } .bd-fix summary { cursor: pointer; font-size: .68rem; font-weight: 700; color: var(--bd-muted); }
+.bd-sh { font-size: .66rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--bd-muted); margin: 1rem 0 .4rem; }
+.bd-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .8rem; }
+.bd-chip { white-space: normal; }
+textarea[readonly].bd-ta { color: var(--bd-muted); min-height: 120px; }

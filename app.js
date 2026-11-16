@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '0.9.7';
+const VERSION = '1.0.1';
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER — reference data (JEE / NEET) + broad units

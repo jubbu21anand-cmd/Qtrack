@@ -16,7 +16,7 @@
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>0.9.7</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.0.1</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -59,7 +59,7 @@
     <button class="nav-item" onclick="openModal('customiseModal');closeSidebar()">Customise</button>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">0.9.7</span> · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.0.1</span> · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -286,7 +286,7 @@
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 0.9.7 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 1.0.1 · Beta · qttrack.vercel.app</div>
 
     <div class="about-subtabs">
       <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
@@ -309,7 +309,7 @@
     <p class="about-p">The goal of QTrack is to provide a clean and straightforward experience without unnecessary complexity. You can track completed questions, manage subjects, log focus time with the Study Tracker, record and analyse exam performance in Exam Analytics, and maintain a clear record of your progress without relying on scattered notes or multiple apps pretending to "increase productivity" while mainly increasing screen time.</p>
     <p class="about-p">QTrack is independently developed with the help of modern AI tools to improve features, usability, and development speed while keeping the platform simple and user-focused.</p>
     <div class="about-note">⚠️ The app is in development phase and may cause bugs and errors. Apologies from the developer's end in advance.</div>
-    <div class="about-note-yellow">🚧 Dev note: we're aiming to leave Beta by version 0.10.0. Until then, expect fairly frequent updates and the occasional rough edge as new features (like Exam Analytics and Study Tracker) get polished based on feedback.</div>
+    <div class="about-note-yellow">🚧 Dev note: Beta has been pushed back — we're now aiming to leave Beta by version 1.5.0. Until then, expect fairly frequent updates and the occasional rough edge as new features (like the Paper In-Depth Breakdown, Exam Analytics and Study Tracker) get polished based on feedback.</div>
 
     <div class="about-h2">FAQ</div>
     <div class="faq-item" onclick="toggleFaq(this)">
@@ -373,6 +373,30 @@
 <!-- CHANGELOG --------------------------------------------------- -->
 <div class="page" id="changelogPage">
   <div class="changelog-wrap">
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">1.0.0</span></div>
+      <ul class="cl-items">
+        <li>New: Paper In-Depth Breakdown — upload a pdf2cbt result export and get a full analysis of a mock paper: score, accuracy, negative marks, time spent, plus subject-wise and chapter-wise tables and charts</li>
+        <li>New: built-in JEE chapter and topic database — papers are sorted into chapters and topics without any AI running inside QTrack, so there are no usage limits</li>
+        <li>New: one-tap ChatGPT prompt — copy the prompt, give it to ChatGPT with your question paper, paste its reply back, and every question is tagged to its chapter and topic automatically</li>
+        <li>New: Predictive percentile and Estimated percentile (a most-likely ±3–4 band) based on your Easy / Moderate / Tough rating of the paper</li>
+        <li>New: Self-introspection deep-dive — chapter diagnosis (pace, rushed vs stuck mistakes, negative marks, next step), subject efficiency, accuracy by position in each section, biggest time sinks, quick-fix mistakes, a topic hot-list and a "potential score"</li>
+        <li>New: a "?" button on every section explains it, and how to bring your paper in, in plain language</li>
+        <li>Beta extended — QTrack is now planned to leave Beta at version 1.5.0</li>
+      </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">1.0.1</span>
+        <ul class="cl-items">
+          <li>Chapter tagging no longer has to be done by hand — the ChatGPT prompt flow is now the main route, and manual tagging is an optional fix-up</li>
+          <li>Subject performance chart now shows two clear bars per subject: "Marks scored" (blue) and "Marks lost" (red)</li>
+          <li>Below the 90th percentile no number is shown any more — instead you get a "below 90 isn't final, revise and come back stronger" message</li>
+          <li>New "Estimated percentile" section showing a ±3–4 point most-likely range, separate from the single-number Predictive percentile</li>
+          <li>Self-introspection is much deeper, with new columns and tables for pace, fast/slow mistakes, section position and topic-level misses</li>
+          <li>About: Beta end-point updated to 1.5.0; version labels refreshed across the app</li>
+        </ul>
+      </div>
+    </div>
 
     <div class="cl-version">
       <div><span class="cl-ver-num">0.9.0</span></div>
@@ -594,7 +618,7 @@
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 0.9.7</span>
+  <span>QTrack 1.0.1</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -607,7 +631,7 @@
   <div class="terms-page-inner">
     <button class="terms-back-btn" onclick="closeTermsPage()">← Back to QTrack</button>
     <h1>Terms &amp; Conditions</h1>
-    <p class="terms-updated">Last updated with QTrack v0.9.7</p>
+    <p class="terms-updated">Last updated with QTrack v1.0.1</p>
 
     <p>These Terms &amp; Conditions ("Terms") govern your access to and use of QTrack (the "App"), a shared, informal question- and progress-tracking tool built and maintained independently. By opening, browsing, or using the App in any way, you agree to be bound by these Terms in full. If you do not agree with any part of these Terms, you should stop using the App immediately.</p>
 
