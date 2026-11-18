@@ -16,7 +16,7 @@
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.0.1</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.0.2</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -59,7 +59,7 @@
     <button class="nav-item" onclick="openModal('customiseModal');closeSidebar()">Customise</button>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.0.1</span> · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.0.2</span> · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -286,7 +286,7 @@
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 1.0.1 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 1.0.2 · Beta · qttrack.vercel.app</div>
 
     <div class="about-subtabs">
       <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
@@ -365,7 +365,7 @@
 <!-- PAPER IN-DEPTH BREAKDOWN ------------------------------------ -->
 <div class="page" id="breakdownPage">
   <div class="bd-wrap">
-    <div class="bd-head"><div class="bd-title">Paper <em>In-Depth Breakdown</em></div></div>
+    <div class="bd-head"><div class="bd-title">Paper <em>In-Depth Breakdown</em></div><button class="bd-save" id="bdSaveBtn" onclick="bdOpenSave()" disabled title="Load a paper first">＋ Save</button></div>
     <div id="bdBody"></div>
   </div>
 </div><!-- /breakdownPage -->
@@ -394,6 +394,20 @@
           <li>New "Estimated percentile" section showing a ±3–4 point most-likely range, separate from the single-number Predictive percentile</li>
           <li>Self-introspection is much deeper, with new columns and tables for pace, fast/slow mistakes, section position and topic-level misses</li>
           <li>About: Beta end-point updated to 1.5.0; version labels refreshed across the app</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">1.0.2</span>
+        <ul class="cl-items">
+          <li>New: "＋ Save" button on Paper In-Depth Breakdown — name the test, pick the person and it is saved straight into Exam Analytics. Marks, subject scores, JEE Main/Advanced, difficulty, the topic-wise analysis and a short review per subject are filled in for you; percentile, rank and total candidates are optional. The percentile you finalise in the dialog is the one Exam Analytics shows (marked "est." when it is an estimate). Locked profiles still need their password</li>
+          <li>New: percentile model rebuilt on 29 shift readings across 2023–2026 (coaching-institute estimates) instead of two shifts. Predictive percentile follows your difficulty rating; the Estimated percentile is a fixed band that ignores it and no longer over-widens near the top (e.g. 147/300 on a tough paper is now about 98.5, not 94.6–100)</li>
+          <li>New: Quick summary in Self-introspection, powered by a built-in knowledge base for all 66 chapters — how often each is asked in Mains, how scoring it is, and which PYQs to practise</li>
+          <li>New: Time analysis — a line graph of minutes per question for each subject, a bar graph of time spent on correct / wrong / skipped questions per subject, a time-split ring and a list of likely "stuck" questions</li>
+          <li>New: the ChatGPT prompt now sits behind a glowing "?" copy button instead of being shown on screen</li>
+          <li>New: answer-key route for exports without correct answers — copy a prompt, give ChatGPT your answer-key PDF, paste the reply, and Qtrack marks the paper itself</li>
+          <li>New: "?" help now also covers how the advice is decided, the time charts, the answer key and saving</li>
+          <li>Fixed: opening the breakdown no longer loads a demo or an old paper by itself. The demo is never stored and can be closed; a previous real paper is offered as "Resume". "Clear" now works reliably (tap twice, no pop-up)</li>
+          <li>Fixed: editing a test in Exam Analytics no longer erases a percentile that was entered without a rank</li>
         </ul>
       </div>
     </div>
@@ -618,7 +632,7 @@
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 1.0.1</span>
+  <span>QTrack 1.0.2</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -631,7 +645,7 @@
   <div class="terms-page-inner">
     <button class="terms-back-btn" onclick="closeTermsPage()">← Back to QTrack</button>
     <h1>Terms &amp; Conditions</h1>
-    <p class="terms-updated">Last updated with QTrack v1.0.1</p>
+    <p class="terms-updated">Last updated with QTrack v1.0.2</p>
 
     <p>These Terms &amp; Conditions ("Terms") govern your access to and use of QTrack (the "App"), a shared, informal question- and progress-tracking tool built and maintained independently. By opening, browsing, or using the App in any way, you agree to be bound by these Terms in full. If you do not agree with any part of these Terms, you should stop using the App immediately.</p>
 
@@ -791,6 +805,53 @@
 </div>
 
 <!-- Add / Edit Exam Test -->
+<!-- Paper In-Depth Breakdown → save into Exam Analytics -->
+<div class="modal-overlay" id="bdSaveModal">
+  <div class="modal" style="max-width:480px;max-height:92vh;overflow-y:auto">
+    <div class="modal-drag"></div>
+    <h2 id="bdsTitle">Save to Exam Analytics</h2>
+    <div class="bds-hint">Everything is filled in from your breakdown — only the name is required.</div>
+    <div class="field-label">Test name</div>
+    <input type="text" id="bdsName" placeholder="e.g. JEE Mock Test 4" maxlength="60">
+    <div class="field-label">Save for</div>
+    <select id="bdsUser" onchange="bdSaveUser()"></select>
+    <div id="bdsPassWrap" style="display:none"><div class="field-label">🔒 Their Exam Analytics is locked — enter the password</div><input type="password" id="bdsPass" placeholder="Password" autocomplete="off"></div>
+    <div class="field-label">Test type</div>
+    <div class="exam-diff-pick" style="margin-bottom:.6rem">
+      <button class="exam-diff-pick-btn" id="bdsT_" onclick="bdSaveType('')">Other</button>
+      <button class="exam-diff-pick-btn" id="bdsT_JM" onclick="bdSaveType('JM')">JEE Main</button>
+      <button class="exam-diff-pick-btn" id="bdsT_JA" onclick="bdSaveType('JA')">JEE Advanced</button>
+    </div>
+    <div class="field-label">Date</div>
+    <input type="date" id="bdsDate">
+    <div class="exam-modal-grid">
+      <div><div class="field-label">Total marks</div><input type="number" id="bdsTotal"></div>
+      <div><div class="field-label">Marks obtained</div><input type="number" id="bdsObt"></div>
+    </div>
+    <div class="bds-subj" id="bdsSubj"></div>
+    <div class="field-label">How was the paper?</div>
+    <div class="exam-diff-pick" style="margin-bottom:.6rem">
+      <button class="exam-diff-pick-btn easy" id="bdsD_easy" onclick="bdSaveDiff('easy')">Easy</button>
+      <button class="exam-diff-pick-btn mod" id="bdsD_moderate" onclick="bdSaveDiff('moderate')">Moderate</button>
+      <button class="exam-diff-pick-btn tough" id="bdsD_tough" onclick="bdSaveDiff('tough')">Tough</button>
+    </div>
+    <div class="field-label">Percentile <span class="bds-opt">optional</span></div>
+    <input type="number" step="0.01" min="0" max="100" id="bdsPct" oninput="bdSavePct()" placeholder="e.g. 97.4">
+    <div class="bds-hint" id="bdsHint"></div>
+    <div class="exam-modal-grid">
+      <div><div class="field-label">Overall rank <span class="bds-opt">optional</span></div><input type="number" id="bdsRank" oninput="bdSaveRank()" placeholder="1240"></div>
+      <div><div class="field-label">Total candidates <span class="bds-opt">optional</span></div><input type="number" id="bdsStud" oninput="bdSaveRank()" placeholder="150000"></div>
+    </div>
+    <label class="bds-check"><input type="checkbox" id="bdsAuto" checked><span id="bdsAutoTxt"></span></label>
+    <div class="field-label">Personal note <span class="bds-opt">optional</span></div>
+    <textarea id="bdsNote" rows="2"></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('bdSaveModal')">Cancel</button>
+      <button class="btn-confirm" id="bdsGo" onclick="bdSaveGo()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="examTestModal">
   <div class="modal" style="max-width:480px">
     <div class="modal-drag"></div>

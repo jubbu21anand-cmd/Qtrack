@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '1.0.1';
+const VERSION = '1.0.2';
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER — reference data (JEE / NEET) + broad units
@@ -2071,7 +2071,7 @@ function renderExamTestsGrid(tests) {
         <div>Percentage: <b>${t.totalMarks ? pct + '%' : '—'}</b></div>
         <div>Total Marks: <b>${t.totalMarks ?? '—'}</b></div>` : `
         <div>Rank: <b>${t.overallRank ?? '—'}</b> of <b>${t.totalStudents ?? '—'}</b> candidates</div>
-        <div>Percentile: <b>${percentile != null ? percentile + '%' : '—'}</b></div>`}
+        <div>Percentile: <b>${percentile != null ? (t.pctEstimated ? '≈ ' : '') + percentile + '%' : '—'}</b>${t.pctEstimated && percentile != null ? ' <span style="font-size:.62em;opacity:.7" title="Estimated from your marks (Paper In-Depth Breakdown)">est.</span>' : ''}</div>`}
       </div>
       ${t.note ? `<div class="exam-note-box" style="font-size:.62rem;padding:.4rem .5rem">${escHtml(t.note)}</div>` : ''}
       <div class="exam-test-card-actions">
@@ -2245,6 +2245,9 @@ function saveExamTest() {
   const id = examEditingId || ('ex' + Date.now());
   const rank = document.getElementById('examOverallRank').value ? Number(document.getElementById('examOverallRank').value) : null;
   const totalStudents = document.getElementById('examTotalStudents').value ? Number(document.getElementById('examTotalStudents').value) : null;
+  const prevT = examEditingId ? state.exams.tests[examEditingId] : null;
+  const calcP = examCalcPercentile(rank, totalStudents);
+  const keepP = calcP == null && prevT && prevT.overallPercentile != null;   // a percentile typed without a rank (e.g. saved from Paper Breakdown) must survive edits
   const test = {
     id, mode: examMode, name, ownerUid: examUid,
     date: document.getElementById('examTestDate').value || todayStr(),
@@ -2252,7 +2255,9 @@ function saveExamTest() {
     obtainedMarks: Number(document.getElementById('examObtMarks').value) || 0,
     overallRank: rank,
     totalStudents: totalStudents,
-    overallPercentile: examCalcPercentile(rank, totalStudents),
+    overallPercentile: calcP != null ? calcP : (keepP ? prevT.overallPercentile : null),
+    pctEstimated: calcP == null && keepP ? !!prevT.pctEstimated : false,
+    ...(prevT && prevT.source ? { source: prevT.source } : {}),
     note: document.getElementById('examNote').value.trim(),
     difficulty: examDraftDifficulty,
     jmja: examMode === 'jee' ? examDraftJmJa : null,

@@ -61,3 +61,19 @@ summary.bd-h { cursor: pointer; }
 .bd-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .8rem; }
 .bd-chip { white-space: normal; }
 textarea[readonly].bd-ta { color: var(--bd-muted); min-height: 120px; }
+/* ── v1.0.2 additions ── */
+.bd-save { background: linear-gradient(135deg, var(--bd-accent), var(--bd-accent2)); color: #fff; border: 0; border-radius: 9px; padding: 8px 14px; font-family: 'Syne', sans-serif; font-size: .74rem; font-weight: 800; cursor: pointer; box-shadow: 0 0 14px rgba(59,130,246,.35); }
+.bd-save:disabled { background: var(--bd-surface2); color: var(--bd-muted); box-shadow: none; border: 1px solid var(--bd-border); cursor: not-allowed; }
+.bd-off { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.bd-copy { display: inline-flex; align-items: center; gap: .5rem; background: var(--bd-surface2); border: 1px solid var(--bd-accent); color: var(--bd-text); border-radius: 10px; padding: 7px 14px 7px 8px; font-family: 'Syne', sans-serif; font-size: .72rem; font-weight: 700; cursor: pointer; animation: bdGlow 2.6s ease-in-out infinite; }
+.bd-copy.done { border-color: #22c55e; animation: none; }
+.bd-qpulse { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--bd-accent); color: var(--bd-accent); display: inline-flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: .7rem; font-weight: 700; animation: bdPulse 2.6s ease-in-out infinite; }
+@keyframes bdGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); } 50% { box-shadow: 0 0 0 4px rgba(59,130,246,.22); } }
+@keyframes bdPulse { 0%,100% { opacity: .55; } 50% { opacity: 1; box-shadow: 0 0 8px rgba(59,130,246,.7); } }
+.bd-armed { border-color: #ef4444 !important; color: #f87171 !important; }
+.bd-two2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: .8rem; } @media (max-width: 560px) { .bd-two2 { grid-template-columns: 1fr; } }
+.bd-sm2 { color: var(--bd-muted); font-size: .85em; }
+.bds-hint { font-size: .66rem; color: var(--muted); line-height: 1.5; margin: -.2rem 0 .6rem; } .bds-opt { font-weight: 400; opacity: .6; font-size: .9em; }
+.bds-subj { display: flex; flex-wrap: wrap; gap: .3rem .9rem; font-size: .68rem; color: var(--muted); margin: -.2rem 0 .7rem; } .bds-subj b { color: var(--text); font-family: 'DM Mono', monospace; }
+.bds-check { display: flex; gap: .5rem; align-items: flex-start; font-size: .68rem; line-height: 1.45; margin: .2rem 0 .7rem; cursor: pointer; } .bds-check input { width: auto; margin-top: 2px; }
+#bdSaveModal select { width: 100%; }
