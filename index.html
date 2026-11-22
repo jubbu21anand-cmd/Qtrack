@@ -16,7 +16,7 @@
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.0.2</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.0.4</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -59,7 +59,7 @@
     <button class="nav-item" onclick="openModal('customiseModal');closeSidebar()">Customise</button>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.0.2</span> · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.0.4</span> · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -286,7 +286,7 @@
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 1.0.2 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 1.0.4 · Beta · qttrack.vercel.app</div>
 
     <div class="about-subtabs">
       <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
@@ -366,6 +366,7 @@
 <div class="page" id="breakdownPage">
   <div class="bd-wrap">
     <div class="bd-head"><div class="bd-title">Paper <em>In-Depth Breakdown</em></div><button class="bd-save" id="bdSaveBtn" onclick="bdOpenSave()" disabled title="Load a paper first">＋ Save</button></div>
+    <div class="bd-nudge" id="bdNudge" onclick="bdNudgeGo()" role="button">Giving a JM PYQ? <b>Click here</b></div>
     <div id="bdBody"></div>
   </div>
 </div><!-- /breakdownPage -->
@@ -408,6 +409,24 @@
           <li>New: "?" help now also covers how the advice is decided, the time charts, the answer key and saving</li>
           <li>Fixed: opening the breakdown no longer loads a demo or an old paper by itself. The demo is never stored and can be closed; a previous real paper is offered as "Resume". "Clear" now works reliably (tap twice, no pop-up)</li>
           <li>Fixed: editing a test in Exam Analytics no longer erases a percentile that was entered without a rank</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">1.0.3</span>
+        <ul class="cl-items">
+          <li>Paper In-Depth Breakdown: the "stuck questions", "biggest time sinks" and "quick-fix mistakes" lists are now grouped under Physics, Chemistry and Mathematics headings and numbered plainly (Q11) instead of codes like M11. Wrong, skipped and solved are colour-coded</li>
+          <li>The copy-prompt buttons no longer show a ? icon — they keep the soft glowing border</li>
+        </ul>
+      </div>
+      <div class="cl-patch">
+        <span class="cl-patch-num">1.0.4</span>
+        <ul class="cl-items">
+          <li>New: JEE Main PYQ mode in Paper In-Depth Breakdown. A small "Giving a JM PYQ? Click here" pop-up appears for a few seconds every time you open the section; it opens a switch with Year, Date and Shift dropdowns</li>
+          <li>In PYQ mode the paper-difficulty rating is locked and the Predictive and Estimated percentiles merge into one approximate percentile (two decimals) taken from that exact shift's published data, with a small "estimates made on the basis of …" line underneath. Everything else stays the same</li>
+          <li>New data: marks-vs-percentile tables for 111 JEE Main shifts across 12 sessions from 2021 to 2026 are now built into Qtrack. The normal (non-PYQ) percentile estimates use them too, replacing the earlier two-shift and 29-reading versions</li>
+          <li>Method: between published points the percentile is interpolated in a way that follows how rare each percentile is (tested by hiding published points: typically within 0.1 percentile). Above the 99th percentile, shifts that don't publish those rows are extended using the pattern of the 54 shifts that do (typically within 0.05)</li>
+          <li>Saving a PYQ attempt to Exam Analytics pre-selects JEE Main, names the test after the shift, takes the difficulty from the shift's data and uses the PYQ estimate as the percentile</li>
+          <li>Not covered yet: April 2024 and April 2026 (no table supplied)</li>
         </ul>
       </div>
     </div>
@@ -632,7 +651,7 @@
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 1.0.2</span>
+  <span>QTrack 1.0.4</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -645,7 +664,7 @@
   <div class="terms-page-inner">
     <button class="terms-back-btn" onclick="closeTermsPage()">← Back to QTrack</button>
     <h1>Terms &amp; Conditions</h1>
-    <p class="terms-updated">Last updated with QTrack v1.0.2</p>
+    <p class="terms-updated">Last updated with QTrack v1.0.4</p>
 
     <p>These Terms &amp; Conditions ("Terms") govern your access to and use of QTrack (the "App"), a shared, informal question- and progress-tracking tool built and maintained independently. By opening, browsing, or using the App in any way, you agree to be bound by these Terms in full. If you do not agree with any part of these Terms, you should stop using the App immediately.</p>
 

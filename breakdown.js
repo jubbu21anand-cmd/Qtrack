@@ -3,7 +3,8 @@
 const LS = 'qt_bd_v1', SUBS = ['Physics', 'Chemistry', 'Mathematics'];
 const $ = id => document.getElementById(id);
 const E = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-const blank = d => ({ qs: [], tags: {}, topics: {}, diff: d || 'moderate', sample: false, info: '', err: '', tagMsg: '', tagWarn: false, keyMsg: '', keyWarn: false, savedId: null, savedUid: null });
+const blank = d => ({ qs: [], tags: {}, topics: {}, diff: d || 'moderate', sample: false, info: '', err: '', tagMsg: '', tagWarn: false, keyMsg: '', keyWarn: false, savedId: null, savedUid: null, pyq: null });
+const fresh = () => Object.assign(blank(S.diff), { pyq: S.pyq });
 let S = blank(), SAVED = null, charts = [], POS = 4, TA = 60, armed = false, SV = {};
 try { const j = JSON.parse(localStorage.getItem(LS) || 'null'); if (j && j.qs && j.qs.length && !j.sample) SAVED = j; } catch (e) {}
 const save = () => { try { if (S.qs.length && !S.sample) localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {} };   // the demo is never stored
@@ -89,30 +90,64 @@ function agg(kf) {
 const status = a => a.att < 2 ? 'few' : a.acc >= 75 ? 'strong' : a.acc >= 50 ? 'watch' : 'weak';
 const LBL = { strong: 'Strong', watch: 'Watch', weak: 'Weak', few: 'Too few Qs' }, nm = k => k.split('|')[1] || k;
 const fT = s => s == null ? '–' : s >= 60 ? Math.floor(s / 60) + 'm ' + Math.round(s % 60) + 's' : Math.round(s) + 's';
-/* ── percentile model: marks ÷ the shift's 99th-percentile marks → percentile curve, evaluated over every past shift (2023–2026) ── */
-const PM = (() => { const o = BD_PCT.obs, n = {}; o.forEach(x => n[x.y] = (n[x.y] || 0) + 1); const ms = o.map(x => x.m).sort((a, b) => a - b), t1 = ms[Math.floor(ms.length / 3)], t2 = ms[Math.floor(ms.length * 2 / 3)];
-  return o.map(x => ({ y: x.y, m: x.m, w: 1 / n[x.y], d: x.m < t1 ? 'tough' : x.m >= t2 ? 'easy' : 'moderate' })); })();
-function Fx(x) { const F = BD_PCT.F; if (x < F[0][0]) return 89; if (x >= F[F.length - 1][0]) return 99.95;
-  for (let i = 0; i < F.length - 1; i++) if (x < F[i + 1][0]) return F[i][1] + (F[i + 1][1] - F[i][1]) * (x - F[i][0]) / (F[i + 1][0] - F[i][0]); }
+/* ── percentile engine: published marks-vs-percentile table of every JEE Main shift 2021–2026 (BD_PYQ).
+      Between published points: linear in "tail space" u = −ln(100−p) (hold-one-out tested: ~0.02–0.09 percentile off). Above a shift's top published row: that shift's own
+      slope between the 97th and 99th percentile × a pattern learned from the 54 shifts that publish 99.1–99.9 (tested: ~0.03 off). ── */
+const uT = p => -Math.log(100 - p), uI = x => 100 - Math.exp(-x), HI = [99.1, 99.2, 99.3, 99.4, 99.5, 99.6, 99.7, 99.8, 99.9], MONN = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9 };
+const SH = []; BD_PYQ.sessions.forEach(se => se.sh.forEach(r => { const pts = []; se.P.forEach((p, i) => { if (r[2][i] != null) pts.push([p, r[2][i]]); }); SH.push({ y: se.y, d: r[0], n: r[1], pts }); }));
+function marksAt(pts, p) { for (let i = 0; i < pts.length - 1; i++) if (p <= pts[i + 1][0]) { const a = pts[i], b = pts[i + 1]; if (p <= a[0]) return a[1]; return a[1] + (uT(p) - uT(a[0])) / (uT(b[0]) - uT(a[0])) * (b[1] - a[1]); } return pts[pts.length - 1][1]; }
+function ladder(sh) {
+  if (sh.A) return sh.A; const A = sh.pts.map(x => x.slice()), top = A[A.length - 1][0]; sh.pub99 = top >= 99.1;
+  if (top < 99.9) { const m99 = marksAt(A, 99), m97 = marksAt(A, 97); let prev = A[A.length - 1][1]; HI.forEach(p => { if (p > top) { prev = Math.max(prev + .5, m99 + (m99 - m97) * BD_PYQ.G[p]); A.push([p, prev]); } }); }
+  return sh.A = A;
+}
+function shiftPct(sh, m) {
+  const A = ladder(sh); if (m < A[0][1]) return 89;   // under the 90th-percentile mark of that shift
+  for (let i = 0; i < A.length - 1; i++) if (m <= A[i + 1][1]) { const a = A[i], b = A[i + 1]; if (b[1] === a[1]) return b[0]; return uI(uT(a[0]) + (uT(b[0]) - uT(a[0])) * (m - a[1]) / (b[1] - a[1])); }
+  const a = A[A.length - 2], b = A[A.length - 1], sl = b[1] > a[1] ? (uT(b[0]) - uT(a[0])) / (b[1] - a[1]) : .05; return Math.min(99.99, uI(uT(b[0]) + sl * (m - b[1])));
+}
+SH.forEach(s => s.m99 = marksAt(s.pts, 99));
+{ const a = SH.map(s => s.m99).sort((x, y) => x - y), t1 = a[Math.floor(a.length / 3)], t2 = a[Math.floor(a.length * 2 / 3)]; SH.forEach(s => s.tier = s.m99 < t1 ? 'tough' : s.m99 >= t2 ? 'easy' : 'moderate'); }
+const YC = {}; SH.forEach(s => YC[s.y] = (YC[s.y] || 0) + 1);
 function wq(a, q) { const L = a.slice().sort((x, y) => x.p - y.p), W = L.reduce((t, x) => t + x.w, 0); let c = 0; for (const x of L) { c += x.w; if (c >= q * W - 1e-9) return x.p; } return L[L.length - 1].p; }
 const sm = a => ({ med: wq(a, .5), lo: wq(a, .25), hi: wq(a, .75), n: a.length, yrs: [...new Set(a.map(x => x.y))].sort() });
-function pInfo(g, mx, diff) {
-  const m = mx ? g / mx * 300 : 0, all = PM.map(o => ({ p: Fx(m / o.m), w: o.w, d: o.d, y: o.y })), est = sm(all), pre = sm(all.filter(x => x.d === (diff || S.diff)));
+function pInfo(g, mx, diff) {   // mock mode: spread over every past shift (each year weighted equally); tiers = tercile of the shift's 99th-percentile marks
+  const m = mx ? g / mx * 300 : 0, all = SH.map(s => ({ p: shiftPct(s, m), w: 1 / YC[s.y], d: s.tier, y: s.y })), est = sm(all), pre = sm(all.filter(x => x.d === (diff || S.diff)));
   est.low = est.med < 90; pre.low = pre.med < 90; return { m, est, pre, by: d => sm(all.filter(x => x.d === d)) };
 }
-const f1 = v => v < 90 ? 'below 90' : v >= 99.9 ? '99.9+' : v.toFixed(1), yr = a => a.yrs[0] === a.yrs[a.yrs.length - 1] ? a.yrs[0] : a.yrs[0] + '–' + a.yrs[a.yrs.length - 1];
+const byDate = (a, b) => { const k = d => { const [dd, mo] = d.split(' '); return (MONN[mo] || 0) * 100 + +dd; }; return k(a) - k(b); };
+const pyqSh = () => { const q = S.pyq; return q && q.on && q.y && q.d && q.n ? SH.find(s => s.y == q.y && s.d === q.d && s.n == q.n) || null : null; };
+const pyqName = sh => `${sh.d} ${sh.y}, Shift ${sh.n === 1 ? 'I' : 'II'}`;
+function pyqInfo(g, mx) { const sh = pyqSh(); if (!sh) return null; const m = mx ? g / mx * 300 : 0, p = shiftPct(sh, m); return { sh, m, p, low: p < 90, ext: !sh.pub99 && m > marksAt(sh.pts, 99) }; }
+const f1 = v => v < 90 ? 'below 90' : v >= 99.9 ? '99.9+' : v.toFixed(1);
+const pctOf = (g, mx) => { const r = pyqInfo(g, mx); if (r) return { low: r.low, p: r.p, txt: r.p.toFixed(2) }; const a = pInfo(g, mx).pre; return { low: a.low, p: a.med, txt: f1(a.med) }; };
+const YRS = [...new Set(SH.map(s => s.y))].sort(), SPAN = YRS[0] + '–' + YRS[YRS.length - 1];
 const BELOW = `<b>Below 90 isn’t final.</b> Your marks fall under the 90th-percentile mark in our reference data, so we won’t guess a number — and that’s okay. One paper is a snapshot, not a verdict. Revise the weak chapters listed below, redo the questions you got wrong, and come back stronger. Most gains at this stage come from fixing a few chapters and cutting silly mistakes.`;
 function predCard(T) {
   const p = pInfo(T.got, T.max), a = p.pre, d3 = ['easy', 'moderate', 'tough'].map(d => `${d}: ${f1(p.by(d).med)}`).join(' · ');
   return `<div class="bd-card"><div class="bd-h">Predictive percentile ${hq('pred')}<span class="bd-pill">${S.diff} paper</span></div>${hp('pred')}
   ${a.low ? `<div class="bd-msg">${BELOW}</div>` : `<div class="bd-big">≈ ${f1(a.med)}</div><div class="bd-sub2">if this was a ${S.diff} paper · middle half of past ${S.diff} shifts: ${f1(a.lo)} – ${f1(a.hi)}</div><div class="bd-sub2">same marks on another paper → ${d3}</div>`}
-  <div class="bd-note">${PM.length} past shift readings, ${yr(sm(PM.map(o => ({ p: 0, w: 1, y: o.y }))))} (coaching-institute estimates; NTA publishes no official table).${Math.abs(T.max - 300) > 1 ? ` Marks scaled from ${T.max} to 300.` : ''} A mock has no real percentile — read this as “JEE-equivalent”.</div></div>`;
+  <div class="bd-note">Based on the published marks-vs-percentile tables of ${SH.length} JEE Main shifts (${SPAN}); NTA publishes no official table.${Math.abs(T.max - 300) > 1 ? ` Marks scaled from ${T.max} to 300.` : ''} A mock has no real percentile — read this as “JEE-equivalent”.</div></div>`;
 }
 function rangeCard(T) {
   const e = pInfo(T.got, T.max).est;
   return `<div class="bd-card"><div class="bd-h">Estimated percentile ${hq('range')}<span class="bd-pill">same for any difficulty</span></div>${hp('range')}
   ${e.low ? `<div class="bd-msg">${BELOW}</div>` : `<div class="bd-big">${f1(e.lo)} – ${f1(e.hi)}</div><div class="bd-sub2">best single guess ≈ ${f1(e.med)} · the middle half of all ${e.n} past shifts, whatever their difficulty</div>`}
   <div class="bd-note">This band does not move when you change the difficulty rating — it simply says how your marks would have ranked across every shift since ${e.yrs[0]}.</div></div>`;
+}
+function pyqCard(T) {   // PYQ mode: predictive + estimated merged into ONE figure from that shift's own table
+  const r = pyqInfo(T.got, T.max);
+  return `<div class="bd-card"><div class="bd-h">Estimated percentile ${hq('pyqp')}<span class="bd-pill">PYQ · ${E(pyqName(r.sh))}</span></div>${hp('pyqp')}
+  ${r.low ? `<div class="bd-msg">${BELOW}</div>` : `<div class="bd-big">≈ ${r.p.toFixed(2)}</div>`}
+  <div class="bd-fine">Estimates made on the basis of ${E(pyqName(r.sh))} (${r.sh.n === 1 ? 'morning' : 'evening'} shift) data.${r.ext && !r.low ? ' Above the 99th percentile this follows the trend of other shifts.' : ''}${Math.abs(T.max - 300) > 1 ? ` Marks scaled from ${T.max} to 300.` : ''}</div></div>`;
+}
+function pyqPanel() {
+  const q = S.pyq || {}, on = !!q.on, ys = [...new Set(SH.map(s => s.y))].sort((a, b) => b - a), sh = pyqSh();
+  const dts = q.y ? [...new Set(SH.filter(s => s.y == q.y).map(s => s.d))].sort(byDate) : [], shs = q.y && q.d ? SH.filter(s => s.y == q.y && s.d === q.d).sort((a, b) => a.n - b.n) : [];
+  const sel = (k, ph, arr, cur, dis) => `<select onchange="bdPyqSel('${k}',this.value)"${dis ? ' disabled' : ''}><option value="">${ph}</option>${arr.map(([v, t]) => `<option value="${E(v)}"${String(cur) === String(v) ? ' selected' : ''}>${E(t)}</option>`).join('')}</select>`;
+  return `<div class="bd-card bd-pyq" id="bdPyqCard"><div class="bd-h">JEE Main PYQ mode ${hq('pyq')}<label class="bd-sw" title="Switch PYQ mode on or off"><input type="checkbox" ${on ? 'checked' : ''} onchange="bdPyqToggle(this.checked)"><span class="bd-sl"></span></label></div>${hp('pyq')}
+  ${on ? `<div class="bd-pysel">${sel('y', 'Year', ys.map(y => [y, y]), q.y)}${sel('d', 'Date', dts.map(d => [d, d]), q.d, !q.y)}${sel('n', 'Shift', shs.map(x => [x.n, x.n === 1 ? 'Shift I (morning)' : 'Shift II (evening)']), q.n, !q.d)}</div>
+  <div class="bd-note">${sh ? `On: your percentile now comes from the real data of ${E(pyqName(sh))}. The difficulty rating is locked.` : 'Pick the year, date and shift of the paper you solved. Until then the usual estimates are shown.'}</div>` : `<div class="bd-note">Solving a previous-year JEE Main paper? Switch this on to get one percentile based on that exact shift’s published data.</div>`}</div>`;
 }
 function insights(sub, chap) {
   const L = [], tg = chap.filter(a => a.att >= 2), w = tg.filter(a => a.acc < 50).sort((a, b) => a.acc - b.acc).slice(0, 3), s = tg.filter(a => a.acc >= 75).sort((a, b) => b.acc - a.acc).slice(0, 2);
@@ -137,8 +172,10 @@ const HELP = {
   load: `<b>How to bring your paper in</b><ol><li>Open pdf2cbt and go to <b>Test Results → My Tests</b> (left menu).</li><li>Tap your test, then tap <b>Export</b>. A small <code>.json</code> file downloads.</li><li>Come back here and tap <b>Upload pdf2cbt export</b>, then pick that file. <i>Or</i> open the file, select everything, copy it, paste it in the box and tap <b>Analyse pasted data</b>.</li></ol>No pdf2cbt? Paste one line per question: <code>1, Physics, C, 85</code> = question, subject, result (C right / W wrong / U skipped), seconds spent.<br>If it says it can’t read your file, send its first 30 lines to the developer.<br><br><b>Paper difficulty:</b> rate how hard the paper felt compared with a real JEE Main. It changes the <i>Predictive</i> percentile (not the <i>Estimated</i> band).<br><br><b>Tip:</b> the demo is never saved. Close it any time with <b>Close demo</b>.`,
   tag: `<b>Let ChatGPT sort the questions for you (no manual tagging)</b><ol><li>Tap <b>Copy prompt</b> (the glowing button).</li><li>Open ChatGPT, attach your question paper (PDF or screenshots) and paste the prompt. Send.</li><li>ChatGPT replies with one line per question, like <code>Physics | Kinematics | Projectile motion</code>.</li><li>Copy its reply, paste it in the box here and tap <b>Apply chapters</b>.</li></ol>Extra words from ChatGPT are fine — lines in the wrong format are ignored. If the line counts don’t match, tell ChatGPT: “give exactly one line per question”. If it struggles with the whole paper, do one subject at a time and paste the replies together.`,
   key: `<b>Only needed if your export has no correct answers.</b> pdf2cbt marks a test only when you give it an answer key, and its key tool is built for typing answers in by hand — so instead Qtrack takes the key itself.<ol><li>Tap <b>Copy answer-key prompt</b>.</li><li>Give ChatGPT the prompt plus your answer-key PDF (or the solved paper).</li><li>Paste its reply below and tap <b>Apply answer key</b>. Qtrack compares it with the options you chose and re-marks the paper (+4 right, −1 wrong for options; no penalty for numericals).</li></ol>This works only if your export contains the answers <i>you selected</i> (check after applying — it will tell you).`,
-  pred: `One best-guess percentile for your marks, assuming the difficulty you picked. It looks at how your marks would have ranked in past shifts of that difficulty (2023–2026) and shows the middle half of them. Below it you can see what the same marks would give on easy, moderate and tough papers.`,
+  pred: `One best-guess percentile for your marks, assuming the difficulty you picked. It looks at how your marks would have ranked in past shifts of that difficulty (2021–2026) and shows the middle half of them. Below it you can see what the same marks would give on easy, moderate and tough papers.`,
   range: `The same estimate with the difficulty switch ignored: how your marks would have ranked across <b>every</b> past shift. It never changes when you change the difficulty rating — treat it as the steady, realistic range.`,
+  pyq: `<b>Solving a real JEE Main paper?</b><ol><li>Switch this on.</li><li>Pick the <b>year</b>, then the <b>date</b>, then the <b>shift</b> (I = morning, II = evening).</li></ol>Your marks are then compared with that exact shift’s published marks-vs-percentile table (2021–2026 data), so you get <b>one</b> percentile with two decimals instead of an easy/tough guess. The difficulty rating is locked because the shift already tells us how hard the paper was. Marks should be out of 300 (otherwise they are scaled to 300). Not covered yet: April 2024 and April 2026.`,
+  pyqp: `One approximate percentile for your marks in <b>that specific shift</b>. Your marks are read off the shift’s published table, and the gaps between published points are filled using the pattern in the data (tested on the published points themselves: usually within about 0.1 percentile). Treat the second decimal as a guide, not a result. If you are above the shift’s 99th percentile and that shift doesn’t publish the rows above 99, the top part follows the trend of the other shifts.`,
   subj: `Blue = marks you scored in each subject. Red = marks lost (full marks minus what you scored, so wrong answers and skipped questions both count).`,
   time: `<b>Line graph:</b> minutes spent on each question, one coloured line per subject. A <b>big red dot</b> = you spent far longer than usual and got it wrong; <b>big yellow</b> = long time, then skipped. Those are the likely moments of confusion. <b>Bars:</b> total minutes per subject on questions you got right, wrong or skipped. <b>Ring:</b> your whole time split by outcome. “Long” means more than 1.6× that subject’s average (and well above the paper average).`,
   chap: `Every chapter you tagged. <b>Accuracy</b> = right ÷ attempted. <b>Strong</b> ≥75%, <b>Watch</b> 50–75%, <b>Weak</b> &lt;50% (needs at least 2 attempted questions). <b>Marks lost</b> = full marks minus scored.`,
@@ -246,6 +283,13 @@ function summary(chap, tagged) {
 
 /* ── cards ── */
 const COL = { Physics: '#3b82f6', Chemistry: '#f59e0b', Mathematics: '#22c55e', Other: '#a78bfa' }, TC = {};
+/* questions grouped under Physics / Chemistry / Mathematics headings, plainly numbered Q1, Q2… (position within that subject) */
+function byQ(list, line) {
+  const pos = {}, cnt = {}; S.qs.forEach(q => { cnt[q.sub] = (cnt[q.sub] || 0) + 1; pos[q.id] = cnt[q.sub]; });
+  const g = SUBS.concat('Other').map(k => ({ k, L: list.filter(q => q.sub === k).sort((a, b) => pos[a.id] - pos[b.id]) })).filter(x => x.L.length);
+  return g.map(x => `<div class="bd-grp"><div class="bd-gh" style="color:${COL[x.k]}">${x.k}</div><ul class="bd-ul">${x.L.map(q => `<li><b>Q${pos[q.id]}</b> · ${line(q)}</li>`).join('')}</ul></div>`).join('') || '<ul class="bd-ul"><li>None</li></ul>';
+}
+const OC = { C: ['solved ✓ (slow)', 'C'], W: ['wrong ✗', 'W'], U: ['skipped', 'U'], P: ['partial', 'U'], D: ['dropped', 'U'] }, oc2 = q => `<span class="bd-o ${OC[q.c][1]}">${OC[q.c][0]}</span>`;
 function subjCard(sub) {
   return `<div class="bd-card"><div class="bd-h">Subject performance ${hq('subj')}</div>${hp('subj')}<div class="bd-tw"><table class="bd-t"><tr><th>Subject</th><th>Score</th><th>✓</th><th>✗</th><th>Skip</th><th>Acc.</th><th>Avg time</th></tr>${sub.map(a => `<tr><td>${a.k}</td><td>${a.got}/${a.max}</td><td>${a.C}</td><td>${a.W}</td><td>${a.U}</td><td>${a.acc == null ? '–' : Math.round(a.acc) + '%'}</td><td>${fT(a.avgT)}</td></tr>`).join('')}</table></div>
   <div class="bd-chart"><canvas id="bdSubChart"></canvas></div></div>`;
@@ -265,7 +309,7 @@ function timeCard() {
   return `<div class="bd-card"><div class="bd-h">Time analysis ${hq('time')}</div>${hp('time')}
   <div class="bd-chart" style="height:250px"><canvas id="bdTimeLine"></canvas></div><div class="bd-note">Big red dot = long time + wrong · big yellow dot = long time + skipped. X-axis = question number within the section.</div>
   <div class="bd-two2"><div class="bd-chart" style="height:220px"><canvas id="bdTimeBar"></canvas></div><div class="bd-chart" style="height:220px"><canvas id="bdTimeDough"></canvas></div></div>
-  <div class="bd-sh">Where you probably got stuck (long-time questions)</div><ul class="bd-ul">${spk.map(q => `<li><b>${lab[q.id]}</b> · ${fT(q.t)} (${(q.t / mean[q.sub]).toFixed(1)}× your ${q.sub} average) · ${oc[q.c]}${S.tags[q.id] ? ' · ' + E(nm(S.tags[q.id])) : ''}</li>`).join('') || '<li>No unusually long questions — your pacing was even.</li>'}</ul></div>`;
+  <div class="bd-sh">Where you probably got stuck (long-time questions)</div><div class="bd-note" style="margin:-.2rem 0 .4rem">Q numbers count within each subject. “Likely confused” = a long time that ended wrong or skipped.</div>${byQ(spk, q => `${fT(q.t)} <span class="bd-sm2">(${(q.t / mean[q.sub]).toFixed(1)}× your ${q.sub} average)</span> · ${q.c === 'W' ? '<span class="bd-o W">wrong ✗ — likely confused</span>' : q.c === 'U' ? '<span class="bd-o U">skipped — likely confused</span>' : oc2(q)}${S.tags[q.id] ? ' · ' + E(nm(S.tags[q.id])) : ''}`)}</div>`;
 }
 function chapCard(chap, tagged) {
   const head = `<div class="bd-card"><div class="bd-h">Chapter breakdown ${hq('chap')}</div>${hp('chap')}`;
@@ -286,15 +330,15 @@ function introCard(sub, chap, T, tagged) {
   <div class="bd-sh" style="margin-top:.2rem">Quick summary — what to do next <span class="bd-pill">chapter knowledge base</span></div><ul class="bd-ul">${summary(chap, tagged).map(x => `<li>${x}</li>`).join('')}</ul>
   <div class="bd-sh">Observations from your paper</div><ul class="bd-ul">${insights(sub, chap).map(x => `<li>${x}</li>`).join('') || '<li>Not enough data yet.</li>'}</ul>`;
   const qf = qs.filter(fast), rec = qf.reduce((a, q) => a + Math.max(0, mxo(q) - q.mk), 0);
-  if (rec) { const pp = pInfo(T.got + rec, T.max).pre; h += `<div class="bd-msg good">Potential score: if your <b>${qf.length} quick-fix mistakes</b> (wrong, answered fast) had been right, you’d have <b>${T.got + rec}/${T.max}</b>${pp.low ? '' : ' ≈ ' + f1(pp.med) + ' percentile'}.</div>`; }
+  if (rec) { const pp = pctOf(T.got + rec, T.max); h += `<div class="bd-msg good">Potential score: if your <b>${qf.length} quick-fix mistakes</b> (wrong, answered fast) had been right, you’d have <b>${T.got + rec}/${T.max}</b>${pp.low ? '' : ' ≈ ' + pp.txt + ' percentile'}.</div>`; }
   if (chap.length) h += `<div class="bd-sh">Chapter diagnosis</div>` + tbl(['Chapter', 'Attempt', 'Acc.', 'Pace', 'Neg. marks', 'Fast ✗', 'Slow ✗', 'Marks lost', 'Mistake type', 'Next step'], chap.map(a => { const st = status(a);
     return `<tr><td>${E(nm(a.k))}</td><td>${Math.round(a.att / a.n * 100)}%</td><td>${a.acc == null ? '–' : Math.round(a.acc) + '%'}</td><td>${pace(a)}</td><td>${a.neg ? '−' + a.neg : 0}</td><td>${a.fW}</td><td>${a.sW}</td><td>${a.lost}</td><td>${mt(a)}</td><td><span class="bd-chip ${st}">${act[st]}</span></td></tr>`; }).join(''));
   h += `<div class="bd-sh">Subject efficiency</div>` + tbl(['Subject', 'Time share', 'Marks share', 'Marks / min', 'Fast ✗', 'Slow ✗', 'Skipped after long time'], sub.map(a => `<tr><td>${a.k}</td><td>${T.tt ? Math.round(a.tt / T.tt * 100) : 0}%</td><td>${T.got > 0 ? Math.round(a.got / T.got * 100) + '%' : '–'}</td><td>${a.tt ? (a.got / (a.tt / 60)).toFixed(2) : '–'}</td><td>${a.fW}</td><td>${a.sW}</td><td>${qs.filter(q => q.sub === a.k && q.c === 'U' && q.t > TA).length}</td></tr>`).join(''));
   const Q = [0, 1, 2, 3].map(() => ({ n: 0, C: 0, W: 0, P: 0, U: 0, D: 0, tt: 0, tn: 0 }));
   SUBS.concat('Other').forEach(k => { const L = qs.filter(q => q.sub === k); L.forEach((q, i) => { const b = Q[Math.min(3, Math.floor(i * 4 / L.length))]; b.n++; b[q.c]++; if (!isNaN(q.t)) { b.tt += q.t; b.tn++; } }); });
   h += `<div class="bd-sh">Position in each section</div>` + tbl(['Part of section', 'Attempt rate', 'Accuracy', 'Avg time'], Q.map((b, i) => { const at = b.C + b.W + b.P; return `<tr><td>${['First quarter', 'Second quarter', 'Third quarter', 'Last quarter'][i]}</td><td>${b.n ? Math.round(at / b.n * 100) + '%' : '–'}</td><td>${at ? Math.round(b.C / at * 100) + '%' : '–'}</td><td>${fT(b.tn ? b.tt / b.tn : null)}</td></tr>`; }).join(''));
-  const li = a => a.map(q => `<li><b>${lab[q.id]}</b> · ${fT(q.t)} · ${oc[q.c]} · ${chn(q)}</li>`).join('') || '<li>None</li>';
-  h += `<div class="bd-two"><div><div class="bd-sh">Biggest time sinks</div><ul class="bd-ul">${li(qs.filter(q => !isNaN(q.t)).sort((a, b) => b.t - a.t).slice(0, 6))}</ul></div><div><div class="bd-sh">Quick-fix mistakes (wrong, fast)</div><ul class="bd-ul">${li(qf.slice(0, 8))}</ul></div></div>`;
+  const li = a => byQ(a, q => `${fT(q.t)} · ${oc2(q)} · ${E(chn(q))}`);
+  h += `<div class="bd-two"><div><div class="bd-sh">Biggest time sinks</div>${li(qs.filter(q => !isNaN(q.t)).sort((a, b) => b.t - a.t).slice(0, 6))}</div><div><div class="bd-sh">Quick-fix mistakes (wrong, answered fast)</div>${li(qf.slice(0, 8))}</div></div>`;
   const tp = {}; qs.forEach(q => { const t = S.topics[q.id]; if (!t || q.c === 'C') return; const k = (S.tags[q.id] || '') + '§' + t, a = tp[k] || (tp[k] = { t, c: chn(q), W: 0, U: 0, P: 0 }); a[q.c === 'D' ? 'U' : q.c]++; });
   const tr = Object.values(tp).sort((a, b) => (b.W * 2 + b.P + b.U) - (a.W * 2 + a.P + a.U)).slice(0, 12);
   if (tr.length) h += `<div class="bd-sh">Topic hot-list (where you dropped marks)</div>` + tbl(['Topic', 'Chapter', '✗ Wrong', 'Skipped'], tr.map(a => `<tr><td>${E(a.t)}</td><td>${E(a.c)}</td><td>${a.W + a.P}</td><td>${a.U}</td></tr>`).join(''));
@@ -309,7 +353,7 @@ function analysis() {
   prep(); const qs = S.qs, sub = agg(q => q.sub), chap = agg(q => S.tags[q.id]).sort((a, b) => b.lost - a.lost), T = agg(() => 'all')[0], tagged = qs.filter(q => S.tags[q.id]).length;
   const tile = (l, v, x) => `<div class="bd-tile"><div class="bd-tl">${l}</div><div class="bd-tv">${v}</div><div class="bd-ts">${x}</div></div>`;
   const strip = `<div class="bd-strip">${tile('Score', `${T.got}/${T.max}`, `${Math.round(T.got / T.max * 100)}% of full marks`)}${tile('Accuracy', T.acc == null ? '–' : Math.round(T.acc) + '%', `${T.C} ✓ · ${T.W} ✗ · ${T.U} skipped`)}${tile('Attempted', `${T.att}/${T.n}`, `${Math.round(T.att / T.n * 100)}% attempt rate`)}${tile('Negative marks', '−' + T.neg, 'lost to wrong answers')}${tile('Time', fT(T.tt), `avg ${fT(T.avgT)} / question`)}</div>`;
-  return { h: strip + predCard(T) + rangeCard(T) + subjCard(sub) + timeCard() + chapCard(chap, tagged) + introCard(sub, chap, T, tagged), sub, chap };
+  return { h: strip + (pyqSh() ? pyqCard(T) : predCard(T) + rangeCard(T)) + subjCard(sub) + timeCard() + chapCard(chap, tagged) + introCard(sub, chap, T, tagged), sub, chap };
 }
 function drawCharts(sub, chap) {
   if (typeof Chart === 'undefined') return; charts.forEach(c => c.destroy()); charts = [];
@@ -329,7 +373,7 @@ function manual() {
     return `<div class="bd-subh">${k} <span>${L.length} Qs</span></div><div class="bd-bulk">Q <input id="bf_${k}" type="number" min="1" value="1"> to <input id="bt_${k}" type="number" min="1" value="${L.length}"><select id="bc_${k}">${opts(k)}</select><button class="bd-btn" onclick="bdBulk('${k}')">Apply</button></div>
     <div class="bd-qgrid">${L.map((q, i) => `<div class="bd-q"><span class="bd-dot ${q.c}"></span><b>${i + 1}</b><select onchange="bdTag('${encodeURIComponent(q.id)}',this.value)">${opts(k, S.tags[q.id])}</select></div>`).join('')}</div>`; }).join('');
 }
-const copyBtn = (id, label, fn) => `<button class="bd-copy" id="${id}" onclick="${fn}()"><span class="bd-qpulse">?</span><span class="bd-cl">${label}</span></button>`;
+const copyBtn = (id, label, fn) => `<button class="bd-copy" id="${id}" onclick="${fn}()"><span class="bd-cl">${label}</span></button>`;
 function tagStep() {
   const done = S.qs.filter(q => S.tags[q.id]).length;
   return `<div class="bd-card"><div class="bd-h">2 · Auto-tag chapters with ChatGPT ${hq('tag')}<span class="bd-pill" id="bdPill">${done}/${S.qs.length} tagged</span></div>${hp('tag')}
@@ -355,7 +399,7 @@ function loadCard() {
   <textarea id="bdPaste" class="bd-ta" placeholder="…or paste the export JSON here, or CSV lines:  question, section, result (C/W/U), seconds"></textarea>
   <div class="bd-row"><button class="bd-btn" onclick="bdPasteGo()">Analyse pasted data</button></div>
   <div class="bd-h" style="margin-top:.9rem">Paper difficulty (your rating)</div>
-  <div class="bd-row">${['easy', 'moderate', 'tough'].map(d => `<button class="bd-chipb ${S.diff === d ? 'active' : ''}" onclick="bdDiff('${d}')">${d[0].toUpperCase() + d.slice(1)}</button>`).join('')}</div>
+  <div class="bd-row">${['easy', 'moderate', 'tough'].map(d => `<button class="bd-chipb ${S.diff === d ? 'active' : ''} ${pyqSh() ? 'bd-locked' : ''}"${pyqSh() ? ' disabled title="Locked in PYQ mode"' : ''} onclick="bdDiff('${d}')">${d[0].toUpperCase() + d.slice(1)}</button>`).join('')}</div>${pyqSh() ? '<div class="bd-note" style="margin-top:-.3rem">🔒 Locked in PYQ mode — the percentile comes from the real shift’s data, so the difficulty rating isn’t needed.</div>' : ''}
   ${S.err ? `<div class="bd-note bd-err">${E(S.err)}</div>` : ''}${S.info ? `<div class="bd-note ${S.sample ? 'bd-warn' : ''}">${E(S.info)}</div>` : ''}${S.qs.length ? keyPanel() : ''}</div>`;
 }
 const resumeCard = () => `<div class="bd-card"><div class="bd-h">Continue where you left off?</div><div class="bd-note">A paper with ${SAVED.qs.length} questions (${Object.keys(SAVED.tags || {}).length} tagged) is stored on this device. It only opens if you choose to.</div><div class="bd-row" style="margin-top:.5rem"><button class="bd-btn bd-primary" onclick="bdResume()">Resume</button><button class="bd-btn" onclick="bdDiscard()">Discard</button></div></div>`;
@@ -364,9 +408,11 @@ const savedBanner = () => exTest() ? `<div class="bd-msg good">Saved to Exam Ana
 function render() {
   const b = $('bdBody'); if (!b) return;
   const sb = $('bdSaveBtn'); if (sb) { sb.disabled = !S.qs.length || S.sample; sb.title = !S.qs.length ? 'Load a paper first' : S.sample ? 'The demo can’t be saved — load a real paper' : 'Save to Exam Analytics'; }
-  b.innerHTML = loadCard() + (S.qs.length ? savedBanner() + tagStep() + '<div id="bdAnalysis"></div>' : (SAVED ? resumeCard() : '') + '<div class="bd-empty"><strong>No paper loaded</strong>Export your result from pdf2cbt (My Tests → Export), upload it above, or load the demo to preview. Tap the ? on any card for help.</div>');
+  b.innerHTML = pyqPanel() + loadCard() + (S.qs.length ? savedBanner() + tagStep() + '<div id="bdAnalysis"></div>' : (SAVED ? resumeCard() : '') + '<div class="bd-empty"><strong>No paper loaded</strong>Export your result from pdf2cbt (My Tests → Export), upload it above, or load the demo to preview. Tap the ? on any card for help.</div>');
   if (S.qs.length) renderAnalysis();
 }
+let nudgeT = null;
+function nudge(on) { const el = $('bdNudge'); if (!el) return; el.classList.toggle('show', !!on); clearTimeout(nudgeT); if (on) nudgeT = setTimeout(() => el.classList.remove('show'), 6500); }
 function renderAnalysis() { const el = $('bdAnalysis'); if (!el) return; const r = analysis(); el.innerHTML = r.h; drawCharts(r.sub, r.chap); }
 
 /* ── save to Exam Analytics ── */
@@ -381,15 +427,20 @@ function saveDraft() {
   return { sub, T, an, rv, wk: chap.filter(x => x.att >= 2 && x.acc < 50).slice(0, 3).map(x => nm(x.k)) };
 }
 const $v = id => ($(id) || {}).value;
-function curPct() { const p = pInfo(SV.T.got, SV.T.max, SV.diff).pre; return p.low ? null : Math.round(p.med * 10) / 10; }
-function updPct() { SV.cur = curPct(); if (!SV.edited) $('bdsPct').value = SV.cur == null ? '' : SV.cur; const e = pInfo(SV.T.got, SV.T.max, SV.diff).pre;
-  $('bdsHint').textContent = SV.cur == null ? 'Below 90 isn’t final — we leave the percentile blank. Enter your real percentile if you know it, or save without one.' : `Estimated for a ${SV.diff} paper: ≈ ${f1(e.med)} (middle half ${f1(e.lo)} – ${f1(e.hi)}). Edit it if you know your real percentile.`; }
+function curPct() { if (SV.pyq) { const r = pyqInfo(SV.T.got, SV.T.max); return r.low ? null : Math.round(r.p * 100) / 100; } const p = pInfo(SV.T.got, SV.T.max, SV.diff).pre; return p.low ? null : Math.round(p.med * 10) / 10; }
+function updPct() { SV.cur = curPct(); if (!SV.edited) $('bdsPct').value = SV.cur == null ? '' : (SV.pyq ? SV.cur.toFixed(2) : SV.cur); const e = SV.pyq ? null : pInfo(SV.T.got, SV.T.max, SV.diff).pre;
+  $('bdsHint').textContent = SV.cur == null ? 'Below 90 isn’t final — we leave the percentile blank. Enter your real percentile if you know it, or save without one.' : SV.pyq ? `PYQ estimate for ${pyqName(SV.pyq)}: ≈ ${SV.cur.toFixed(2)}. Edit it if you know your real percentile.` : `Estimated for a ${SV.diff} paper: ≈ ${f1(e.med)} (middle half ${f1(e.lo)} – ${f1(e.hi)}). Edit it if you know your real percentile.`; }
 function lockState() { const u = $v('bdsUser'), lk = typeof state !== 'undefined' && state.exams && state.exams.locks && state.exams.locks[u]; const need = !!(lk && examAuthedUid !== u); $('bdsPassWrap').style.display = need ? 'block' : 'none'; }
-function setDiffBtns() { ['easy', 'moderate', 'tough'].forEach(d => { const b = $('bdsD_' + d); if (b) b.classList.toggle('selected', SV.diff === d); }); }
+function setDiffBtns() { ['easy', 'moderate', 'tough'].forEach(d => { const b = $('bdsD_' + d); if (b) { b.classList.toggle('selected', SV.diff === d); b.disabled = !!SV.pyq; b.style.opacity = SV.pyq && SV.diff !== d ? '.45' : ''; b.title = SV.pyq ? 'Set from the shift’s data in PYQ mode' : ''; } }); }
 function setTypeBtns() { ['JM', 'JA', ''].forEach(t => { const b = $('bdsT_' + t); if (b) b.classList.toggle('selected', (SV.jm || '') === t); }); }
 
 Object.assign(window, {
   bdRender: render,
+  bdOpen() { render(); nudge(!(S.pyq && S.pyq.on)); },   // called every time the section is opened
+  bdNudgeGo() { nudge(false); S.pyq = Object.assign({}, S.pyq, { on: true }); render(); const c = $('bdPyqCard'); if (c && c.scrollIntoView) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); },
+  bdPyqToggle(on) { S.pyq = Object.assign({}, S.pyq, { on }); save(); render(); },
+  bdPyqSel(k, v) { const q = Object.assign({}, S.pyq, { on: true }); q[k] = v === '' ? null : (k === 'd' ? v : +v);
+    if (k === 'y') { q.d = null; q.n = null; } if (k === 'd') { q.n = null; const L = SH.filter(s => s.y == q.y && s.d === v); if (L.length === 1) q.n = L[0].n; } S.pyq = q; save(); render(); },
   bdHelp(id, ev) { if (ev) { ev.preventDefault(); ev.stopPropagation(); } const el = $('bdh_' + id); if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none'; },
   bdCopy() { cp('bdPrompt', 'bdCopyBtn', 'Copy prompt'); }, bdCopyKey() { cp('bdKeyPrompt', 'bdKeyBtn', 'Copy answer-key prompt'); },
   bdApplyTags() { const t = $v('bdTagPaste') || ''; if (!t.trim()) { S.tagMsg = 'Paste ChatGPT’s reply in the box first.'; S.tagWarn = true; return render(); } applyTags(t); },
@@ -397,31 +448,31 @@ Object.assign(window, {
   bdFile(i) { const f = i.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => ingest(String(r.result)); r.readAsText(f); },
   bdPasteGo() { const t = $v('bdPaste') || ''; t.trim() ? ingest(t) : (S.err = 'Nothing pasted yet.', render()); },
   bdSample: makeSample,
-  bdDiff(d) { S.diff = d; save(); render(); },
+  bdDiff(d) { if (pyqSh()) return; S.diff = d; save(); render(); },
   bdTag(id, v) { id = decodeURIComponent(id); v ? S.tags[id] = v : delete S.tags[id]; save(); const p = $('bdPill'); if (p) p.textContent = `${S.qs.filter(q => S.tags[q.id]).length}/${S.qs.length} tagged`; renderAnalysis(); },
   bdBulk(k) { const v = $('bc_' + k).value; if (!v) return; const L = S.qs.filter(q => q.sub === k), a = +$('bf_' + k).value || 1, z = +$('bt_' + k).value || L.length; L.forEach((q, i) => { if (i + 1 >= a && i + 1 <= z) S.tags[q.id] = v; }); save(); render(); },
   bdResume() { if (SAVED) { S = Object.assign(blank(), SAVED); SAVED = null; render(); } },
   bdDiscard() { try { localStorage.removeItem(LS); } catch (e) {} SAVED = null; render(); },
   bdReset() {   // no browser confirm() (it can be blocked): first tap arms, second tap clears
-    if (S.sample) { S = blank(S.diff); armed = false; return render(); }
+    if (S.sample) { S = fresh(); armed = false; return render(); }
     if (!armed) { armed = true; render(); setTimeout(() => { if (armed) { armed = false; render(); } }, 4000); return; }
-    armed = false; try { localStorage.removeItem(LS); } catch (e) {} SAVED = null; S = blank(S.diff); render(); },
+    armed = false; try { localStorage.removeItem(LS); } catch (e) {} SAVED = null; S = fresh(); render(); },
   bdOpenSave() {
     if (!S.qs.length || S.sample) return typeof showToast === 'function' && showToast(S.sample ? 'The demo can’t be saved — load a real paper' : 'Load a paper first');
     const U = (typeof visibleUserList === 'function' ? visibleUserList : (typeof userList === 'function' ? userList : () => []))();   // respects anonymous mode
     if (!U.length) return showToast('Add a person on the Question Tracker page first');
-    const d = saveDraft(), ex = exTest(); SV = { diff: S.diff, edited: false, T: d.T, d, jm: d.T.max === 300 ? 'JM' : '' };
+    const d = saveDraft(), ex = exTest(), py = pyqInfo(d.T.got, d.T.max); SV = { diff: py ? py.sh.tier : S.diff, edited: false, T: d.T, d, pyq: py ? py.sh : null, jm: py || d.T.max === 300 ? 'JM' : '' };
     const uid = ex && U.some(u => u.id === ex.ownerUid) ? ex.ownerUid : (typeof examUid !== 'undefined' && U.some(u => u.id === examUid) ? examUid : U[0].id);
     $('bdsTitle').textContent = ex ? 'Update saved test' : 'Save to Exam Analytics'; $('bdsGo').textContent = ex ? 'Update' : 'Save';
     $('bdsUser').innerHTML = U.map(u => `<option value="${E(u.id)}"${u.id === uid ? ' selected' : ''}>${E(u.name)}</option>`).join('');
-    $('bdsName').value = ex ? ex.name : ''; $('bdsDate').value = ex ? ex.date : todayStr(); $('bdsDate').max = todayStr();
+    $('bdsName').value = ex ? ex.name : (py ? `JEE Main ${pyqName(py.sh)} (PYQ)` : ''); $('bdsDate').value = ex ? ex.date : todayStr(); $('bdsDate').max = todayStr();
     $('bdsTotal').value = d.T.max; $('bdsObt').value = d.T.got; $('bdsRank').value = ex && ex.overallRank != null ? ex.overallRank : ''; $('bdsStud').value = ex && ex.totalStudents != null ? ex.totalStudents : '';
-    $('bdsNote').value = ex ? ex.note || '' : `From Paper In-Depth Breakdown.${d.wk.length ? ' Weak: ' + d.wk.join(', ') + '.' : ''}`;
+    $('bdsNote').value = ex ? ex.note || '' : `From Paper In-Depth Breakdown${py ? ' (PYQ: JEE Main ' + pyqName(py.sh) + ')' : ''}.${d.wk.length ? ' Weak: ' + d.wk.join(', ') + '.' : ''}`;
     $('bdsAuto').checked = true; $('bdsAutoTxt').textContent = Object.keys(d.an).length ? 'Also fill the topic-wise analysis and a short review per subject (you can edit them later)' : 'Fill a short review per subject (tag chapters first to also get the topic-wise analysis)';
     $('bdsSubj').innerHTML = d.sub.map(a => `<span>${E(tName(a.k))} <b>${a.got}/${a.max}</b></span>`).join('');
     $('bdsPass').value = ''; if (ex && ex.pctEstimated === false && ex.overallPercentile != null) { SV.edited = true; $('bdsPct').value = ex.overallPercentile; }
     setDiffBtns(); setTypeBtns(); updPct(); lockState(); openModal('bdSaveModal'); },
-  bdSaveDiff(d) { SV.diff = d; setDiffBtns(); updPct(); }, bdSaveType(t) { SV.jm = t; setTypeBtns(); }, bdSaveUser: lockState,
+  bdSaveDiff(d) { if (SV.pyq) return; SV.diff = d; setDiffBtns(); updPct(); }, bdSaveType(t) { SV.jm = t; setTypeBtns(); }, bdSaveUser: lockState,
   bdSavePct() { SV.edited = true; },
   bdSaveRank() { const c = typeof examCalcPercentile === 'function' ? examCalcPercentile($v('bdsRank'), $v('bdsStud')) : null; if (c != null) { $('bdsPct').value = c; SV.edited = true; } },
   bdSaveGo() {
@@ -439,7 +490,7 @@ Object.assign(window, {
     doWrite(() => fbPut('/exams/tests/' + id, test)).then(ok => { if (ok) { S.savedId = id; S.savedUid = uid; save(); render(); showToast(prev ? 'Test updated' : 'Saved to Exam Analytics'); } });
   },
   bdOpenExam() { if (!S.savedId || typeof showPage !== 'function') return; examUid = S.savedUid; examMode = 'jee'; examSelTestId = S.savedId; showPage('examPage', 'examNav'); },
-  __bd: { ingest, agg, toQs, find, csv, applyTags, applyKey, buildPrompt, buildKeyPrompt, matchCh, pInfo, judge, saveDraft, UNIT, PM, summary, S: () => S, SAVED: () => SAVED }
+  __bd: { ingest, agg, toQs, find, csv, applyTags, applyKey, buildPrompt, buildKeyPrompt, matchCh, pInfo, judge, saveDraft, UNIT, SH, shiftPct, marksAt, ladder, pyqInfo, pctOf, summary, S: () => S, SAVED: () => SAVED }
 });
 function cp(ta, btn, label) { const t = $(ta), done = () => { const b = $(btn); if (b) { const l = b.querySelector('.bd-cl'); l.textContent = 'Copied ✓'; b.classList.add('done'); setTimeout(() => { l.textContent = label; b.classList.remove('done'); }, 2000); } };
   const fb = () => { try { t.style.display = 'block'; t.select(); document.execCommand('copy'); t.style.display = ''; } catch (e) {} done(); };

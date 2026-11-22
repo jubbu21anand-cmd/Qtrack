@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '1.0.2';
+const VERSION = '1.0.4';
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER — reference data (JEE / NEET) + broad units
@@ -1433,7 +1433,7 @@ function showPage(pageId, navId) {
   if (pageId === 'studyPage') renderStudyPage();
   if (pageId === 'examPage') renderExamPage();
   if (pageId === 'syllabusPage') renderSyllabusPage();
-  if (pageId === 'breakdownPage' && window.bdRender) bdRender();
+  if (pageId === 'breakdownPage') { if (window.bdOpen) bdOpen(); else if (window.bdRender) bdRender(); }
 }
 
 /* ── Daily motivational quote ──
