@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '1.0.4';
+const VERSION = '1.0.5';
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER — reference data (JEE / NEET) + broad units
@@ -387,7 +387,7 @@ function copySession() {
    the join box (wired up below in checkJoinLink()). */
 function buildShareInviteLink() {
   const url = new URL(location.href);
-  url.search = ''; url.hash = '';
+  url.pathname = '/'; url.search = ''; url.hash = '';
   url.searchParams.set('join', sessionId);
   return url.toString();
 }
@@ -1420,12 +1420,45 @@ function closeSidebar() {
   document.getElementById('sidebarOverlay').classList.remove('open');
 }
 
+/* ── Page addresses ──
+   Every section has its own URL (e.g. /question-tracker, /exam-analytics), so refreshing, sharing, bookmarking
+   and the browser's back/forward buttons all keep you on the right section. Needs vercel.json (rewrites to index.html). */
+const ROUTES = {
+  homePage:        ['question-tracker',          'homeNav',        'Question Tracker'],
+  studyPage:       ['study-tracker',             'studyNav',       'Study Tracker'],
+  syllabusPage:    ['syllabus-tracker',          'syllabusNav',    'Syllabus Tracker'],
+  examPage:        ['exam-analytics',            'examNav',        'Exam Analytics'],
+  breakdownPage:   ['paper-in-depth-breakdown',  'breakdownNav',   'Paper In-Depth Breakdown'],
+  leaderboardPage: ['leaderboard',               'leaderboardNav', 'Leaderboard'],
+  aboutPage:       ['about',                     'aboutNav',       'About'],
+  changelogPage:   ['update-log',                'changelogNav',   'Update Log'],
+};
+const SLUG2PAGE = Object.fromEntries(Object.entries(ROUTES).map(([p, r]) => [r[0], p]));
+const pathSlug = () => location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+let routing = false;   // true while the page is being set FROM the address (so we don't push a second history entry)
+function pushRoute(pageId) {
+  const r = ROUTES[pageId];
+  if (!r || pathSlug() === r[0] || !window.history || !history.pushState) return;
+  try { history.pushState({ page: pageId }, '', '/' + r[0]); } catch (e) { /* e.g. opened from a local file: keep working without a URL */ }
+}
+function showFromUrl() {   // returns true if the address named a known section
+  const pageId = SLUG2PAGE[pathSlug()];
+  if (!pageId) return false;
+  routing = true; try { showPage(pageId, ROUTES[pageId][1]); } finally { routing = false; }
+  return true;
+}
+window.addEventListener('popstate', () => {   // browser back / forward
+  if (showFromUrl()) return;
+  routing = true; try { showPage('homePage', 'homeNav'); } finally { routing = false; }
+});
+
 function showPage(pageId, navId) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
   document.getElementById(navId).classList.add('active');
   closeSidebar();
+  const rt = ROUTES[pageId]; if (rt) { document.title = rt[2] + ' · QTrack'; if (!routing) pushRoute(pageId); }
   // Leaving Exam Analytics always re-locks: any auth for this viewing session is dropped the
   // instant you navigate away, so coming back (even to the same person) demands the password again.
   if (pageId !== 'examPage') { examAuthedUid = null; examAuthedCompareUid = null; }
@@ -3424,6 +3457,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initSession();
   loadLocal();   // instant render from cache
   renderAll();
+  if (!showFromUrl() && pathSlug()) { try { history.replaceState({}, '', '/' + location.search); } catch (e) {} }   // unknown address → home, tidy URL
   renderDailyQuote();
   loadCustomTint();
   renderCustomiseSwatches();
