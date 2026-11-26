@@ -796,3 +796,13 @@ footer { text-align: center; padding: 1.25rem 1rem 1rem; font-size: .58rem; lett
 .lb-opt-btn { flex-shrink: 0; background: var(--text); color: var(--bg); border: none; border-radius: 8px; font-family: 'Syne', sans-serif; font-size: .68rem; font-weight: 700; padding: 7px 12px; cursor: pointer; }
 .lb-opt-btn.on { background: none; color: var(--muted); border: 1px solid var(--border); }
 .lb-mine { font-family: 'DM Mono', monospace; font-size: .5rem; color: #4ecba4; background: rgba(78,203,164,.13); border-radius: 4px; padding: 1px 5px; margin-left: 5px; vertical-align: middle; }
+
+/* 1.1.1 Exam summary pop-up */
+.es-name { font-weight: 800; font-size: .95rem; } .es-sub { font-size: .62rem; color: var(--muted); margin: 2px 0 .8rem; }
+.es-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: .4rem; margin-bottom: .8rem; }
+.es-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .45rem .6rem; font-size: .6rem; color: var(--muted); }
+.es-stat b { display: block; font-family: 'DM Mono', monospace; font-size: .9rem; color: var(--text); }
+.es-bar { display: grid; grid-template-columns: 62px 1fr 58px; gap: .5rem; align-items: center; font-size: .66rem; margin-bottom: .35rem; }
+.es-bar div { height: 6px; background: var(--surface2); border-radius: 4px; overflow: hidden; } .es-bar i { display: block; height: 100%; background: #3b82f6; border-radius: 4px; }
+.es-bar b { font-family: 'DM Mono', monospace; text-align: right; font-weight: 500; }
+.es-line { font-size: .7rem; line-height: 1.7; margin-top: .5rem; } .es-line b { color: var(--muted); }

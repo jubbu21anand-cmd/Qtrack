@@ -16,7 +16,7 @@
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.1.0</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.1.1</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -59,7 +59,7 @@
     <button class="nav-item" onclick="openModal('customiseModal');closeSidebar()">Customise</button>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.1.0</span> · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.1.1</span> · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -326,7 +326,7 @@
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 1.1.0 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 1.1.1 · Beta · qttrack.vercel.app</div>
 
     <div class="about-subtabs">
       <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
@@ -432,6 +432,14 @@
         <li>Changed: lock emoji in Exam Analytics replaced with a lock icon</li>
         <li>Study Tracker is temporarily paused while its bugs are fixed</li>
       </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">1.1.1</span>
+        <ul class="cl-items">
+          <li>New: the blue Analysis button on Exam Analytics test cards now opens a quick summary pop-up (score, accuracy, subject bars, weak and strong chapters, time) with a button to open the full breakdown</li>
+          <li>New data: April 2024 marks-vs-percentile tables (10 shifts)</li>
+          <li>Behind the scenes: the code is split into smaller files so future updates are quicker</li>
+        </ul>
+      </div>
     </div>
 
     <div class="cl-version">
@@ -719,7 +727,7 @@
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 1.1.0</span>
+  <span>QTrack 1.1.1</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -732,7 +740,7 @@
   <div class="terms-page-inner">
     <button class="terms-back-btn" onclick="closeTermsPage()">← Back to QTrack</button>
     <h1>Terms &amp; Conditions</h1>
-    <p class="terms-updated">Last updated with QTrack v1.1.0</p>
+    <p class="terms-updated">Last updated with QTrack v1.1.1</p>
 
     <p>These Terms &amp; Conditions ("Terms") govern your access to and use of QTrack (the "App"), a shared, informal question- and progress-tracking tool built and maintained independently. By opening, browsing, or using the App in any way, you agree to be bound by these Terms in full. If you do not agree with any part of these Terms, you should stop using the App immediately.</p>
 
@@ -1081,10 +1089,18 @@
 </div>
 </div>
 
+<div class="modal-overlay" id="examSumModal"><div class="modal" style="max-width:440px"><div class="modal-drag"></div><div id="examSumBody"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal('examSumModal')">Close</button><button class="btn-confirm" id="examSumOpen">Open full breakdown</button></div></div></div>
+
 <div class="toast" id="toast"></div>
 
+<script src="/syllabus-data.js"></script>
 <script src="/app.js"></script>
+<script src="/exam.js"></script>
+<script src="/syllabus.js"></script>
+<script src="/study.js"></script>
+<script src="/init.js"></script>
 <script src="/breakdown-data.js"></script>
+<script src="/breakdown-pyq.js"></script>
 <script src="/breakdown.js"></script>
 </body>
 </html>
