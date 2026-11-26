@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '1.0.5';
+const VERSION = '1.1.0';
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER — reference data (JEE / NEET) + broad units
@@ -304,6 +304,7 @@ function applyRemote(remote) {
   renderStudyStats();
   if (document.getElementById('examPage')?.classList.contains('active')) renderExamPage();
   if (document.getElementById('syllabusPage')?.classList.contains('active')) renderSyllabusPage();
+  publishGlobal();
 }
 
 /* ── LocalStorage cache ── */
@@ -493,6 +494,7 @@ function addUser() {
 
 function deleteUser(uid) {
   if (!confirm('Remove this person?')) return;
+  fetch(`${FB}/global/lb/${sessionId}_${uid}.json`, { method: 'DELETE' }).catch(() => {});
   doWrite(async () => {
     await fbDelete('/users/' + uid);
     // Remove all history for this user
@@ -761,6 +763,7 @@ let weekOffset = 0;      // 0 = current week, -1 = previous week, ...
 let monthSel = null;     // 'YYYY-MM' of month currently shown in Week/Month main-chart view
 
 function renderAll() {
+  try { renderDonuts(); } catch (e) { console.error(e); }
   renderSummary();
   renderLegend();
   renderMainChart();
@@ -1149,6 +1152,50 @@ function rebuildCharts() {
   renderAll();
 }
 
+/* ── Circular graphs (all-time per person · this month per person) ── */
+let donutAll = null, donutMonth = null, donutMonthSel = null;
+function drawDonut(canvasId, msgId, labels, data, colors) {
+  const canvas = document.getElementById(canvasId), msg = document.getElementById(msgId);
+  if (!canvas || !msg) return null;
+  if (!labels.length || !data.reduce((a, b) => a + b, 0)) { canvas.style.display = 'none'; msg.style.display = 'block'; return null; }
+  canvas.style.display = 'block'; msg.style.display = 'none';
+  const dark = document.documentElement.dataset.theme !== 'light';
+  return new Chart(canvas, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: dark ? '#181819' : '#ffffff', borderWidth: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '62%',
+      plugins: { legend: { position: 'bottom', labels: { color: dark ? '#f0ede8' : '#1a1a1b', font: { family: 'Syne', size: 10, weight: '700' }, boxWidth: 10 } } },
+      animation: { duration: 300 } }
+  });
+}
+function navDonutMonth(dir) {
+  const months = availableMonths().sort();
+  if (!donutMonthSel) donutMonthSel = todayStr().slice(0, 7);
+  let idx = months.indexOf(donutMonthSel);
+  idx = Math.min(Math.max(idx + dir, 0), months.length - 1);
+  donutMonthSel = months[idx];
+  renderDonuts();
+}
+function pickDonutMonth(v) { donutMonthSel = v; renderDonuts(); }
+function renderDonuts() {
+  if (donutAll) { donutAll.destroy(); donutAll = null; }
+  if (donutMonth) { donutMonth.destroy(); donutMonth = null; }
+  const users = visibleUserList();
+  const colors = users.map((u, i) => userColor(i));
+  const allData = users.map(u => state.subjects.length ? getUserTotal(u.id, 'alltime') : 0);
+  donutAll = drawDonut('donutAllChart', 'donutAllMsg', users.map((u, i) => `${u.name} · ${allData[i]}`), allData, colors);
+  if (!donutMonthSel) donutMonthSel = todayStr().slice(0, 7);
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = availableMonths();
+  const nav = document.getElementById('donutMonthNav');
+  if (nav) nav.innerHTML = `<button class="cal-nav-btn" onclick="navDonutMonth(-1)">‹</button>
+    <select class="month-picker" onchange="pickDonutMonth(this.value)">${months.map(m => { const [y, mo] = m.split('-').map(Number); return `<option value="${m}" ${m === donutMonthSel ? 'selected' : ''}>${MON[mo - 1]} ${y}</option>`; }).join('')}</select>
+    <button class="cal-nav-btn" onclick="navDonutMonth(1)">›</button>`;
+  const keys = Object.keys(state.history).filter(k => k.startsWith(donutMonthSel));
+  const monData = users.map(u => keys.reduce((t, k) => t + dayTotal(u.id, k), 0));
+  donutMonth = drawDonut('donutMonthChart', 'donutMonthMsg', users.map((u, i) => `${u.name} · ${monData[i]}`), monData, colors);
+}
+
 /* ── Calendar ── */
 function initCal() { const n = logicalNow(); calYear = n.getFullYear(); calMonth = n.getMonth(); }
 function calNav(dir) { calMonth += dir; if (calMonth > 11) { calMonth = 0; calYear++; } if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
@@ -1345,9 +1392,96 @@ function closeEdit(uid) {
 }
 
 /* ── Leaderboard ── */
+/* ── Leaderboard: session / global views + podium ── */
+let lbView = 'session', globalLb = null, globalLbLoading = false;
+const GLOBAL_KEY = 'qttrack_global_optin';
+let lastGlobalSig = '';
+function globalOptIn() { try { return localStorage.getItem(GLOBAL_KEY) === '1'; } catch (e) { return false; } }
+function weekKeyStr() { const m = getMondayOfWeek(); return m.getFullYear() + '-' + pad(m.getMonth() + 1) + '-' + pad(m.getDate()); }
+function setLbView(v, btn) {
+  lbView = v;
+  document.querySelectorAll('.lb-view-btn').forEach(b => b.classList.toggle('active', b === btn));
+  if (v === 'global') loadGlobalLb();
+  renderLeaderboard();
+}
+async function loadGlobalLb() {
+  globalLbLoading = true; renderLeaderboard();
+  try { const r = await fetch(`${FB}/global/lb.json`); const d = r.ok ? await r.json() : null; globalLb = d ? Object.values(d) : []; }
+  catch (e) { globalLb = []; }
+  globalLbLoading = false; renderLeaderboard();
+}
+function globalScore(e) {
+  if (lbScope === 'today') return e.day === todayStr() ? (e.today || 0) : 0;
+  if (lbScope === 'week') return e.wk === weekKeyStr() ? (e.week || 0) : 0;
+  if (lbScope === 'month') return e.mo === todayStr().slice(0, 7) ? (e.month || 0) : 0;
+  return e.all || 0;
+}
+/* What this device publishes for the people in the current session (only when opted in).
+   People hidden by Anonymous mode on another device are never published; your own anonymous people go up as "Anonymous". */
+function globalEntries() {
+  const out = {}, day = todayStr(), wk = weekKeyStr(), mo = todayStr().slice(0, 7);
+  userList().forEach(u => {
+    if (isAnonHidden(u.id)) return;
+    out[sessionId + '_' + u.id] = { sid: sessionId, name: isAnonMine(u.id) ? 'Anonymous' : u.name, all: getUserTotal(u.id, 'alltime'), today: getUserTotal(u.id, 'today'), week: getUserTotal(u.id, 'week'), month: getUserTotal(u.id, 'month'), day, wk, mo, ts: Date.now() };
+  });
+  return out;
+}
+async function publishGlobal(force) {
+  if (!globalOptIn() || !sessionId) return;
+  const ent = globalEntries();
+  const sig = JSON.stringify(Object.values(ent).map(e => ({ ...e, ts: 0 })));
+  if (!force && sig === lastGlobalSig) return;
+  lastGlobalSig = sig;
+  try {
+    await Promise.all(Object.entries(ent).map(([k, v]) => fetch(`${FB}/global/lb/${k}.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(v) })));
+  } catch (e) { lastGlobalSig = ''; }
+}
+async function unpublishGlobal() {
+  await Promise.all(userList().map(u => fetch(`${FB}/global/lb/${sessionId}_${u.id}.json`, { method: 'DELETE' }).catch(() => {})));
+  lastGlobalSig = '';
+}
+function toggleGlobalOptIn() {
+  const on = !globalOptIn();
+  try { localStorage.setItem(GLOBAL_KEY, on ? '1' : '0'); } catch (e) {}
+  if (on) publishGlobal(true).then(() => { showToast('Published to the global board'); loadGlobalLb(); });
+  else unpublishGlobal().then(() => { showToast('Removed from the global board'); loadGlobalLb(); });
+  renderLeaderboard();
+}
+function podiumHTML(top) {
+  if (!top.length || !(top[0].score > 0)) return '';
+  const hs = [150, 112, 86];
+  return [1, 0, 2].filter(i => top[i]).map(i =>
+    `<div class="pd-col"><div class="pd-name">${escHtml(top[i].name)}</div><div class="pd-score">${top[i].score}</div><div class="pd-bar pd-${i + 1}" style="height:${hs[i]}px">${i + 1}</div></div>`).join('');
+}
+function renderLeaderboard() {
+  const wrap = document.getElementById('lbSubjWrap'), opt = document.getElementById('lbGlobalOpt'), pod = document.getElementById('lbPodium');
+  if (!wrap || !opt || !pod) return;
+  if (lbView === 'session') {
+    wrap.style.display = ''; opt.innerHTML = '';
+    renderLeaderboardSession();
+    const ranked = visibleUserList().map(u => ({ name: u.name, score: lbSubj === 'all' ? getUserTotal(u.id, lbScope) : getUserTotal(u.id, lbScope, lbSubj) })).sort((a, b) => b.score - a.score);
+    pod.innerHTML = podiumHTML(ranked.slice(0, 3));
+    return;
+  }
+  wrap.style.display = 'none';
+  const on = globalOptIn();
+  opt.innerHTML = `<div class="lb-opt"><div class="lb-opt-text"><b>Show my session on the global board</b><span>${on ? 'On — everyone in this session appears with their name and totals (anonymous people appear as "Anonymous").' : 'Off — nothing from this session is published.'}</span></div><button class="lb-opt-btn ${on ? 'on' : ''}" onclick="toggleGlobalOptIn()">${on ? 'Turn off' : 'Turn on'}</button></div>`;
+  const table = document.getElementById('lbTable');
+  if (globalLbLoading && !globalLb) { table.innerHTML = '<div class="lb-empty">Loading…</div>'; pod.innerHTML = ''; return; }
+  const rows = (globalLb || []).map(e => ({ name: e.name || 'Anonymous', score: globalScore(e), mine: e.sid === sessionId })).sort((a, b) => b.score - a.score).slice(0, 100);
+  pod.innerHTML = podiumHTML(rows.slice(0, 3));
+  if (!rows.length) { table.innerHTML = '<div class="lb-empty">Nobody is on the global board yet. Turn sharing on above to be the first.</div>'; return; }
+  const max = rows[0].score || 1, rl = ['🥇', '🥈', '🥉'], rc = ['gold', 'silver', 'bronze'];
+  table.innerHTML = rows.map((u, i) => `<div class="lb-row">
+      <div class="lb-rank ${rc[i] || ''}">${rl[i] || i + 1}</div>
+      <div class="lb-name">${escHtml(u.name)}${u.mine ? '<span class="lb-mine">your session</span>' : ''}</div>
+      <div class="lb-score-wrap"><div class="lb-bar-bg"><div class="lb-bar-fill" style="width:${Math.round((u.score / max) * 100)}%;background:#5b8dee"></div></div><div class="lb-tot">${u.score}</div></div>
+    </div>`).join('');
+}
+
 function setLbScope(s, btn) { lbScope = s; document.querySelectorAll('.lb-scope-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderLeaderboard(); }
 function setLbSubj(s, btn) { lbSubj = s; document.querySelectorAll('.lb-subj-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderLeaderboard(); }
-function renderLeaderboard() {
+function renderLeaderboardSession() {
   const bar = document.getElementById('lbSubjBar');
   bar.innerHTML = [{ id: 'all', name: 'All', color: '' }, ...state.subjects].map(s =>
     `<button class="lb-scope-btn lb-subj-btn${s.id === lbSubj ? ' active' : ''}"
@@ -1462,7 +1596,7 @@ function showPage(pageId, navId) {
   // Leaving Exam Analytics always re-locks: any auth for this viewing session is dropped the
   // instant you navigate away, so coming back (even to the same person) demands the password again.
   if (pageId !== 'examPage') { examAuthedUid = null; examAuthedCompareUid = null; }
-  if (pageId === 'leaderboardPage') renderLeaderboard();
+  if (pageId === 'leaderboardPage') { renderLeaderboard(); if (lbView === 'global') loadGlobalLb(); }
   if (pageId === 'studyPage') renderStudyPage();
   if (pageId === 'examPage') renderExamPage();
   if (pageId === 'syllabusPage') renderSyllabusPage();
@@ -1679,6 +1813,7 @@ let examAnalysisStandalone = false; // true when Analysis modal opened directly 
 let examCompareUid = null;      // person being compared against
 let examCompareOpen = false;    // whether the Compare panel is expanded
 let examComparePendingUid = null; // uid awaiting password entry, for Compare specifically
+const LOCK_SVG = (s = 16) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
 const EXAM_MODES = [
   { id: 'jee', label: 'JEE' },
   { id: 'neet', label: 'NEET' },
@@ -1843,7 +1978,7 @@ function renderExamPage() {
     if (lockedScreen) {
       lockedScreen.style.display = 'block';
       lockedScreen.innerHTML = `
-        <div style="font-size:2rem;margin-bottom:.5rem">🔒</div>
+        <div style="margin-bottom:.6rem;color:var(--ex-muted)">${LOCK_SVG(34)}</div>
         <div style="font-weight:700;margin-bottom:.3rem">${escHtml(state.users[examUid]?.name || 'This person')}'s Exam Analytics is locked</div>
         <div style="font-size:.72rem;color:var(--ex-muted);margin-bottom:1rem">Enter the password to view it. You'll need to enter it again next time — on refresh, on switching users, or on leaving this page.</div>
         <button class="btn-confirm" style="max-width:220px;margin:0 auto" onclick="examPromptUnlockCurrent()">Enter password</button>`;
@@ -1857,6 +1992,7 @@ function renderExamPage() {
   renderExamOverview(tests);
   renderExamTestsGrid(tests);
   renderExamCharts(tests); // always visible now — no toggle
+  renderExamExtra(tests);
   const cbtn = document.getElementById('examCompareToggleBtn');
   const cblock = document.getElementById('examCompareBlock');
   if (cbtn) cbtn.classList.toggle('active', examCompareOpen);
@@ -1919,7 +2055,7 @@ function renderExamCompare() {
   // Same hard gate as the primary view: a locked compare target's data never renders without fresh auth.
   const compareLocked = state.exams.locks[examCompareUid];
   if (compareLocked && examAuthedCompareUid !== examCompareUid) {
-    resultHost.innerHTML = `<div class="exam-empty" style="text-align:center;padding:1.4rem 1rem">🔒 ${escHtml(state.users[examCompareUid]?.name || 'This person')}'s data is locked.
+    resultHost.innerHTML = `<div class="exam-empty" style="text-align:center;padding:1.4rem 1rem">${LOCK_SVG(15)} ${escHtml(state.users[examCompareUid]?.name || 'This person')}'s data is locked.
       <br><button class="exam-icon-btn" style="margin-top:.6rem" onclick="examPromptUnlockCompare()">Enter password</button></div>`;
     if (examCompareTestsChart) { examCompareTestsChart.destroy(); examCompareTestsChart = null; }
     if (examComparePerfChart) { examComparePerfChart.destroy(); examComparePerfChart = null; }
@@ -2088,6 +2224,7 @@ function renderExamTestsGrid(tests) {
         <div style="display:flex;align-items:center;gap:.35rem">
           ${t.difficulty ? `<span class="exam-diff-badge ${t.difficulty}">${t.difficulty}</span>` : ''}
           ${badge ? `<span class="exam-jmja-badge ${badge.toLowerCase()}">${badge}</span>` : ''}
+          ${t.bdData ? `<button class="exam-an-btn has" onclick="bdLoadTest('${t.id}')" title="Open the full analysis of this test">Analysis</button>` : `<button class="exam-an-btn" disabled title="Available for tests saved from Paper In-Depth Breakdown">Analysis</button>`}
         </div>
       </div>
       <div class="exam-score-row">
@@ -2109,7 +2246,7 @@ function renderExamTestsGrid(tests) {
       ${t.note ? `<div class="exam-note-box" style="font-size:.62rem;padding:.4rem .5rem">${escHtml(t.note)}</div>` : ''}
       <div class="exam-test-card-actions">
         <button class="exam-icon-btn" onclick="openExamModal('${t.id}')">Edit</button>
-        ${isOther ? '' : `<button class="exam-icon-btn" onclick="openExamAnalysisFor('${t.id}')">Paper Analysis</button>`}
+        ${isOther ? '' : `<button class="exam-icon-btn" onclick="openExamAnalysisFor('${t.id}')">Paper Breakdown</button>`}
         <button class="exam-icon-btn" onclick="deleteExamTest('${t.id}')">Delete</button>
       </div>
     </div>`;
@@ -2291,6 +2428,7 @@ function saveExamTest() {
     overallPercentile: calcP != null ? calcP : (keepP ? prevT.overallPercentile : null),
     pctEstimated: calcP == null && keepP ? !!prevT.pctEstimated : false,
     ...(prevT && prevT.source ? { source: prevT.source } : {}),
+    ...(prevT && prevT.bdData ? { bdData: prevT.bdData } : {}),
     note: document.getElementById('examNote').value.trim(),
     difficulty: examDraftDifficulty,
     jmja: examMode === 'jee' ? examDraftJmJa : null,
@@ -2641,6 +2779,49 @@ function renderExamCharts(tests) {
   });
 }
 function setExamWebSubj(name) { examWebSubj = name; renderExamCharts(examTestsForMode()); }
+
+/* ── Exam Analytics: test frequency (per month) + time analysis (from Paper Breakdown data) ── */
+let examFreqChart = null, examTimeChart = null;
+function renderExamExtra(tests) {
+  [examFreqChart, examTimeChart].forEach(c => c && c.destroy());
+  examFreqChart = examTimeChart = null;
+  const fc = document.getElementById('examFreqChart'), fm = document.getElementById('examFreqNoData');
+  const tcv = document.getElementById('examTimeChart'), tm = document.getElementById('examTimeNoData');
+  if (!fc || !tcv) return;
+  const tc = '#7fae8f', gc = 'rgba(34,197,94,0.1)';
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dated = tests.filter(t => t.date);
+  if (!dated.length) { fc.style.display = 'none'; fm.style.display = 'block'; }
+  else {
+    fc.style.display = 'block'; fm.style.display = 'none';
+    const counts = {}; dated.forEach(t => { const k = t.date.slice(0, 7); counts[k] = (counts[k] || 0) + 1; });
+    const keys = Object.keys(counts).sort();
+    let [y, m] = keys[0].split('-').map(Number); const [ey, em] = keys[keys.length - 1].split('-').map(Number);
+    const months = [];
+    while (y < ey || (y === ey && m <= em)) { months.push(y + '-' + pad(m)); m++; if (m > 12) { m = 1; y++; } }
+    const shown = months.slice(-12);
+    examFreqChart = new Chart(fc, {
+      type: 'bar',
+      data: { labels: shown.map(k => MON[+k.slice(5) - 1] + ' ' + k.slice(2, 4)), datasets: [{ label: 'Tests', data: shown.map(k => counts[k] || 0), backgroundColor: '#22c55e', borderRadius: 4, borderSkipped: false }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: { x: { grid: { display: false }, ticks: { color: tc, font: { size: 9 } } }, y: { grid: { color: gc }, ticks: { color: tc, font: { size: 9 }, precision: 0 }, beginAtZero: true } } }
+    });
+  }
+  const timed = tests.filter(t => t.bdData && (t.bdData.q || []).some(r => r && r.t != null));
+  if (!timed.length) { tcv.style.display = 'none'; tm.style.display = 'block'; return; }
+  tcv.style.display = 'block'; tm.style.display = 'none';
+  const SC = { Physics: '#3b82f6', Chemistry: '#f59e0b', Mathematics: '#22c55e', Other: '#a78bfa' };
+  const subs = ['Physics', 'Chemistry', 'Mathematics', 'Other'].filter(sb => timed.some(t => t.bdData.q.some(r => r && r.s === sb && r.t != null)));
+  examTimeChart = new Chart(tcv, {
+    type: 'bar',
+    data: { labels: timed.map(t => t.name), datasets: subs.map(sb => ({ label: sb, backgroundColor: SC[sb], borderRadius: 3,
+      data: timed.map(t => Math.round(t.bdData.q.filter(r => r && r.s === sb && r.t != null).reduce((a, r) => a + r.t, 0) / 6) / 10) })) },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: tc, font: { size: 9 }, boxWidth: 10 } } },
+      scales: { x: { stacked: true, grid: { display: false }, ticks: { color: tc, font: { size: 9 }, maxRotation: 30 } },
+                y: { stacked: true, grid: { color: gc }, ticks: { color: tc, font: { size: 9 } }, beginAtZero: true, title: { display: true, text: 'Minutes', color: tc, font: { size: 9 } } } } }
+  });
+}
+
 
 /* ════════════════════════════════════════════════════════════
    SYLLABUS TRACKER

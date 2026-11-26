@@ -72,7 +72,7 @@ Mathematics: {
 'Statistics':'mean; variance; standard deviation; dispersion'}};
 /* ═══ JEE Main marks-vs-percentile tables, per shift, 2021–2026 — transcribed from the developer's verified sources (mathongo tables and coaching-class boards). ═══
    Marks out of 300 needed for each percentile. P = percentile ladder of that session; each shift = [date, shift (1 morning / 2 evening), marks aligned with P (null = not published)].
-   Not covered: 2024 April and 2026 April (no table supplied). Source quirks: 13 Apr 2023 Shift 2 lists 99.3 below 99.2 (smoothed); 28 Jan 2026 Shift 2 partly hidden in the photo (only visible cells kept).
+   Not covered: 2024 April. 2026 April = coaching-institute estimates (Competishun), not NTA tables; its 95 / 95.5 rows were left out because they looked duplicated in the source. Source quirks: 13 Apr 2023 Shift 2 lists 99.3 below 99.2 (smoothed); 28 Jan 2026 Shift 2 partly hidden in the photo (only visible cells kept).
    G = pattern for extending a shift past its published top (marks = M99 + (M99−M97)·G[p]), learned from the 54 shifts that publish 99.1–99.9. */
 const BD_PYQ = {
  G: {"99.1":0.087,"99.2":0.188,"99.3":0.304,"99.4":0.423,"99.5":0.569,"99.6":0.744,"99.7":0.97,"99.8":1.243,"99.9":1.605},
@@ -211,7 +211,17 @@ const BD_PYQ = {
     ["24 Jan",1,[80,86,92,96,102,109,113,118,123,127,134,141,150,162]],
     ["24 Jan",2,[73,77,81,88,93,101,104,110,115,121,128,137,146,160]],
     ["28 Jan",1,[82,86,91,96,102,109,112,114,121,126,132,138,149,161]],
-    ["28 Jan",2,[null,null,91,95,103,108,null,null,null,null,null,140,150,162]]]}
+    ["28 Jan",2,[null,null,91,95,103,108,null,null,null,null,null,140,150,162]]]},
+  {y:2026,m:"Apr",P:[90,91,92,93,94,96,96.5,97,97.5,98,98.5,99,99.5,99.9],
+   sh:[
+    ["2 Apr",1,[95,99,104,110,117,128,132,137,143,151,161,175,200,233]],
+    ["2 Apr",2,[91,95,99,104,110,119,123,128,134,141,151,165,189,221]],
+    ["4 Apr",1,[98,103,108,114,121,130,135,140,146,153,164,175,199,230]],
+    ["4 Apr",2,[95,99,104,109,116,128,132,138,144,151,161,174,198,229]],
+    ["5 Apr",1,[103,108,114,121,128,138,143,149,156,165,175,190,218,252]],
+    ["5 Apr",2,[95,99,104,110,117,128,132,137,143,151,161,175,200,231]],
+    ["6 Apr",1,[80,83,87,91,97,113,118,123,129,136,146,160,184,218]],
+    ["6 Apr",2,[99,104,109,115,122,134,138,144,150,158,168,183,209,241]]]}
  ]};
 
 /* ═══ Chapter intelligence — [how often asked in Mains: H/M/L, how scoring: S=scoring M=medium T=time-hungry, tip].

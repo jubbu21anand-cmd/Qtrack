@@ -16,7 +16,7 @@
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.0.5</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.1.0</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -59,7 +59,7 @@
     <button class="nav-item" onclick="openModal('customiseModal');closeSidebar()">Customise</button>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.0.5</span> · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.1.0</span> · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -131,6 +131,23 @@
   </div>
 
   <div class="chart-section">
+    <div class="chart-header"><div class="chart-title">All-time questions — per person</div></div>
+    <div class="chart-wrap donut-wrap">
+      <div class="no-data-msg" id="donutAllMsg"><strong>No data yet</strong>Log some questions to see the split.</div>
+      <canvas id="donutAllChart" style="display:none"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-section">
+    <div class="chart-header"><div class="chart-title" id="donutMonthTitle">This month — per person</div></div>
+    <div class="chart-nav-row" id="donutMonthNav"></div>
+    <div class="chart-wrap donut-wrap">
+      <div class="no-data-msg" id="donutMonthMsg"><strong>No data this month</strong>Nothing logged in the selected month.</div>
+      <canvas id="donutMonthChart" style="display:none"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-section">
     <div class="chart-header" style="margin-bottom:.5rem">
       <div class="chart-title">Calendar</div>
       <div class="cal-nav">
@@ -155,6 +172,7 @@
 <!-- STUDY TRACKER ------------------------------------------------ -->
 <div class="page" id="studyPage">
   <div class="study-wrap" data-theme-force="purple">
+    <div class="study-pause-overlay"><div class="study-pause-msg"><div class="study-pause-title">Study Tracker is taking a break</div>We need to work on this section because it has been showing bugs. We hope to bring it back soon.</div></div>
     <div class="study-head">
       <div class="study-title">Study <em>Tracker</em></div>
       <div class="study-sub">Pick who's studying, then start a stopwatch or set a timer.</div>
@@ -261,6 +279,20 @@
         <div class="exam-section-title">Subject-wise performance per test</div>
         <div class="chart-wrap" style="height:210px;"><canvas id="examSubjBarChart"></canvas></div>
       </div>
+      <div class="exam-section">
+        <div class="exam-section-title">Test frequency <span class="exam-sub-note">tests per month</span></div>
+        <div class="chart-wrap" style="height:190px;">
+          <div class="no-data-msg ex-no-data" id="examFreqNoData"><strong>No tests yet</strong>Log a test to see how often you practise.</div>
+          <canvas id="examFreqChart" style="display:none"></canvas>
+        </div>
+      </div>
+      <div class="exam-section">
+        <div class="exam-section-title">Time analysis <span class="exam-sub-note">minutes spent per test</span></div>
+        <div class="chart-wrap" style="height:210px;">
+          <div class="no-data-msg ex-no-data" id="examTimeNoData"><strong>No time data yet</strong>Tests saved from Paper In-Depth Breakdown with a pdf2cbt export show their time here. Manually entered tests stay blank.</div>
+          <canvas id="examTimeChart" style="display:none"></canvas>
+        </div>
+      </div>
     </div>
     </div><!-- /examContent -->
   </div>
@@ -268,6 +300,10 @@
 
 <!-- LEADERBOARD ------------------------------------------------- -->
 <div class="page" id="leaderboardPage">
+  <div class="lb-view-bar">
+    <button class="lb-view-btn active" onclick="setLbView('session',this)">This Session</button>
+    <button class="lb-view-btn" onclick="setLbView('global',this)">Global</button>
+  </div>
   <div style="margin-bottom:.85rem">
     <div class="stat-label" style="margin-bottom:.4rem">Period</div>
     <div class="lb-scope-bar">
@@ -276,9 +312,13 @@
       <button class="lb-scope-btn" onclick="setLbScope('month',this)">Month</button>
       <button class="lb-scope-btn" onclick="setLbScope('alltime',this)">All-Time</button>
     </div>
-    <div class="stat-label" style="margin-bottom:.4rem;margin-top:.75rem">Subject</div>
-    <div class="lb-subj-bar" id="lbSubjBar"></div>
+    <div id="lbSubjWrap">
+      <div class="stat-label" style="margin-bottom:.4rem;margin-top:.75rem">Subject</div>
+      <div class="lb-subj-bar" id="lbSubjBar"></div>
+    </div>
   </div>
+  <div id="lbGlobalOpt"></div>
+  <div class="lb-podium" id="lbPodium"></div>
   <div class="lb-table" id="lbTable"><div class="lb-empty">No data yet.</div></div>
 </div>
 
@@ -286,7 +326,7 @@
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 1.0.5 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 1.1.0 · Beta · qttrack.vercel.app</div>
 
     <div class="about-subtabs">
       <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
@@ -341,6 +381,10 @@
       <div class="faq-a">Exam Analytics is where you log full test results — total marks, marks obtained, a per-subject breakdown with score and rank, plus a personal note per test. Percentile is calculated automatically from your rank and the total number of candidates, so you never have to work it out yourself. Each test appears as its own colour-graded card with a quick summary on top. The mode toggle (JEE / NEET / Boards / Other) keeps competitive-exam scores separate from board-exam scores, since JEE-style papers are typically much lower-scoring than board papers — mixing the two would skew your averages and trends. Each mode gets its own progress-over-time line chart, a rank trend chart, a radar chart of subject strengths, and a subject-wise bar chart, with JEE Main and JEE Advanced always plotted as separate coloured lines so they never blend into one misleading trend.</div>
     </div>
     <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What is the Global Leaderboard and who can see me on it? <span class="faq-chevron">▼</span></div>
+      <div class="faq-a">It ranks people from every QTrack session together. It is off by default: nothing from your session is published until you open Leaderboard, switch to Global and turn sharing on. When on, each person in your session appears with their name and question totals (people using Anonymous mode appear as "Anonymous"). You can turn it off any time and your entries are removed.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
       <div class="faq-q">Is AI coming to QTrack? <span class="faq-chevron">▼</span></div>
       <div class="faq-a">It's on the roadmap. The plan is an AI layer that can look at your Question Tracker, Study Tracker, Syllabus Tracker and Exam Analytics together and actually say something useful — where your weak chapters and your weak exam topics overlap, whether your practice volume matches what your syllabus progress needs, and what to prioritise next. Nothing is live yet and no data is being sent anywhere for this — it's a teaser, not a feature, and it'll be opt-in whenever it does ship.</div>
     </div>
@@ -374,6 +418,21 @@
 <!-- CHANGELOG --------------------------------------------------- -->
 <div class="page" id="changelogPage">
   <div class="changelog-wrap">
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">1.1.0</span></div>
+      <ul class="cl-items">
+        <li>New: Global Leaderboard (opt-in) — rank against people from every session, with a podium showing the top three</li>
+        <li>New: podium (1st, 2nd, 3rd bars) on the session Leaderboard too</li>
+        <li>New: Question Tracker circular graphs — all-time questions per person, and this month's questions per person with a month switcher</li>
+        <li>New: Exam Analytics "Test frequency" (tests per month) and "Time analysis" (minutes per test, filled from tests saved via Paper In-Depth Breakdown; stays blank for manually entered tests)</li>
+        <li>New: "Analysis" button on every Exam Analytics test card — blue when the test came from Paper In-Depth Breakdown and can be opened in full, grey otherwise. "Paper Analysis" is now "Paper Breakdown"</li>
+        <li>New: tests saved from Paper In-Depth Breakdown now keep their question-by-question data</li>
+        <li>New data: April 2026 marks-vs-percentile tables (8 shifts) — coaching-institute estimates, not official NTA tables</li>
+        <li>Changed: lock emoji in Exam Analytics replaced with a lock icon</li>
+        <li>Study Tracker is temporarily paused while its bugs are fixed</li>
+      </ul>
+    </div>
 
     <div class="cl-version">
       <div><span class="cl-ver-num">1.0.0</span></div>
@@ -660,7 +719,7 @@
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 1.0.5</span>
+  <span>QTrack 1.1.0</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -673,7 +732,7 @@
   <div class="terms-page-inner">
     <button class="terms-back-btn" onclick="closeTermsPage()">← Back to QTrack</button>
     <h1>Terms &amp; Conditions</h1>
-    <p class="terms-updated">Last updated with QTrack v1.0.5</p>
+    <p class="terms-updated">Last updated with QTrack v1.1.0</p>
 
     <p>These Terms &amp; Conditions ("Terms") govern your access to and use of QTrack (the "App"), a shared, informal question- and progress-tracking tool built and maintained independently. By opening, browsing, or using the App in any way, you agree to be bound by these Terms in full. If you do not agree with any part of these Terms, you should stop using the App immediately.</p>
 
@@ -843,7 +902,7 @@
     <input type="text" id="bdsName" placeholder="e.g. JEE Mock Test 4" maxlength="60">
     <div class="field-label">Save for</div>
     <select id="bdsUser" onchange="bdSaveUser()"></select>
-    <div id="bdsPassWrap" style="display:none"><div class="field-label">🔒 Their Exam Analytics is locked — enter the password</div><input type="password" id="bdsPass" placeholder="Password" autocomplete="off"></div>
+    <div id="bdsPassWrap" style="display:none"><div class="field-label"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Their Exam Analytics is locked — enter the password</div><input type="password" id="bdsPass" placeholder="Password" autocomplete="off"></div>
     <div class="field-label">Test type</div>
     <div class="exam-diff-pick" style="margin-bottom:.6rem">
       <button class="exam-diff-pick-btn" id="bdsT_" onclick="bdSaveType('')">Other</button>
