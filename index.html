@@ -16,7 +16,7 @@
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.1.1</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.2.0</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -51,6 +51,7 @@
     <button class="nav-item active" onclick="showPage('homePage','homeNav')" id="homeNav">Question Tracker</button>
     <button class="nav-item" onclick="showPage('studyPage','studyNav')" id="studyNav">Study Tracker</button>
     <button class="nav-item" onclick="showPage('syllabusPage','syllabusNav')" id="syllabusNav">Syllabus Tracker</button>
+    <button class="nav-item" onclick="showPage('revisionPage','revisionNav')" id="revisionNav">Revision Planner</button>
     <button class="nav-item" onclick="showPage('examPage','examNav')" id="examNav">Exam Analytics</button>
     <button class="nav-item" onclick="showPage('breakdownPage','breakdownNav')" id="breakdownNav">Paper In-Depth Breakdown</button>
     <button class="nav-item" onclick="showPage('leaderboardPage','leaderboardNav')" id="leaderboardNav">Leaderboard</button>
@@ -59,7 +60,7 @@
     <button class="nav-item" onclick="openModal('customiseModal');closeSidebar()">Customise</button>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.1.1</span> · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.2.0</span> · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -77,6 +78,9 @@
   <div class="daily-quote-box" id="dailyQuoteBox">
     <span id="dailyQuoteText">Loading today's quote…</span>
   </div>
+
+  <div id="deadlineBox" style="display:none"></div>
+  <div class="dl-btn-row"><button class="dl-set-btn" id="deadlineBtn" onclick="openDeadlineModal()">Set deadline</button></div>
 
   <div class="summary-strip">
     <div class="stat-card" style="position:relative">
@@ -130,6 +134,7 @@
     </div>
   </div>
 
+  <div class="donut-pair">
   <div class="chart-section">
     <div class="chart-header"><div class="chart-title">All-time questions — per person</div></div>
     <div class="chart-wrap donut-wrap">
@@ -146,6 +151,7 @@
       <canvas id="donutMonthChart" style="display:none"></canvas>
     </div>
   </div>
+  </div><!-- /donut-pair -->
 
   <div class="chart-section">
     <div class="chart-header" style="margin-bottom:.5rem">
@@ -223,6 +229,17 @@
     <div id="sylBody"></div>
   </div>
 </div><!-- /syllabusPage -->
+
+<!-- REVISION PLANNER ----------------------------------------------- -->
+<div class="page" id="revisionPage">
+  <div class="rev-wrap">
+    <div class="rev-head"><div class="rev-title">Revision <em>Planner</em></div></div>
+    <div class="rv-chip-row" id="revChipRow"></div>
+    <div id="revControls"></div>
+    <div id="revBody"></div>
+    <div class="rv-legend"><svg class="rv-fire" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 .3 1.2 1 2 2 2 0-3-.5-5 1-8z"/></svg> Frequently asked topic in JEE Main</div>
+  </div>
+</div><!-- /revisionPage -->
 
 <!-- EXAM ANALYTICS ------------------------------------------------ -->
 <div class="page" id="examPage">
@@ -326,7 +343,7 @@
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 1.1.1 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 1.2.0 · Beta · qttrack.vercel.app</div>
 
     <div class="about-subtabs">
       <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
@@ -418,6 +435,17 @@
 <!-- CHANGELOG --------------------------------------------------- -->
 <div class="page" id="changelogPage">
   <div class="changelog-wrap">
+
+    <div class="cl-version">
+      <div><span class="cl-ver-num">1.2.0</span></div>
+      <ul class="cl-items">
+        <li>New: Revision Planner (orange) — every JEE chapter and topic, listed subject by subject in dropdown boxes, with tick boxes for Revision 1, Revision 2, Revision 3, PYQ and Weak. Each person has their own ticks. Ticking a chapter box ticks all its topics</li>
+        <li>New: each chapter shows how much effort it needs and how much yield it gives; sort the list to bring any combination (e.g. high yield, low effort) to the top, or show only that group</li>
+        <li>New: a small flame marks topics that are frequently asked in JEE Main, with a "Frequently asked first" option</li>
+        <li>New: deadline countdown on the Question Tracker — name your exam and date; shows days left (switchable to DD:HH:MM:SS or HH:MM:SS) with a live progress bar. Shared by everyone in the session</li>
+        <li>Changed: the two circular graphs now sit side by side to save space</li>
+      </ul>
+    </div>
 
     <div class="cl-version">
       <div><span class="cl-ver-num">1.1.0</span></div>
@@ -727,7 +755,7 @@
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 1.1.1</span>
+  <span>QTrack 1.2.0</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -740,7 +768,7 @@
   <div class="terms-page-inner">
     <button class="terms-back-btn" onclick="closeTermsPage()">← Back to QTrack</button>
     <h1>Terms &amp; Conditions</h1>
-    <p class="terms-updated">Last updated with QTrack v1.1.1</p>
+    <p class="terms-updated">Last updated with QTrack v1.2.0</p>
 
     <p>These Terms &amp; Conditions ("Terms") govern your access to and use of QTrack (the "App"), a shared, informal question- and progress-tracking tool built and maintained independently. By opening, browsing, or using the App in any way, you agree to be bound by these Terms in full. If you do not agree with any part of these Terms, you should stop using the App immediately.</p>
 
@@ -878,6 +906,23 @@
     <div class="modal-btns">
       <button class="btn-cancel" onclick="resetCustomTint()">Reset to default</button>
       <button class="btn-confirm" onclick="closeModal('customiseModal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deadline -->
+<div class="modal-overlay" id="deadlineModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-drag"></div>
+    <h2>Set deadline</h2>
+    <div class="field-label">Exam name</div>
+    <input type="text" id="dlName" placeholder="e.g. JEE Main" maxlength="40">
+    <div class="field-label">Exam date &amp; time</div>
+    <input type="datetime-local" id="dlDate">
+    <div class="modal-btns">
+      <button class="btn-cancel" id="dlRemoveBtn" onclick="removeDeadline()" style="margin-right:auto">Remove</button>
+      <button class="btn-cancel" onclick="closeModal('deadlineModal')">Cancel</button>
+      <button class="btn-confirm" onclick="saveDeadline()">Save</button>
     </div>
   </div>
 </div>
@@ -1102,6 +1147,9 @@
 <script src="/breakdown-data.js"></script>
 <script src="/breakdown-pyq.js"></script>
 <script src="/breakdown.js"></script>
+<script src="/revision-data.js"></script>
+<script src="/revision.js"></script>
+<script src="/deadline.js"></script>
 </body>
 </html>
 

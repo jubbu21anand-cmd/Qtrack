@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '1.1.1';
+const VERSION = '1.2.0';
 
 /* ── State ── */
 let sessionId = '';
@@ -88,7 +88,9 @@ function applyRemote(remote) {
   state.syllabus = remote.syllabus || { progress: {}, custom: {} };
   if (!state.syllabus.progress) state.syllabus.progress = {};
   if (!state.syllabus.custom) state.syllabus.custom = {};
-  if (!state.exams.tests) state.exams.tests = {};
+  if (typeof revPending === 'undefined' || !Object.keys(revPending).length) state.revision = remote.revision || { progress: {} };   // keep unsaved ticks until they are saved
+  if (!state.revision.progress) state.revision.progress = {};
+  state.deadline = remote.deadline || null;
   // Subjects: stored as array
   if (Array.isArray(remote.subjects) && remote.subjects.length > 0) {
     state.subjects = remote.subjects;
@@ -100,6 +102,8 @@ function applyRemote(remote) {
   renderStudyStats();
   if (document.getElementById('examPage')?.classList.contains('active')) renderExamPage();
   if (document.getElementById('syllabusPage')?.classList.contains('active')) renderSyllabusPage();
+  if (document.getElementById('revisionPage')?.classList.contains('active')) renderRevisionPage();
+  renderDeadline();
   publishGlobal();
 }
 
@@ -1357,6 +1361,7 @@ const ROUTES = {
   homePage:        ['question-tracker',          'homeNav',        'Question Tracker'],
   studyPage:       ['study-tracker',             'studyNav',       'Study Tracker'],
   syllabusPage:    ['syllabus-tracker',          'syllabusNav',    'Syllabus Tracker'],
+  revisionPage:    ['revision-planner',          'revisionNav',    'Revision Planner'],
   examPage:        ['exam-analytics',            'examNav',        'Exam Analytics'],
   breakdownPage:   ['paper-in-depth-breakdown',  'breakdownNav',   'Paper In-Depth Breakdown'],
   leaderboardPage: ['leaderboard',               'leaderboardNav', 'Leaderboard'],
@@ -1396,6 +1401,7 @@ function showPage(pageId, navId) {
   if (pageId === 'studyPage') renderStudyPage();
   if (pageId === 'examPage') renderExamPage();
   if (pageId === 'syllabusPage') renderSyllabusPage();
+  if (pageId === 'revisionPage') renderRevisionPage();
   if (pageId === 'breakdownPage') { if (window.bdOpen) bdOpen(); else if (window.bdRender) bdRender(); }
 }
 

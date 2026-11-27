@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderAll();
   if (!showFromUrl() && pathSlug()) { try { history.replaceState({}, '', '/' + location.search); } catch (e) {} }   // unknown address → home, tidy URL
   renderDailyQuote();
+  renderDeadline();
   loadCustomTint();
   renderCustomiseSwatches();
   await loadRemote(); // then sync from Firebase
