@@ -16,7 +16,7 @@
     <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.2.0</sub></div>
+    <div class="logo">Q<em>T</em>rack <span class="beta-tag">beta</span> <sub>1.2.1</sub></div>
   </div>
   <div class="header-right">
     <div class="sync-wrap"><span id="syncDot"></span><span id="syncLabel">—</span></div>
@@ -60,7 +60,7 @@
     <button class="nav-item" onclick="openModal('customiseModal');closeSidebar()">Customise</button>
     <button class="nav-item" onclick="openModal('sessionModal');closeSidebar()">Session</button>
   </div>
-  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.2.0</span> · Beta · qttrack.vercel.app</div>
+  <div class="sidebar-foot">QTrack <span id="sidebarVersionTag">1.2.1</span> · Beta · qttrack.vercel.app</div>
 </nav>
 
 <!-- ═══ PAGES ════════════════════════════════════════════════ -->
@@ -343,7 +343,7 @@
 <div class="page" id="aboutPage">
   <div class="about-wrap">
     <div class="about-h1">Q<em>T</em>rack</div>
-    <div class="about-version">Version 1.2.0 · Beta · qttrack.vercel.app</div>
+    <div class="about-version">Version 1.2.1 · Beta · qttrack.vercel.app</div>
 
     <div class="about-subtabs">
       <button class="about-subtab-btn active" id="aboutSubtab_general" onclick="setAboutSubtab('general')">General</button>
@@ -445,6 +445,12 @@
         <li>New: deadline countdown on the Question Tracker — name your exam and date; shows days left (switchable to DD:HH:MM:SS or HH:MM:SS) with a live progress bar. Shared by everyone in the session</li>
         <li>Changed: the two circular graphs now sit side by side to save space</li>
       </ul>
+      <div class="cl-patch">
+        <span class="cl-patch-num">1.2.1</span>
+        <ul class="cl-items">
+          <li>Deadline countdown: the progress bar no longer starts from the moment you set the deadline. You can pick its start date in the popup; if left blank it starts on 1 January of this year</li>
+        </ul>
+      </div>
     </div>
 
     <div class="cl-version">
@@ -755,7 +761,7 @@
 <footer>
   <span>Made by Arnav Anand</span>
   <span style="color:var(--muted2)">·</span>
-  <span>QTrack 1.2.0</span>
+  <span>QTrack 1.2.1</span>
   <span style="color:var(--muted2)">·</span>
   <button class="footer-feedback" onclick="openModal('feedbackModal')">Feedback</button>
   <button class="footer-feedback" onclick="openModal('bugModal')">Report Bug</button>
@@ -768,7 +774,7 @@
   <div class="terms-page-inner">
     <button class="terms-back-btn" onclick="closeTermsPage()">← Back to QTrack</button>
     <h1>Terms &amp; Conditions</h1>
-    <p class="terms-updated">Last updated with QTrack v1.2.0</p>
+    <p class="terms-updated">Last updated with QTrack v1.2.1</p>
 
     <p>These Terms &amp; Conditions ("Terms") govern your access to and use of QTrack (the "App"), a shared, informal question- and progress-tracking tool built and maintained independently. By opening, browsing, or using the App in any way, you agree to be bound by these Terms in full. If you do not agree with any part of these Terms, you should stop using the App immediately.</p>
 
@@ -919,6 +925,8 @@
     <input type="text" id="dlName" placeholder="e.g. JEE Main" maxlength="40">
     <div class="field-label">Exam date &amp; time</div>
     <input type="datetime-local" id="dlDate">
+    <div class="field-label">Progress bar starts from <span style="text-transform:none;letter-spacing:0">(optional — blank = 1 Jan this year)</span></div>
+    <input type="date" id="dlStart">
     <div class="modal-btns">
       <button class="btn-cancel" id="dlRemoveBtn" onclick="removeDeadline()" style="margin-right:auto">Remove</button>
       <button class="btn-cancel" onclick="closeModal('deadlineModal')">Cancel</button>

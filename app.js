@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 const FB = 'https://qtrack-d4724-default-rtdb.firebaseio.com';
-const VERSION = '1.2.0';
+const VERSION = '1.2.1';
 
 /* ── State ── */
 let sessionId = '';

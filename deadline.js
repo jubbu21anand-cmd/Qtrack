@@ -50,6 +50,9 @@ function openDeadlineModal() {
   let v = '';
   if (d && d.ts) { const x = new Date(d.ts); v = x.getFullYear() + '-' + pad(x.getMonth() + 1) + '-' + pad(x.getDate()) + 'T' + pad(x.getHours()) + ':' + pad(x.getMinutes()); }
   document.getElementById('dlDate').value = v;
+  let sv = '';
+  if (d && d.start) { const x = new Date(d.start); sv = x.getFullYear() + '-' + pad(x.getMonth() + 1) + '-' + pad(x.getDate()); }
+  document.getElementById('dlStart').value = sv;
   document.getElementById('dlRemoveBtn').style.display = d && d.ts ? '' : 'none';
   openModal('deadlineModal');
 }
@@ -61,7 +64,10 @@ function saveDeadline() {
   if (isNaN(ts)) { showToast('Pick the exam date'); return; }
   const old = state.deadline;
   if (!old && ts <= Date.now()) { showToast('Pick a future date'); return; }
-  const start = old && old.start && old.start < ts ? old.start : Date.now();
+  // bar starts at the date you choose; if left blank, at 1 January of this year
+  const sv = document.getElementById('dlStart').value;
+  let start = sv ? new Date(sv + 'T00:00:00').getTime() : new Date(new Date().getFullYear(), 0, 1).getTime();
+  if (isNaN(start) || start >= ts) { showToast('Start date must be before the exam'); return; }
   closeModal('deadlineModal');
   doWrite(() => fbPut('/deadline', { name, ts, start })).then(ok => { if (ok) showToast('Deadline saved'); });
 }
